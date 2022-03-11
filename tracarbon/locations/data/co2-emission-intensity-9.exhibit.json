@@ -1,0 +1,116 @@
+{
+  "countries": [
+    {
+      "co2g_kwh": 479.2,
+      "name_alpha_iso_2": "gr"
+    },
+    {
+      "co2g_kwh": 410.4,
+      "name_alpha_iso_2": "bg"
+    },
+    {
+      "co2g_kwh": 133.8,
+      "name_alpha_iso_2": "hr"
+    },
+    {
+      "co2g_kwh": 198.4,
+      "name_alpha_iso_2": "pt"
+    },
+    {
+      "co2g_kwh": 51.1,
+      "name_alpha_iso_2": "fr"
+    },
+    {
+      "co2g_kwh": 328.4,
+      "name_alpha_iso_2": "nl"
+    },
+    {
+      "co2g_kwh": 774.9,
+      "name_alpha_iso_2": "ee"
+    },
+    {
+      "co2g_kwh": 311.0,
+      "name_alpha_iso_2": "de"
+    },
+    {
+      "co2g_kwh": 45.4,
+      "name_alpha_iso_2": "lt"
+    },
+    {
+      "co2g_kwh": 709.8,
+      "name_alpha_iso_2": "pl"
+    },
+    {
+      "co2g_kwh": 8.8,
+      "name_alpha_iso_2": "se"
+    },
+    {
+      "co2g_kwh": 213.4,
+      "name_alpha_iso_2": "it"
+    },
+    {
+      "co2g_kwh": 278.6,
+      "name_alpha_iso_2": "ie"
+    },
+    {
+      "co2g_kwh": 436.6,
+      "name_alpha_iso_2": "cz"
+    },
+    {
+      "co2g_kwh": 225.0,
+      "name_alpha_iso_2": "gb"
+    },
+    {
+      "co2g_kwh": 161.0,
+      "name_alpha_iso_2": "be"
+    },
+    {
+      "co2g_kwh": 82.4,
+      "name_alpha_iso_2": "at"
+    },
+    {
+      "co2g_kwh": 106.5,
+      "name_alpha_iso_2": "lv"
+    },
+    {
+      "co2g_kwh": 379.0,
+      "name_alpha_iso_2": "mt"
+    },
+    {
+      "co2g_kwh": 216.4,
+      "name_alpha_iso_2": "hu"
+    },
+    {
+      "co2g_kwh": 68.6,
+      "name_alpha_iso_2": "fi"
+    },
+    {
+      "co2g_kwh": 101.7,
+      "name_alpha_iso_2": "sk"
+    },
+    {
+      "co2g_kwh": 109.0,
+      "name_alpha_iso_2": "dk"
+    },
+    {
+      "co2g_kwh": 217.8,
+      "name_alpha_iso_2": "si"
+    },
+    {
+      "co2g_kwh": 156.4,
+      "name_alpha_iso_2": "es"
+    },
+    {
+      "co2g_kwh": 58.5,
+      "name_alpha_iso_2": "lu"
+    },
+    {
+      "co2g_kwh": 299.5, 
+      "name_alpha_iso_2": "ro"
+    },
+    {
+      "co2g_kwh": 620.9, 
+      "name_alpha_iso_2": "cy"
+    }
+  ]
+}
