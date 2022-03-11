@@ -1,0 +1,116 @@
+{
+  "countries": [
+    {
+      "co2g_kwh": 479.2,
+      "name": "gr"
+    },
+    {
+      "co2g_kwh": 410.4,
+      "name": "bg"
+    },
+    {
+      "co2g_kwh": 133.8,
+      "name": "hr"
+    },
+    {
+      "co2g_kwh": 198.4,
+      "name": "pt"
+    },
+    {
+      "co2g_kwh": 51.1,
+      "name": "fr"
+    },
+    {
+      "co2g_kwh": 328.4,
+      "name": "nl"
+    },
+    {
+      "co2g_kwh": 774.9,
+      "name": "ee"
+    },
+    {
+      "co2g_kwh": 311.0,
+      "name": "de"
+    },
+    {
+      "co2g_kwh": 45.4,
+      "name": "lt"
+    },
+    {
+      "co2g_kwh": 709.8,
+      "name": "pl"
+    },
+    {
+      "co2g_kwh": 8.8,
+      "name": "se"
+    },
+    {
+      "co2g_kwh": 213.4,
+      "name": "it"
+    },
+    {
+      "co2g_kwh": 278.6,
+      "name": "ie"
+    },
+    {
+      "co2g_kwh": 436.6,
+      "name": "cz"
+    },
+    {
+      "co2g_kwh": 225.0,
+      "name": "gb"
+    },
+    {
+      "co2g_kwh": 161.0,
+      "name": "be"
+    },
+    {
+      "co2g_kwh": 82.4,
+      "name": "at"
+    },
+    {
+      "co2g_kwh": 106.5,
+      "name": "lv"
+    },
+    {
+      "co2g_kwh": 379.0,
+      "name": "mt"
+    },
+    {
+      "co2g_kwh": 216.4,
+      "name": "hu"
+    },
+    {
+      "co2g_kwh": 68.6,
+      "name": "fi"
+    },
+    {
+      "co2g_kwh": 101.7,
+      "name": "sk"
+    },
+    {
+      "co2g_kwh": 109.0,
+      "name": "dk"
+    },
+    {
+      "co2g_kwh": 217.8,
+      "name": "si"
+    },
+    {
+      "co2g_kwh": 156.4,
+      "name": "es"
+    },
+    {
+      "co2g_kwh": 58.5,
+      "name": "lu"
+    },
+    {
+      "co2g_kwh": 299.5, 
+      "name": "ro"
+    },
+    {
+      "co2g_kwh": 620.9, 
+      "name": "cy"
+    }
+  ]
+}
