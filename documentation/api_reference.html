@@ -1,0 +1,610 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>API Reference &#8212; tracarbon  documentation</title>
+    
+    <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+  
+    
+    <link rel="stylesheet"
+      href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+  
+    
+      
+  
+    
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/pydata-sphinx-theme.css" />
+    
+    <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+  
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/logo.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Development" href="development.html" />
+    <link rel="prev" title="Usage" href="usage.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="None">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+  <div id="navbar-start">
+    
+    
+
+<a class="navbar-brand" href="index.html">
+  <img src="_static/logo.png" class="logo" alt="logo">
+</a>
+
+
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="installation.html">
+  Installation
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="usage.html">
+  Usage
+ </a>
+</li>
+
+<li class="toctree-l1 current active nav-item">
+ <a class="current reference internal nav-link" href="#">
+  API Reference
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="development.html">
+  Development
+ </a>
+</li>
+
+    
+</ul>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/fvaleye/tracarbon" rel="noopener" target="_blank" title="GitHub"><span><i class="fab fa-github-square"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar">
+              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    
+  </div>
+</nav>
+              </div>
+              <div class="sidebar-end-items">
+              </div>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+            
+              
+              <div class="toc-item">
+                
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-tracarbon.cli">
+   CLI
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-tracarbon.exporters">
+   Exporters
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-tracarbon.exporters.exporter">
+   Exporter
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-tracarbon.sensors">
+   Sensor
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-tracarbon.locations">
+   Locations
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-tracarbon.locations.location">
+   Location
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-tracarbon.hardwares">
+   Hardware
+  </a>
+ </li>
+</ul>
+
+</nav>
+              </div>
+              
+              <div class="toc-item">
+                
+              </div>
+              
+            
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <section id="api-reference">
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h1>
+<section id="module-tracarbon.cli">
+<span id="cli"></span><h2>CLI<a class="headerlink" href="#module-tracarbon.cli" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="tracarbon.cli.run_metrics">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.cli.</span></span><span class="sig-name descname"><span class="pre">run_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exporter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.cli.run_metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the metrics with the selected exporter</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>exporter</strong> (<a class="reference internal" href="#tracarbon.exporters.exporter.Exporter" title="tracarbon.exporters.exporter.Exporter"><em>tracarbon.exporters.exporter.Exporter</em></a>) – the exporter to run</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-tracarbon.exporters">
+<span id="exporters"></span><h2>Exporters<a class="headerlink" href="#module-tracarbon.exporters" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-tracarbon.exporters.exporter">
+<span id="exporter"></span><h2>Exporter<a class="headerlink" href="#module-tracarbon.exporters.exporter" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.exporters.exporter.Exporter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.exporter.</span></span><span class="sig-name descname"><span class="pre">Exporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.Exporter" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Exporter interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>quit</strong> (<em>bool</em>) – </p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.exporters.exporter.Exporter.Config">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Config</span></span><a class="headerlink" href="#tracarbon.exporters.exporter.Exporter.Config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pydantic configuration.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.exporters.exporter.Exporter.get_name">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.Exporter.get_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the name of the exporter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the Exporter’s name</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.exporters.exporter.Exporter.launch">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">launch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.Exporter.launch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Launch the exporter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>metric</strong> (<a class="reference internal" href="#tracarbon.exporters.exporter.Metric" title="tracarbon.exporters.exporter.Metric"><em>tracarbon.exporters.exporter.Metric</em></a>) – the metric to send</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.exporters.exporter.Metric">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.exporter.</span></span><span class="sig-name descname"><span class="pre">Metric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.Metric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Global metric for the exporters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – </p></li>
+<li><p><strong>value</strong> (<em>Callable</em><em>[</em><em>[</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>float</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>tags</strong> (<em>Optional</em><em>[</em><em>Set</em><em>[</em><em>str</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-tracarbon.sensors">
+<span id="sensor"></span><h2>Sensor<a class="headerlink" href="#module-tracarbon.sensors" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.sensors.CarbonEmission">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.sensors.</span></span><span class="sig-name descname"><span class="pre">CarbonEmission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_consumption</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">previous_energy_consumption_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">WH_TO_KWH_FACTOR</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SECONDS_TO_HOURS_FACTOR</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3600</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.sensors.CarbonEmission" title="Permalink to this definition">¶</a></dt>
+<dd><p>Carbon Metric sensor from watts per second to calculate the co2g/kwh emitted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>location</strong> (<a class="reference internal" href="#tracarbon.locations.location.Location" title="tracarbon.locations.location.Location"><em>tracarbon.locations.location.Location</em></a>) – </p></li>
+<li><p><strong>energy_consumption</strong> (<a class="reference internal" href="#tracarbon.sensors.EnergyConsumption" title="tracarbon.sensors.EnergyConsumption"><em>tracarbon.sensors.EnergyConsumption</em></a>) – </p></li>
+<li><p><strong>previous_energy_consumption_time</strong> (<em>Optional</em><em>[</em><em>datetime.datetime</em><em>]</em>) – </p></li>
+<li><p><strong>WH_TO_KWH_FACTOR</strong> (<em>int</em>) – </p></li>
+<li><p><strong>SECONDS_TO_HOURS_FACTOR</strong> (<em>int</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.sensors.CarbonEmission.co2g_from_watt_hours">
+<span class="sig-name descname"><span class="pre">co2g_from_watt_hours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">watt_hours</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_per_kwh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.sensors.CarbonEmission.co2g_from_watt_hours" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the co2g emitted using watt hours and the co2g/kwh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>watt_hours</strong> (<em>float</em>) – the current wattage</p></li>
+<li><p><strong>co2g_per_kwh</strong> (<em>float</em>) – the co2g emitted during one kwh</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the co2g emitted by the energy consumption</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.sensors.CarbonEmission.run">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.sensors.CarbonEmission.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the Carbon Emission sensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the co2g/kwh.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.sensors.CarbonEmission.wattage_to_watt_hours">
+<span class="sig-name descname"><span class="pre">wattage_to_watt_hours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wattage</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.sensors.CarbonEmission.wattage_to_watt_hours" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert wattage W to watt-hours W/h.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>wattage</strong> (<em>float</em>) – the wattage in W</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>watt-hours W/h</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.sensors.EnergyConsumption">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.sensors.</span></span><span class="sig-name descname"><span class="pre">EnergyConsumption</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shell_command</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.sensors.EnergyConsumption" title="Permalink to this definition">¶</a></dt>
+<dd><p>A sensor to calculate the energy consumption in watts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>shell_command</strong> (<em>str</em>) – </p></li>
+<li><p><strong>init</strong> (<em>bool</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.sensors.EnergyConsumption.from_platform">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_platform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Darwin'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.sensors.EnergyConsumption.from_platform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the energy consumption from the local platform.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>EnergyConsumption</p>
+</dd>
+<dt class="field-even">Parameters</dt>
+<dd class="field-even"><p><strong>platform</strong> (<em>str</em>) – </p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#tracarbon.sensors.EnergyConsumption" title="tracarbon.sensors.EnergyConsumption">tracarbon.sensors.EnergyConsumption</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.sensors.EnergyConsumption.run">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.sensors.EnergyConsumption.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the sensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the sensor metric.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.sensors.MacEnergyConsumption">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.sensors.</span></span><span class="sig-name descname"><span class="pre">MacEnergyConsumption</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shell_command</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/usr/sbin/ioreg</span> <span class="pre">-rw0</span> <span class="pre">-c</span> <span class="pre">AppleSmartBattery</span> <span class="pre">|</span> <span class="pre">grep</span> <span class="pre">BatteryData</span> <span class="pre">|</span> <span class="pre">grep</span> <span class="pre">-o</span> <span class="pre">\'&quot;AdapterPower&quot;=[0-9]*\'</span> <span class="pre">|</span> <span class="pre">cut</span> <span class="pre">-c</span> <span class="pre">16-</span> <span class="pre">|</span> <span class="pre">xargs</span> <span class="pre">-I</span> <span class="pre">%</span>&#160; <span class="pre">lldb</span> <span class="pre">--batch</span> <span class="pre">-o</span> <span class="pre">&quot;print/f</span> <span class="pre">%&quot;</span> <span class="pre">|</span> <span class="pre">grep</span> <span class="pre">-o</span> <span class="pre">\'$0</span> <span class="pre">=</span> <span class="pre">[0-9.]*\'</span> <span class="pre">|</span> <span class="pre">cut</span> <span class="pre">-c</span> <span class="pre">6-'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.sensors.MacEnergyConsumption" title="Permalink to this definition">¶</a></dt>
+<dd><p>Energy Consumption of the Mac working only if it’s plugged into electrical outlet in watts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>shell_command</strong> (<em>str</em>) – </p></li>
+<li><p><strong>init</strong> (<em>bool</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.sensors.Sensor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.sensors.</span></span><span class="sig-name descname"><span class="pre">Sensor</span></span><a class="headerlink" href="#tracarbon.sensors.Sensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Sensor contract.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.sensors.Sensor.run">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.sensors.Sensor.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the sensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the metric sent by the sensor.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-tracarbon.locations">
+<span id="locations"></span><h2>Locations<a class="headerlink" href="#module-tracarbon.locations" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="module-tracarbon.locations.location">
+<span id="location"></span><h2>Location<a class="headerlink" href="#module-tracarbon.locations.location" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.locations.location.Location">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.location.</span></span><span class="sig-name descname"><span class="pre">Location</span></span><a class="headerlink" href="#tracarbon.locations.location.Location" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generic Location.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.locations.location.Location.get_co2g_kwh">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_co2g_kwh</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.location.Location.get_co2g_kwh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the Co2g per kwh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the co2g/kwh value</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.locations.location.Location.get_current_country">
+<em class="property"><span class="pre">async</span><span class="w"> </span><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_current_country</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'http://ipinfo.io/json'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.location.Location.get_current_country" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the client’s country.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the client’s country alpha_iso_2 name.</p>
+</dd>
+<dt class="field-even">Parameters</dt>
+<dd class="field-even"><p><strong>url</strong> (<em>str</em>) – </p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.locations.location.Location.get_latest_co2g_kwh">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_latest_co2g_kwh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">today_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hour</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.location.Location.get_latest_co2g_kwh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the latest co2g_kwh for France.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>today_date</strong> (<em>str</em>) – the date for the request</p></li>
+<li><p><strong>hour</strong> (<em>str</em>) – the hour for the request</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the latest co2g_kwh</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.locations.location.Location.request">
+<em class="property"><span class="pre">async</span><span class="w"> </span><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.location.Location.request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Launch an async request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>url</strong> (<em>str</em>) – url to request</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the response</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><em>Dict</em>[str, <em>Any</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-tracarbon.hardwares">
+<span id="hardware"></span><h2>Hardware<a class="headerlink" href="#module-tracarbon.hardwares" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+
+
+              </div>
+              
+              
+              <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+    <a class='left-prev' id="prev-link" href="usage.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">Usage</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="development.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Development</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+  
+    <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+  <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    
+    <div class="footer-item">
+      <p class="copyright">
+    &copy; Copyright 2022 Tracarbon contributors.<br>
+</p>
+    </div>
+    
+    <div class="footer-item">
+      <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.4.0.<br>
+</p>
+    </div>
+    
+  </div>
+</footer>
+  </body>
+</html>
