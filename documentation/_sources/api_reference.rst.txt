@@ -8,39 +8,39 @@ CLI
 .. automodule:: tracarbon.cli
     :members:
 
-Exporters
-==========
+Hardware
+========
 
-.. automodule:: tracarbon.exporters
+.. automodule:: tracarbon.hardwares.hardware
     :members:
 
-Exporter
+.. automodule:: tracarbon.hardwares.sensors
+    :members:
+
+Exporters
 ==========
 
 .. automodule:: tracarbon.exporters.exporter
     :members:
 
-Sensor
-========
+.. automodule:: tracarbon.exporters.stdout
+    :members:
 
-.. automodule:: tracarbon.sensors
+.. automodule:: tracarbon.exporters.datadog_exporter
+    :members:
+
+Emissions
+=========
+
+.. automodule:: tracarbon.emissions.carbon_emissions
     :members:
 
 
 Locations
 =========
 
-.. automodule:: tracarbon.locations
-    :members:
-
-Location
-=========
-
 .. automodule:: tracarbon.locations.location
     :members:
 
-Hardware
-========
-
-.. automodule:: tracarbon.hardwares
+.. automodule:: tracarbon.locations.country
     :members:
