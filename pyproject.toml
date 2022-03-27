@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "tracarbon"
 authors = ["Florian Valeye <fvaleye@github.com>"]
-version = "0.1.0"
+version = "0.2.0"
 description = "Tracarbon tracks your device's power consumption and calculates your carbon emissions."
 readme = "README.md"
 license = "Apache-2.0"

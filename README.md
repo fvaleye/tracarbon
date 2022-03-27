@@ -45,11 +45,11 @@ pip install 'tracarbon[datadog]'
 ### 🗺️ Locations
 
 
-| **Location**                    |                  **Description**                   | **Source**                                                                                                                                                   |
-|---------------------------------|:--------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **European Environment Agency** | European Emission co2g/kwh for European countries. | [EEA website](https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-9#tab-googlechartid_googlechartid_googlechartid_googlechartid_chart_11111)|
-| **France**                      |      RTE energy consumption API in real-time.      | [RTE API](https://opendata.reseaux-energies.fr)                                                                                                              |
-| **AWS**                         |   AWS Grid emissions factors from cloud-carbon.    | [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/cloud-carbon-coefficients/blob/main/data/grid-emissions-factors-aws.csv).                                                                                            |
+| **Location**                  |                  **Description**                   | **Source**                                                                                                                                                                                                                                |
+|-------------------------------|:--------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Europe** | European Environment Agency Emission co2g/kwh for European countries. | [EEA website](https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-9#tab-googlechartid_googlechartid_googlechartid_googlechartid_chart_11111)                                                                             |
+| **France**                    |      RTE energy consumption API in real-time.      | [RTE API](https://opendata.reseaux-energies.fr)                                                                                                                                                                                           |
+| **AWS**                       |   AWS Grid emissions factors from cloud-carbon.    | [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/cloud-carbon-coefficients/blob/main/data/grid-emissions-factors-aws.csv)                                                                                            |
 
 
 ## 🔎 Usage

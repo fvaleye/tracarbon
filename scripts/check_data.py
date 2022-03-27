@@ -3,7 +3,9 @@ import urllib.request
 
 def check_content_length(url: str, expected_content_length: str) -> bool:
     site = urllib.request.urlopen(url)
-    assert site.getheader("Content-Length") == expected_content_length, f"This url content changed {url}"
+    assert (
+        site.getheader("Content-Length") == expected_content_length
+    ), f"This url content changed {url}"
 
 
 if __name__ == "__main__":
