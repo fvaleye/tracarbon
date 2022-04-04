@@ -1,10 +1,10 @@
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
 from loguru import logger
 
 from tracarbon.hardwares.sensors import EnergyConsumption, Sensor
-from tracarbon.locations import Location
+from tracarbon.locations import Country
 
 
 class CarbonEmission(Sensor):
@@ -12,11 +12,20 @@ class CarbonEmission(Sensor):
     Carbon Metric sensor from watts per second to calculate the co2g/kwh emitted.
     """
 
-    location: Location
+    location: Country
     energy_consumption: EnergyConsumption
     previous_energy_consumption_time: Optional[datetime] = None
     WH_TO_KWH_FACTOR: int = 1000
     SECONDS_TO_HOURS_FACTOR: int = 3600
+
+    def __init__(self, **data: Any) -> None:
+        if not "location" in data:
+            data["location"] = Country.get_location()
+
+        if not "energy_consumption" in data:
+            data["energy_consumption"] = EnergyConsumption.from_platform()
+
+        super().__init__(**data)
 
     def wattage_to_watt_hours(self, wattage: float) -> float:
         """

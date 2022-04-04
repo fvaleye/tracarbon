@@ -2,6 +2,7 @@ import os
 import sys
 
 import pytest
+import requests
 from _pytest.logging import LogCaptureFixture
 from loguru import logger
 
@@ -10,6 +11,15 @@ ALL = set("darwin linux windows".split())
 # Deactivate aiocache for the test
 os.environ["AIOCACHE_DISABLE"] = "1"
 os.environ["TRACARBON_INTERVAL_IN_SECONDS"] = "1"
+
+
+@pytest.fixture
+def not_ec2_mock(mocker):
+    mocker.patch.object(
+        requests,
+        "head",
+        side_effect=ValueError(),
+    )
 
 
 @pytest.fixture

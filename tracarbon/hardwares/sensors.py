@@ -48,8 +48,8 @@ class EnergyConsumption(Sensor):
         :return: EnergyConsumption
         """
         # Cloud Providers
-        if CloudProviders.is_running_on_cloud_provider():
-            cloud_provider = CloudProviders.auto_detect()
+        cloud_provider = CloudProviders.auto_detect()
+        if cloud_provider:
             return AWSEC2EnergyConsumption(instance_type=cloud_provider.instance_type)
 
         # Platform

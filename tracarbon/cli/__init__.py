@@ -1,10 +1,11 @@
-import asyncio
-from typing import List
+import time
+from typing import List, Optional
 
 import typer
 from loguru import logger
 
 from tracarbon import CarbonEmission, Country, EnergyConsumption
+from tracarbon.conf import tracarbon_configuration as conf
 from tracarbon.exporters import Exporter, Metric
 from tracarbon.hardwares import HardwareInfo
 
@@ -19,45 +20,47 @@ def list_exporters(displayed: bool = True) -> List[str]:
     return exporters
 
 
-def get_exporter(exporter: str) -> Exporter:
+def get_exporter(exporter_input: str, metrics: List[Metric]) -> Exporter:
     exporters = list_exporters(displayed=False)
-    if exporter not in exporters:
+    if exporter_input not in exporters:
         raise ValueError(f"This exporter is not available in the list: {exporters}")
 
     try:
         selected_exporter = next(
-            cls for cls in Exporter.__subclasses__() if cls.get_name() == exporter
+            cls for cls in Exporter.__subclasses__() if cls.get_name() == exporter_input
         )
     except Exception as exception:
         logger.exception("This exporter initiation failed.")
         raise exception
-    return selected_exporter()  # type: ignore
+    return selected_exporter(metrics=metrics)  # type: ignore
 
 
-async def run_metrics(exporter: Exporter) -> None:
+def run_metrics(
+    exporter_input: str,
+    country_name_alpha_iso_2: Optional[str] = None,
+    running: bool = True,
+) -> None:
     """
     Run the metrics with the selected exporter
 
-    :param exporter: the exporter to run
+    :param running: keep running the metrics
+    :param exporter_input: the exporter to run
     :return:
     """
-    metrics = list()
-    location = await Country.get_location()
+    location = Country.get_location(country_name_alpha_iso_2=country_name_alpha_iso_2)
     platform = HardwareInfo.get_platform()
-    energy_consumption = EnergyConsumption.from_platform()
+    metrics = list()
     metrics.append(
         Metric(
             name="energy_consumption",
-            value=energy_consumption.run,
-            tags=[f"platform:{platform}", f"location:{location}"],
+            value=EnergyConsumption.from_platform().run,
+            tags=[f"platform:{platform}", f"location:{location.name}"],
         )
     )
     metrics.append(
         Metric(
             name="co2_emission",
-            value=CarbonEmission(
-                location=location, energy_consumption=energy_consumption
-            ).run,
+            value=CarbonEmission(location=location).run,
             tags=[f"platform:{platform}", f"location:{location}"],
         )
     )
@@ -65,23 +68,30 @@ async def run_metrics(exporter: Exporter) -> None:
         Metric(
             name="hardware_memory_usage",
             value=HardwareInfo().get_memory_usage,
-            tags=[f"platform:{platform}", f"location:{location}"],
+            tags=[f"platform:{platform}", f"location:{location.name}"],
         )
     )
     metrics.append(
         Metric(
             name="hardware_cpu_usage",
             value=HardwareInfo().get_cpu_usage,
-            tags=[f"platform:{platform}", f"location:{location}"],
+            tags=[f"platform:{platform}", f"location:{location.name}"],
         )
     )
-    await exporter.launch_all(metrics=metrics)
+    try:
+        logger.info("Tracarbon CLI started.")
+        with get_exporter(exporter_input=exporter_input, metrics=metrics):
+            while running:
+                time.sleep(conf.interval_in_seconds)
+    except KeyboardInterrupt:
+        logger.info("Tracarbon CLI exited.")
 
 
 @app.command()
-def run(exporter: str) -> None:
-    exporter_selected = get_exporter(exporter=exporter)
-    asyncio.run(run_metrics(exporter=exporter_selected))
+def run(exporter_input: str, country_name_alpha_iso_2: Optional[str] = None) -> None:
+    run_metrics(
+        exporter_input=exporter_input, country_name_alpha_iso_2=country_name_alpha_iso_2
+    )
 
 
 def main() -> None:
