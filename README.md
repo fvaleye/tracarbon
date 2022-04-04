@@ -6,13 +6,16 @@
 
 
 ## 📌 Overview
-Tracarbon is a Python library that tracks your device's power consumption and calculates your carbon emissions.
+Tracarbon is a Python library that tracks your device's energy consumption and calculates your carbon emissions.
+
+It detects your location and your device automatically before starting to export measurements to an exporter. 
+It could be used as a CLI with already defined metrics or programmatically with the API by defining the metrics that you want to have.
 
 ## 📦 Where to get it
 
 ```sh
 # Install Tracarbon
-pip install 'tracarbon'
+pip install tracarbon
 ```
 
 ```sh
@@ -21,91 +24,70 @@ pip install 'tracarbon[datadog]'
 ```
 
 ### 🔌 Devices: energy consumption
+| **Devices** |                                **Description**                                 |
+|-------------|:------------------------------------------------------------------------------:|
+| **Mac**     | ✅ Global energy consumption of your Mac (must be plugged into a wall adapter). |
+| **Linux**   |                             ❌ Not yet implemented.                             |
+| **Windows** |                             ❌ Not yet implemented.                             |
 
-| **Device**  |                 **Description**                 |
-|-------------|:-----------------------------------------------:|
-| **Mac**     | ✅ Battery energy consumption (must be plugged). |
-| **Linux**   |             ❌ Not yet implemented.              |
-| **Windows** |             ❌ Not yet implemented.              |
-
-| **Cloud Provider** |                                                                    **Description**                                                                     |
-|--------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| **AWS**            |✅ Estimation based on [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/cloud-carbon-coefficients/blob/main/data/aws-instances.csv).|
-| **GCP**            |                                                                 ❌ Not yet implemented.                                                                 |
-| **Azure**          |                                                                 ❌ Not yet implemented.                                                                 |
+| **Cloud Provider** |                                                                                               **Description**                                                                                               |
+|--------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| **AWS**            | ✅ Used the CPU usage with the EC2 instances carbon emissions datasets of [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/cloud-carbon-coefficients/blob/main/data/aws-instances.csv). |
+| **GCP**            |                                                                                           ❌ Not yet implemented.                                                                                            |
+| **Azure**          |                                                                                           ❌ Not yet implemented.                                                                                            |
 
 
 ## 📡 Exporters
-
-| **Exporter** |                **Description**                |
-|--------------|:-----------------------------------------:|
-| **Stdout**   |       Print the metrics in Stdout.        |
-| **Datadog**  |      Publish the metrics on Datadog.      |
+| **Exporter** |       **Description**        |
+|--------------|:----------------------------:|
+| **Stdout**   | Print the metrics in Stdout. |
+| **Datadog**  | Send the metrics on Datadog. |
 
 ### 🗺️ Locations
+| **Location** |                                         **Description**                                          | **Source**                                                                                                                                                    |
+|--------------|:------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Europe**   | Static file of the European Environment Agency Emission for the co2g/kwh for European countries. | [EEA website](https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-9#tab-googlechartid_googlechartid_googlechartid_googlechartid_chart_11111) |
+| **France**   |               Get the co2g/kwh in near real-time using the RTE energy consumption.               | [RTE API](https://opendata.reseaux-energies.fr)                                                                                                               |
+| **AWS**      |                 Static file of the AWS Grid emissions factors.                 | [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/cloud-carbon-coefficients/blob/main/data/grid-emissions-factors-aws.csv)                |
 
-
-| **Location**                  |                  **Description**                   | **Source**                                                                                                                                                                                                                                |
-|-------------------------------|:--------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Europe** | European Environment Agency Emission co2g/kwh for European countries. | [EEA website](https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-9#tab-googlechartid_googlechartid_googlechartid_googlechartid_chart_11111)                                                                             |
-| **France**                    |      RTE energy consumption API in real-time.      | [RTE API](https://opendata.reseaux-energies.fr)                                                                                                                                                                                           |
-| **AWS**                       |   AWS Grid emissions factors from cloud-carbon.    | [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/cloud-carbon-coefficients/blob/main/data/grid-emissions-factors-aws.csv)                                                                                            |
+### ⚙️ Configuration
+| **Parameter**                     | **Description**                                                                |
+|-----------------------------------|:-------------------------------------------------------------------------------|
+| **TRACARBON_API_ACTIVATED**       | The activation of the real-time data collection of the carbon emission factor. |
+| **TRACARBON_METRIC_PREFIX_NAME**  | The prefix to use in all the metrics name.                                     |
+| **TRACARBON_INTERVAL_IN_SECONDS** | The interval in seconds to wait between the metrics evaluation.                |
+| **TRACARBON_LOG_LEVEL**        | The level to use for displaying the logs.                                      |
 
 
 ## 🔎 Usage
 
-**API**
-```python
-import asyncio
-
-from tracarbon import CarbonEmission, EnergyConsumption, Country
-from tracarbon.exporters import Metric, StdoutExporter
-from tracarbon.hardwares import HardwareInfo
-
-exporter = StdoutExporter()
-metrics = list()
-location = asyncio.run(Country.get_location())
-energy_consumption = EnergyConsumption.from_platform()
-platform = HardwareInfo.get_platform()
-metrics.append(
-    Metric(
-        name="energy_consumption",
-        value=energy_consumption.run,
-        tags=[f"platform:{platform}", f"location:{location}"]
-    )
-)
-metrics.append(
-    Metric(
-        name="co2_emission",
-        value=CarbonEmission(energy_consumption=energy_consumption, location=location).run,
-        tags=[f"platform:{platform}", f"location:{location}"]
-    )
-)
-metrics.append(
-    Metric(
-        name="hardware_cpu_usage",
-        value=HardwareInfo().get_cpu_usage,
-        tags=[f"platform:{platform}", f"location:{location}"]
-    )
-)
-metrics.append(
-    Metric(
-        name="hardware_memory_usage",
-        value=HardwareInfo().get_memory_usage,
-        tags=[f"platform:{platform}", f"location:{location}"]
-    )
-)
-asyncio.run(exporter.launch_all(metrics=metrics))
+**Command Line**
+```sh
+tracarbon run
 ```
 
-**CLI**
-```sh
-tracarbon run Stdout
+**API**
+```python
+from tracarbon import CarbonEmission
+from tracarbon.exporters import Metric, StdoutExporter
+
+metric = Metric(
+    name="co2_emission",
+    value=CarbonEmission().run,
+    tags=[],
+)
+exporter = StdoutExporter(metrics=[metric])
+exporter.start()
+# Your code
+exporter.stop()
+
+with exporter:
+    # Your code
 ```
 
 ## 💻 Development
 
-**Local**
+**Local: using Poetry**
 ```sh
 make setup
 make unit-test

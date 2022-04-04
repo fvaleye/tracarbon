@@ -1,5 +1,5 @@
 class TracarbonException(Exception):
-    """General Tracarbon Exception"""
+    """General Tracarbon Exception."""
 
     pass
 

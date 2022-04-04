@@ -24,7 +24,7 @@ class Sensor(ABC, BaseModel):
 
     async def run(self) -> float:
         """
-        Run the sensor and get the current wattage.
+        Run the sensor and get the current wattage in watt.
 
         :return: the metric sent by the sensor.
         """
@@ -45,11 +45,11 @@ class EnergyConsumption(Sensor):
         """
         Get the energy consumption from the local platform or cloud provider.
 
-        :return: EnergyConsumption
+        :return: the Energy Consumption
         """
         # Cloud Providers
-        if CloudProviders.is_running_on_cloud_provider():
-            cloud_provider = CloudProviders.auto_detect()
+        cloud_provider = CloudProviders.auto_detect()
+        if cloud_provider:
             return AWSEC2EnergyConsumption(instance_type=cloud_provider.instance_type)
 
         # Platform
@@ -64,14 +64,14 @@ class EnergyConsumption(Sensor):
 
 class MacEnergyConsumption(EnergyConsumption):
     """
-    Energy Consumption of the Mac, working only if it's plugged into electrical outlet, in watts.
+    Energy Consumption of the Mac, working only if it's plugged into plugged-in wall adapter, in watts.
     """
 
     shell_command: str = """/usr/sbin/ioreg -rw0 -c AppleSmartBattery | grep BatteryData | grep -o '"AdapterPower"=[0-9]*' | cut -c 16- | xargs -I %  lldb --batch -o "print/f %" | grep -o '$0 = [0-9.]*' | cut -c 6-"""
 
     async def run(self) -> float:
         """
-        Run the sensor and get the current wattage.
+        Run the sensor and get the current wattage in watts.
 
         :return: the sensor metric.
         """
@@ -89,7 +89,7 @@ class LinuxEnergyConsumption(EnergyConsumption):
 
     async def run(self) -> float:
         """
-        Run the sensor and get the current wattage.
+        Run the sensor and get the current wattage in watts.
 
         :return: the sensor metric.
         """
@@ -103,7 +103,7 @@ class WindowsEnergyConsumption(EnergyConsumption):
 
     async def run(self) -> float:
         """
-        Run the sensor and get the current wattage.
+        Run the sensor and get the current wattage in watts.
 
         :return: the sensor metric.
         """
@@ -139,7 +139,7 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
                             )
                             return
                 raise AWSSensorException(
-                    f"The AWS instance type is missing: {instance_type}."
+                    f"The AWS instance type [{instance_type}] is missing from the aws instances file."
                 )
             except Exception as exception:
                 logger.exception("Error in the AWSSensor")

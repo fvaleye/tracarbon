@@ -1,39 +1,47 @@
+from typing import Optional
+
 import requests
 from ec2_metadata import EC2Metadata, ec2_metadata
 from pydantic import BaseModel
 
 
 class CloudProviders(BaseModel):
+    """The Cloud Provider interface."""
+
     instance_type: str
     region_name: str
 
     @staticmethod
     def is_running_on_cloud_provider() -> bool:
         """
-        Check if it's running on a cloud provider.
+        Check if it's running on a known cloud provider.
 
-        :return:
+        :return: if it's running on a known cloud provider
         """
         return AWS.is_ec2()
 
     @staticmethod
-    def auto_detect() -> "CloudProviders":
+    def auto_detect() -> Optional["CloudProviders"]:
         """
         Autodetect the cloud provider.
 
-        :return: the cloud provider
+        :return: the cloud provider detected
         """
-        return AWS(
-            region_name=ec2_metadata.region,
-            instance_type=ec2_metadata.instance_type,
-        )
+        if CloudProviders.is_running_on_cloud_provider():
+            return AWS(
+                region_name=ec2_metadata.region,
+                instance_type=ec2_metadata.instance_type,
+            )
+        return None
 
 
 class AWS(CloudProviders):
+    """The Cloud Provider: AWS."""
+
     @staticmethod
     def is_ec2() -> bool:
         """
-        Check if it's running on a AWS EC2 instance.
+        Check if it's running on an AWS EC2 instance based on metadata.
 
         :return: is a EC2
         """

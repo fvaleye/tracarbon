@@ -12,7 +12,7 @@ from tracarbon.hardwares.cloud_providers import AWS, CloudProviders
 
 
 @pytest.mark.darwin
-def test_get_platform_should_return_the_platform_energy_consumption_mac():
+def test_get_platform_should_return_the_platform_energy_consumption_mac(not_ec2_mock):
     energy_consumption = EnergyConsumption.from_platform()
 
     assert (
@@ -22,25 +22,13 @@ def test_get_platform_should_return_the_platform_energy_consumption_mac():
     assert energy_consumption.init is False
 
 
-def test_get_platform_should_raise_exception(mocker):
-    mocker.patch.object(
-        requests,
-        "head",
-        side_effect=ValueError(),
-    )
-
+def test_get_platform_should_raise_exception(not_ec2_mock):
     with pytest.raises(TracarbonException) as exception:
         EnergyConsumption.from_platform(platform="unknown")
     assert exception.value.args[0] == "This platform unknown is not yet implemented."
 
 
-def test_is_ec2_should_return_false_on_exception(mocker):
-    mocker.patch.object(
-        requests,
-        "head",
-        side_effect=ValueError(),
-    )
-
+def test_is_ec2_should_return_false_on_exception(not_ec2_mock):
     assert AWS.is_ec2() is False
 
 
@@ -68,20 +56,6 @@ def test_aws_sensor_should_return_error_when_instance_type_is_missing():
         AWSEC2EnergyConsumption(instance_type=instance_type)
 
 
-def test_is_ec2_should_return_false(mocker):
-    mocker.patch.object(
-        CloudProviders,
-        "is_running_on_cloud_provider",
-        return_value=True,
-    )
-    mocker.patch.object(
-        requests,
-        "head",
-        side_effect=ValueError(),
-    )
-    assert AWS.is_ec2() is False
-
-
 def test_is_ec2_should_return_true(mocker):
     mocker.patch.object(
         requests,
@@ -93,26 +67,16 @@ def test_is_ec2_should_return_true(mocker):
 
 
 @pytest.mark.linux
-def test_get_platform_should_return_the_platform_energy_consumption_linux(mocker):
-    mocker.patch.object(
-        CloudProviders,
-        "is_running_on_cloud_provider",
-        return_value=False,
-    )
-
+def test_get_platform_should_return_the_platform_energy_consumption_linux(not_ec2_mock):
     with pytest.raises(TracarbonException) as exception:
         EnergyConsumption.from_platform()
     assert exception.value.args[0] == "This platform Linux is not yet implemented."
 
 
 @pytest.mark.windows
-def test_get_platform_should_return_the_platform_energy_consumption_windows(mocker):
-    mocker.patch.object(
-        requests,
-        "head",
-        side_effect=ValueError(),
-    )
-
+def test_get_platform_should_return_the_platform_energy_consumption_windows(
+    not_ec2_mock,
+):
     with pytest.raises(TracarbonException) as exception:
         EnergyConsumption.from_platform()
     assert exception.value.args[0] == "This platform Windows is not yet implemented."

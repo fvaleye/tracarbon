@@ -47,6 +47,7 @@ nitpicky = True
 nitpick_ignore = [
     ("py:class", "datetime.datetime"),
     ("py:class", "datadog.threadstats.base.ThreadStats"),
+    ("py:class", "threading.Event"),
 ]
 
 # Add any paths that contain templates here, relative to this directory.
