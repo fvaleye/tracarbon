@@ -7,26 +7,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Index &#8212; tracarbon  documentation</title>
     
-    <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-  
+
     
-    <link rel="stylesheet"
-      href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
-    <link rel="preload" as="font" type="font/woff2" crossorigin
-      href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-    <link rel="preload" as="font" type="font/woff2" crossorigin
-      href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
-  
-    
-      
-  
-    
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/pydata-sphinx-theme.css" />
     
-    <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
-  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
@@ -41,7 +38,7 @@
     <!-- Google Analytics -->
     
   </head>
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
     
     <div class="container-fluid" id="banner"></div>
 
@@ -156,7 +153,8 @@
 <h1 id="index">Index</h1>
 
 <div class="genindex-jumpbox">
- <a href="#C"><strong>C</strong></a>
+ <a href="#A"><strong>A</strong></a>
+ | <a href="#C"><strong>C</strong></a>
  | <a href="#D"><strong>D</strong></a>
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
@@ -170,16 +168,34 @@
  | <a href="#W"><strong>W</strong></a>
  
 </div>
+<h2 id="A">A</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#tracarbon.hardwares.sensors.AWSEC2EnergyConsumption">AWSEC2EnergyConsumption (class in tracarbon.hardwares.sensors)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#tracarbon.locations.country.AWSLocation">AWSLocation (class in tracarbon.locations.country)</a>
+</li>
+      <li><a href="api_reference.html#tracarbon.exceptions.AWSSensorException">AWSSensorException</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#tracarbon.emissions.carbon_emissions.CarbonEmission">CarbonEmission (class in tracarbon.emissions.carbon_emissions)</a>
+</li>
+      <li><a href="api_reference.html#tracarbon.exceptions.CloudProviderRegionIsMissing">CloudProviderRegionIsMissing</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#tracarbon.emissions.carbon_emissions.CarbonEmission.co2g_from_watt_hours">co2g_from_watt_hours() (tracarbon.emissions.carbon_emissions.CarbonEmission method)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.locations.country.Country">Country (class in tracarbon.locations.country)</a>
+</li>
+      <li><a href="api_reference.html#tracarbon.exceptions.CountryIsMissing">CountryIsMissing</a>
 </li>
   </ul></td>
 </tr></table>
@@ -215,7 +231,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#tracarbon.locations.country.Country.from_eu_file">from_eu_file() (tracarbon.locations.country.Country class method)</a>
 </li>
-      <li><a href="api_reference.html#tracarbon.hardwares.sensors.EnergyConsumption.from_platform">from_platform() (tracarbon.hardwares.sensors.EnergyConsumption class method)</a>
+      <li><a href="api_reference.html#tracarbon.hardwares.sensors.EnergyConsumption.from_platform">from_platform() (tracarbon.hardwares.sensors.EnergyConsumption static method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -223,21 +239,25 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_reference.html#tracarbon.locations.country.Country.get_co2g_kwh">get_co2g_kwh() (tracarbon.locations.country.Country method)</a>
+      <li><a href="api_reference.html#tracarbon.locations.country.AWSLocation.get_co2g_kwh">get_co2g_kwh() (tracarbon.locations.country.AWSLocation method)</a>
 
       <ul>
+        <li><a href="api_reference.html#tracarbon.locations.country.Country.get_co2g_kwh">(tracarbon.locations.country.Country method)</a>
+</li>
         <li><a href="api_reference.html#tracarbon.locations.country.France.get_co2g_kwh">(tracarbon.locations.country.France method)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.locations.location.Location.get_co2g_kwh">(tracarbon.locations.location.Location method)</a>
 </li>
       </ul></li>
-      <li><a href="api_reference.html#tracarbon.hardwares.hardware.HardwareInfo.get_cpu_usage">get_cpu_usage() (tracarbon.hardwares.hardware.HardwareInfo class method)</a>
+      <li><a href="api_reference.html#tracarbon.hardwares.hardware.HardwareInfo.get_cpu_usage">get_cpu_usage() (tracarbon.hardwares.hardware.HardwareInfo static method)</a>
 </li>
-      <li><a href="api_reference.html#tracarbon.locations.location.Location.get_current_country">get_current_country() (tracarbon.locations.location.Location class method)</a>
+      <li><a href="api_reference.html#tracarbon.locations.country.Country.get_current_country">get_current_country() (tracarbon.locations.country.Country class method)</a>
 </li>
-      <li><a href="api_reference.html#tracarbon.locations.country.Country.get_latest_co2g_kwh">get_latest_co2g_kwh() (tracarbon.locations.country.Country method)</a>
+      <li><a href="api_reference.html#tracarbon.locations.country.AWSLocation.get_latest_co2g_kwh">get_latest_co2g_kwh() (tracarbon.locations.country.AWSLocation method)</a>
 
       <ul>
+        <li><a href="api_reference.html#tracarbon.locations.country.Country.get_latest_co2g_kwh">(tracarbon.locations.country.Country method)</a>
+</li>
         <li><a href="api_reference.html#tracarbon.locations.country.France.get_latest_co2g_kwh">(tracarbon.locations.country.France method)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.locations.location.Location.get_latest_co2g_kwh">(tracarbon.locations.location.Location method)</a>
@@ -247,7 +267,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#tracarbon.locations.country.Country.get_location">get_location() (tracarbon.locations.country.Country class method)</a>
 </li>
-      <li><a href="api_reference.html#tracarbon.hardwares.hardware.HardwareInfo.get_memory_usage">get_memory_usage() (tracarbon.hardwares.hardware.HardwareInfo class method)</a>
+      <li><a href="api_reference.html#tracarbon.hardwares.hardware.HardwareInfo.get_memory_usage">get_memory_usage() (tracarbon.hardwares.hardware.HardwareInfo static method)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.exporters.datadog_exporter.DatadogExporter.get_name">get_name() (tracarbon.exporters.datadog_exporter.DatadogExporter class method)</a>
 
@@ -257,7 +277,7 @@
         <li><a href="api_reference.html#tracarbon.exporters.stdout.StdoutExporter.get_name">(tracarbon.exporters.stdout.StdoutExporter class method)</a>
 </li>
       </ul></li>
-      <li><a href="api_reference.html#tracarbon.hardwares.hardware.HardwareInfo.get_platform">get_platform() (tracarbon.hardwares.hardware.HardwareInfo class method)</a>
+      <li><a href="api_reference.html#tracarbon.hardwares.hardware.HardwareInfo.get_platform">get_platform() (tracarbon.hardwares.hardware.HardwareInfo static method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -305,6 +325,8 @@
 </li>
         <li><a href="api_reference.html#module-tracarbon.emissions.carbon_emissions">tracarbon.emissions.carbon_emissions</a>
 </li>
+        <li><a href="api_reference.html#module-tracarbon.exceptions">tracarbon.exceptions</a>
+</li>
         <li><a href="api_reference.html#module-tracarbon.exporters.datadog_exporter">tracarbon.exporters.datadog_exporter</a>
 </li>
         <li><a href="api_reference.html#module-tracarbon.exporters.exporter">tracarbon.exporters.exporter</a>
@@ -331,6 +353,8 @@
       <li><a href="api_reference.html#tracarbon.emissions.carbon_emissions.CarbonEmission.run">run() (tracarbon.emissions.carbon_emissions.CarbonEmission method)</a>
 
       <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.AWSEC2EnergyConsumption.run">(tracarbon.hardwares.sensors.AWSEC2EnergyConsumption method)</a>
+</li>
         <li><a href="api_reference.html#tracarbon.hardwares.sensors.LinuxEnergyConsumption.run">(tracarbon.hardwares.sensors.LinuxEnergyConsumption method)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.hardwares.sensors.MacEnergyConsumption.run">(tracarbon.hardwares.sensors.MacEnergyConsumption method)</a>
@@ -352,9 +376,15 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#tracarbon.hardwares.sensors.Sensor">Sensor (class in tracarbon.hardwares.sensors)</a>
 </li>
+      <li><a href="api_reference.html#tracarbon.hardwares.sensors.Sensor.Config">Sensor.Config (class in tracarbon.hardwares.sensors)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#tracarbon.exporters.exporter.Exporter.start">start() (tracarbon.exporters.exporter.Exporter method)</a>
+</li>
       <li><a href="api_reference.html#tracarbon.exporters.stdout.StdoutExporter">StdoutExporter (class in tracarbon.exporters.stdout)</a>
+</li>
+      <li><a href="api_reference.html#tracarbon.exporters.exporter.Exporter.stop">stop() (tracarbon.exporters.exporter.Exporter method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -377,6 +407,13 @@
 </li>
       </ul></li>
       <li>
+    tracarbon.exceptions
+
+      <ul>
+        <li><a href="api_reference.html#module-tracarbon.exceptions">module</a>
+</li>
+      </ul></li>
+      <li>
     tracarbon.exporters.datadog_exporter
 
       <ul>
@@ -390,6 +427,8 @@
         <li><a href="api_reference.html#module-tracarbon.exporters.exporter">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     tracarbon.exporters.stdout
 
@@ -397,8 +436,6 @@
         <li><a href="api_reference.html#module-tracarbon.exporters.stdout">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     tracarbon.hardwares.hardware
 
@@ -427,6 +464,8 @@
         <li><a href="api_reference.html#module-tracarbon.locations.location">module</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#tracarbon.exceptions.TracarbonException">TracarbonException</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -457,8 +496,9 @@
       </div>
     </div>
   
-    <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
-  <footer class="footer mt-5 mt-md-0">
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+<footer class="footer mt-5 mt-md-0">
   <div class="container">
     
     <div class="footer-item">
@@ -469,7 +509,7 @@
     
     <div class="footer-item">
       <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.4.0.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br>
 </p>
     </div>
     

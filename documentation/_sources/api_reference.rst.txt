@@ -44,3 +44,9 @@ Locations
 
 .. automodule:: tracarbon.locations.country
     :members:
+
+Exceptions
+==========
+
+.. automodule:: tracarbon.exceptions
+    :members:
