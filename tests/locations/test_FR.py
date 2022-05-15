@@ -14,6 +14,9 @@ async def test_france_location_should_return_latest_known(mocker):
     result = await france.get_latest_co2g_kwh(today_date=None, hour=None)
 
     assert result == co2_expected
+    assert france.name == "fr"
+    assert france.co2g_kwh == 51.1
+    assert france.co2g_kwh_source == "API"
 
 
 @pytest.mark.asyncio
@@ -27,3 +30,6 @@ async def test_france_location_should_return_taux_co2(mocker):
     result = await france.get_latest_co2g_kwh(today_date=None, hour=None)
 
     assert result == co2_expected
+    assert france.name == "fr"
+    assert france.co2g_kwh == 70.0
+    assert france.co2g_kwh_source == "API"

@@ -1,8 +1,9 @@
 import csv
 import importlib.resources
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, Optional
 
+import requests
 import ujson
 from aiocache import cached
 from loguru import logger
@@ -20,6 +21,7 @@ class Country(Location):
 
     name: str
     co2g_kwh: float
+    co2g_kwh_source: str = "file"
 
     @classmethod
     def from_eu_file(cls, country_name_alpha_iso_2: str) -> "Country":
@@ -38,24 +40,49 @@ class Country(Location):
                     if country_name_alpha_iso_2 == country["name"]:
                         return cls.parse_obj(country)
         raise CountryIsMissing(
-            f"The country {country_name_alpha_iso_2} is not in the co2 emission file."
+            f"The country [{country_name_alpha_iso_2}] is not in the co2 emission file."
         )
 
     @classmethod
-    @cached()  # type: ignore
-    async def get_location(cls, api_activated: bool = conf.api_activated) -> "Country":
+    def get_current_country(cls, url: str = "http://ipinfo.io/json") -> str:
         """
-        Get the client location.
+        Get the client's country.
+        Required an internet access.
 
-        :return: the client country.
+        :return: the client's country alpha_iso_2 name.
+        """
+        try:
+            logger.debug(f"Send request to this url: {url}")
+            text = requests.get(url).text
+            content_json = ujson.loads(text)
+            return content_json["country"].lower()
+        except Exception as exception:
+            logger.error(f"Failed to request this url: {url}")
+            raise exception
+
+    @classmethod
+    def get_location(
+        cls,
+        country_name_alpha_iso_2: Optional[str] = None,
+        api_activated: bool = conf.api_activated,
+    ) -> "Country":
+        """
+        Get the current location automatically: on cloud provider or a country.
+        If country_name_alpha_iso_2 is provided, the country will be configured from the local carbon emission file.
+
+        :param country_name_alpha_iso_2: the alpha iso 2 country name existing in the local carbon emission file.
+        :param api_activated: if activated, the request will be sent to the API for getting the current carbon emission if the country has one.
+        :return: the configured country
         """
         # Cloud Providers
-        if CloudProviders.is_running_on_cloud_provider():
-            cloud_provider = CloudProviders.auto_detect()
+        cloud_provider = CloudProviders.auto_detect()
+        if cloud_provider:
             return AWSLocation(region_name=cloud_provider.region_name)
 
         # Local
-        country_name_alpha_iso_2 = await cls.get_current_country()
+        if country_name_alpha_iso_2:
+            return cls.from_eu_file(country_name_alpha_iso_2=country_name_alpha_iso_2)
+        country_name_alpha_iso_2 = cls.get_current_country()
         country = cls.from_eu_file(country_name_alpha_iso_2=country_name_alpha_iso_2)
         if api_activated:
             if country.name == "fr":
@@ -87,7 +114,8 @@ class Country(Location):
 class France(Country):
     """France Location."""
 
-    name = "fr"
+    name: str = "fr"
+    co2g_kwh_source: str = "API"
 
     @cached()  # type: ignore
     async def get_latest_co2g_kwh(self, today_date: str, hour: str) -> float:
@@ -106,7 +134,7 @@ class France(Country):
             self.co2g_kwh = float(response["records"][0]["fields"]["taux_co2"])
             logger.info(f"co2g/kwh of France is: {self.co2g_kwh} g/kwh.")
         except Exception:
-            logger.exception(
+            logger.error(
                 "Failed to get the latest update of the co2 update for France."
             )
         return self.co2g_kwh
@@ -134,15 +162,18 @@ class AWSLocation(Country):
         with importlib.resources.path(
             "tracarbon.locations.data", "grid-emissions-factors-aws.csv"
         ) as resource:
+            co2g_kwh = None
             with open(str(resource)) as csv_file:
                 reader = csv.reader(csv_file)
                 for row in reader:
                     if row[0] == region_name:
                         co2g_kwh = float(row[3]) * 1000000
-                        super().__init__(name=region_name, co2g_kwh=co2g_kwh, **data)
-                if co2g_kwh is None:
+                        super().__init__(
+                            name=f"AWS({region_name})", co2g_kwh=co2g_kwh, **data
+                        )
+                if not co2g_kwh:
                     raise CloudProviderRegionIsMissing(
-                        f"The region {region_name} is not in the co2 emission file."
+                        f"The region [{region_name}] is not in the co2 emission file."
                     )
 
     @cached()  # type: ignore

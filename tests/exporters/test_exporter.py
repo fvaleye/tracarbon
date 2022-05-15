@@ -5,8 +5,7 @@ from tracarbon.conf import tracarbon_configuration as conf
 from tracarbon.exporters import Metric, StdoutExporter
 
 
-@pytest.mark.asyncio
-async def test_exporters_should_run_and_print_the_metrics(mocker, caplog):
+def test_exporters_should_run_and_print_the_metrics(mocker, caplog):
 
     mocker.patch.object(
         Country,
@@ -25,8 +24,9 @@ async def test_exporters_should_run_and_print_the_metrics(mocker, caplog):
     )
 
     metrics = [memory_metric, cpu_metric]
-    exporter = StdoutExporter(quit=True)
-    await exporter.launch_all(metrics=metrics)
+    exporter = StdoutExporter(quit=True, metrics=metrics)
+    exporter.start()
+    exporter.stop()
 
     assert memory_metric.name in caplog.text
     assert str(memory_metric.value) in caplog.text
