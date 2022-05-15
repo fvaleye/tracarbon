@@ -85,25 +85,6 @@ with exporter:
     # Your code
 ```
 
-**API**
-```python
-from tracarbon import CarbonEmission
-from tracarbon.exporters import Metric, StdoutExporter
-
-metric = Metric(
-    name="co2_emission",
-    value=CarbonEmission().run,
-    tags=[],
-)
-exporter = StdoutExporter(metrics=[metric])
-exporter.start()
-# Your code
-exporter.stop()
-
-with exporter:
-    # Your code
-```
-
 ## 💻 Development
 
 **Local: using Poetry**
