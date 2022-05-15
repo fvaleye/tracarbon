@@ -11,6 +11,8 @@ Tracarbon is a Python library that tracks your device's energy consumption and c
 It detects your location and your device automatically before starting to export measurements to an exporter. 
 It could be used as a CLI with already defined metrics or programmatically with the API by defining the metrics that you want to have.
 
+Read more in this [article](https://medium.com/@florian.valeye/tracarbon-track-your-devices-carbon-footprint-fb051fcc9009).
+
 ## 📦 Where to get it
 
 ```sh
@@ -41,7 +43,7 @@ pip install 'tracarbon[datadog]'
 | **Exporter** |       **Description**        |
 |--------------|:----------------------------:|
 | **Stdout**   | Print the metrics in Stdout. |
-| **Datadog**  | Send the metrics on Datadog. |
+| **Datadog**  | Send the metrics to Datadog. |
 
 ### 🗺️ Locations
 | **Location** |                                         **Description**                                          | **Source**                                                                                                                                                    |
@@ -50,13 +52,13 @@ pip install 'tracarbon[datadog]'
 | **France**   |               Get the co2g/kwh in near real-time using the RTE energy consumption.               | [RTE API](https://opendata.reseaux-energies.fr)                                                                                                               |
 | **AWS**      |                 Static file of the AWS Grid emissions factors.                 | [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/cloud-carbon-coefficients/blob/main/data/grid-emissions-factors-aws.csv)                |
 
-### ⚙ Configuration
+### ⚙️ Configuration
 | **Parameter**                     | **Description**                                                                |
 |-----------------------------------|:-------------------------------------------------------------------------------|
 | **TRACARBON_API_ACTIVATED**       | The activation of the real-time data collection of the carbon emission factor. |
 | **TRACARBON_METRIC_PREFIX_NAME**  | The prefix to use in all the metrics name.                                     |
 | **TRACARBON_INTERVAL_IN_SECONDS** | The interval in seconds to wait between the metrics evaluation.                |
-| **TRACARBON_LOGURU_LEVEL**        | The level to use for displaying the logs.                                      |
+| **TRACARBON_LOG_LEVEL**        | The level to use for displaying the logs.                                      |
 
 
 ## 🔎 Usage

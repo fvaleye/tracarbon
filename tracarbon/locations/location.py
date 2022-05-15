@@ -47,7 +47,7 @@ class Location(ABC, BaseModel):
     @abstractmethod
     async def get_co2g_kwh(self) -> float:
         """
-        Get the Co2g per kwh.
+        Get the CO2g per kwh.
 
         :return: the co2g/kwh value
         """

@@ -39,7 +39,7 @@ class Exporter(BaseModel, metaclass=ABCMeta):
 
     def start(self) -> None:
         """
-        Start the exporter.
+        Start the exporter and a dedicated timer configured with the configured timeout.
 
         :return:
         """
@@ -58,7 +58,7 @@ class Exporter(BaseModel, metaclass=ABCMeta):
 
     def stop(self) -> None:
         """
-        Stop the explorer.
+        Stop the explorer and the associated timer.
 
         :return:
         """
@@ -88,7 +88,7 @@ class Exporter(BaseModel, metaclass=ABCMeta):
 
 class Metric(BaseModel):
     """
-    Global metric for the exporters.
+    Global metric to use for the exporters.
     """
 
     name: str

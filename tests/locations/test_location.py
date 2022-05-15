@@ -83,7 +83,7 @@ def test_aws_location_should_return_an_error_if_region_not_exists():
         AWSLocation(region_name=region_name)
     assert (
         exception.value.args[0]
-        == f"The region [{region_name}] is not in the co2 emission file."
+        == f"The region [{region_name}] is not in the AWS grid emissions factors file."
     )
 
 

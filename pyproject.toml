@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "tracarbon"
 authors = ["Florian Valeye <fvaleye@github.com>"]
-version = "0.2.1"
+version = "0.2.2"
 description = "Tracarbon is a Python library that tracks your device's energy consumption and calculates your carbon emissions."
 readme = "README.md"
 license = "Apache-2.0"
@@ -27,12 +27,12 @@ ec2-metadata = "^2.10.0"
 datadog = {version = "^0.44.0", optional = true}
 
 [tool.poetry.dev-dependencies]
-mypy = "^0.931"
-black = "^22.1.0"
+mypy = "^0.950"
+black = "^22.3.0"
 isort = "^5.10.1"
-pytest = "^7.0.1"
+pytest = "^7.1.2"
 pytest-mock = "^3.7.0"
-pytest-asyncio = "^0.18.2"
+pytest-asyncio = "^0.18.3"
 pytest-cov = "^3.0.0"
 pytest-xdist = "^2.5.0"
 pytest-clarity = "^1.0.1"

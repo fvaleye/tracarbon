@@ -14,20 +14,30 @@ app = typer.Typer()
 
 @app.command(help="List the exporters")
 def list_exporters(displayed: bool = True) -> List[str]:
+    """
+    List all the exporters available.
+    """
     exporters = [cls.get_name() for cls in Exporter.__subclasses__()]
     if displayed:
         logger.info(f"Available Exporters: {exporters}")
     return exporters
 
 
-def get_exporter(exporter_input: str, metrics: List[Metric]) -> Exporter:
+def get_exporter(exporter_name: str, metrics: List[Metric]) -> Exporter:
+    """
+    Get the exporter based on the name with its metrics.
+
+    :param exporter_name: the name of the exporter
+    :param metrics: the list of the associated metrics
+    :return: the configured exporter
+    """
     exporters = list_exporters(displayed=False)
-    if exporter_input not in exporters:
+    if exporter_name not in exporters:
         raise ValueError(f"This exporter is not available in the list: {exporters}")
 
     try:
         selected_exporter = next(
-            cls for cls in Exporter.__subclasses__() if cls.get_name() == exporter_input
+            cls for cls in Exporter.__subclasses__() if cls.get_name() == exporter_name
         )
     except Exception as exception:
         logger.exception("This exporter initiation failed.")
@@ -36,15 +46,16 @@ def get_exporter(exporter_input: str, metrics: List[Metric]) -> Exporter:
 
 
 def run_metrics(
-    exporter_input: str,
+    exporter_name: str,
     country_name_alpha_iso_2: Optional[str] = None,
     running: bool = True,
 ) -> None:
     """
     Run the metrics with the selected exporter
 
+    :param country_name_alpha_iso_2: the alpha iso2 country name where it's running
     :param running: keep running the metrics
-    :param exporter_input: the exporter to run
+    :param exporter_name: the exporter name to run
     :return:
     """
     location = Country.get_location(country_name_alpha_iso_2=country_name_alpha_iso_2)
@@ -80,7 +91,7 @@ def run_metrics(
     )
     try:
         logger.info("Tracarbon CLI started.")
-        with get_exporter(exporter_input=exporter_input, metrics=metrics):
+        with get_exporter(exporter_name=exporter_name, metrics=metrics):
             while running:
                 time.sleep(conf.interval_in_seconds)
     except KeyboardInterrupt:
@@ -88,9 +99,14 @@ def run_metrics(
 
 
 @app.command()
-def run(exporter_input: str, country_name_alpha_iso_2: Optional[str] = None) -> None:
+def run(
+    exporter_name: str = "Stdout", country_name_alpha_iso_2: Optional[str] = None
+) -> None:
+    """
+    Run Tracarbon.
+    """
     run_metrics(
-        exporter_input=exporter_input, country_name_alpha_iso_2=country_name_alpha_iso_2
+        exporter_name=exporter_name, country_name_alpha_iso_2=country_name_alpha_iso_2
     )
 
 
