@@ -46,8 +46,7 @@ class Country(Location):
     @classmethod
     def get_current_country(cls, url: str = "http://ipinfo.io/json") -> str:
         """
-        Get the client's country.
-        Required an internet access.
+        Get the client's country using an internet access.
 
         :return: the client's country alpha_iso_2 name.
         """
@@ -70,9 +69,9 @@ class Country(Location):
         Get the current location automatically: on cloud provider or a country.
         If country_name_alpha_iso_2 is provided, the country will be configured from the local carbon emission file.
 
-        :param country_name_alpha_iso_2: the alpha iso 2 country name existing in the local carbon emission file.
-        :param api_activated: if activated, the request will be sent to the API for getting the current carbon emission if the country has one.
-        :return: the configured country
+        :param country_name_alpha_iso_2: the alpha iso 2 country name.
+        :param api_activated: activation of the live carbon emissions from available country's APIs.
+        :return: the country
         """
         # Cloud Providers
         cloud_provider = CloudProviders.auto_detect()
@@ -91,19 +90,19 @@ class Country(Location):
 
     async def get_latest_co2g_kwh(self, today_date: str, hour: str) -> float:
         """
-        Get the latest co2g_kwh for the Location.
+        Get the latest CO2g_kwh for the Location.
 
         :param today_date: the date for the request
         :param hour: the hour for the request
-        :return: the latest co2g_kwh
+        :return: the latest CO2g_kwh
         """
         return self.co2g_kwh
 
     async def get_co2g_kwh(self) -> float:
         """
-        Get the Co2g per kwh for the Location.
+        Get the CO2g per kwh for the Location.
 
-        :return: the co2g_kwh.
+        :return: the CO2g/kwh.
         """
         return self.co2g_kwh
 
@@ -120,22 +119,26 @@ class France(Country):
     @cached()  # type: ignore
     async def get_latest_co2g_kwh(self, today_date: str, hour: str) -> float:
         """
-        Get the latest co2g_kwh for France.
+        Get the latest CO2g_kwh for France.
 
         :param today_date: the date for the request
         :param hour: the hour for the request
-        :return: the latest co2g_kwh
+        :return: the latest CO2g_kwh
         """
-        logger.info(f"Request the current french co2 g/kwh {today_date} {hour}.")
+        logger.info(
+            f"Request the current emission factor in CO2g/kwh of France at the time of {today_date} {hour}."
+        )
         response = await self.request(
             f"https://opendata.reseaux-energies.fr/api/records/1.0/search/?dataset=eco2mix-national-tr&q=&rows=1&facet=taux_co2&facet=date_heure&refine.date={today_date}&refine.heure={hour}"
         )
         try:
             self.co2g_kwh = float(response["records"][0]["fields"]["taux_co2"])
-            logger.info(f"co2g/kwh of France is: {self.co2g_kwh} g/kwh.")
+            logger.info(
+                f"The emission factor in CO2g/kwh of France is: {self.co2g_kwh} g/kwh."
+            )
         except Exception:
             logger.error(
-                "Failed to get the latest update of the co2 update for France."
+                "Failed to get the latest update of the CO2g/kwh update of France."
             )
         return self.co2g_kwh
 
@@ -143,7 +146,7 @@ class France(Country):
         """
         Get the latest co2/kwh update from the French's website https://www.rte-france.com/eco2mix.
 
-        :return: the last known co2g/kwh value
+        :return: the last known CO2g/kwh value
         """
         now = datetime.now()
         today_date = now.strftime("%Y-%m-%d")
@@ -173,7 +176,7 @@ class AWSLocation(Country):
                         )
                 if not co2g_kwh:
                     raise CloudProviderRegionIsMissing(
-                        f"The region [{region_name}] is not in the co2 emission file."
+                        f"The region [{region_name}] is not in the AWS grid emissions factors file."
                     )
 
     @cached()  # type: ignore

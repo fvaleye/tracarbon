@@ -14,9 +14,9 @@ class CloudProviders(BaseModel):
     @staticmethod
     def is_running_on_cloud_provider() -> bool:
         """
-        Check if it's running on a cloud provider.
+        Check if it's running on a known cloud provider.
 
-        :return:
+        :return: if it's running on a known cloud provider
         """
         return AWS.is_ec2()
 
@@ -25,7 +25,7 @@ class CloudProviders(BaseModel):
         """
         Autodetect the cloud provider.
 
-        :return: the cloud provider
+        :return: the cloud provider detected
         """
         if CloudProviders.is_running_on_cloud_provider():
             return AWS(
@@ -41,7 +41,7 @@ class AWS(CloudProviders):
     @staticmethod
     def is_ec2() -> bool:
         """
-        Check if it's running on an AWS EC2 instance.
+        Check if it's running on an AWS EC2 instance based on metadata.
 
         :return: is a EC2
         """

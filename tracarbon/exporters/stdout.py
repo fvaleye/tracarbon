@@ -5,7 +5,7 @@ from tracarbon.exporters.exporter import Exporter, Metric
 
 class StdoutExporter(Exporter):
     """
-    Print the metrics to stdout.
+    Print the metrics to Stdout.
     """
 
     async def launch(self, metric: Metric) -> None:
