@@ -1,0 +1,19 @@
+default_stages: [ commit ]
+repos:
+  - repo: https://github.com/python-poetry/poetry
+    rev: '1.2.0b1'  
+    hooks:
+      - id: poetry-check
+      - id: poetry-lock
+  - repo: https://github.com/timothycrosley/isort
+    rev: '5.10.1'
+    hooks:
+      - id: isort
+        args: [ --check-only, --diff ]
+        types: [ python ]
+  - repo: https://github.com/psf/black
+    rev: '22.3.0'
+    hooks:
+      - id: black
+        args: [ --check, --diff ]
+        types: [ python ]
