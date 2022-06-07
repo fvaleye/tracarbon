@@ -27,7 +27,7 @@ ec2-metadata = "^2.10.0"
 datadog = {version = "^0.44.0", optional = true}
 
 [tool.poetry.dev-dependencies]
-mypy = "^0.950"
+mypy = "^0.961"
 black = "^22.3.0"
 isort = "^5.10.1"
 pytest = "^7.1.2"
