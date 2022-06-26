@@ -4,6 +4,8 @@ import psutil
 import pytest
 
 from tracarbon import HardwareInfo
+from tracarbon.exceptions import TracarbonException
+from tracarbon.hardwares.gpu import GPUInfo
 
 
 def test_get_platform_should_return_the_platform():
@@ -33,3 +35,32 @@ async def test_get_memory_usage(mocker):
     memory_usage = await HardwareInfo.get_memory_usage()
 
     assert memory_usage == memory_usage_expected
+
+
+def test_get_gpu_power_usage(mocker):
+    gpu_power_usage_returned = "226 W"
+    gpu_usage_expected = 226
+    mocker.patch.object(
+        GPUInfo, "launch_shell_command", return_value=[gpu_power_usage_returned, 0]
+    )
+
+    gpu_usage = HardwareInfo.get_gpu_power_usage()
+
+    assert gpu_usage == gpu_usage_expected
+
+
+def test_get_gpu_power_usage(mocker):
+    gpu_power_usage_returned = "0 W"
+    mocker.patch.object(
+        GPUInfo, "launch_shell_command", return_value=[gpu_power_usage_returned, -1]
+    )
+
+    with pytest.raises(TracarbonException) as exception:
+        HardwareInfo.get_gpu_power_usage()
+    assert exception.value.args[0] == "No Nvidia GPU detected."
+
+
+def test_get_gpu_power_usage_with_no_gpu():
+    with pytest.raises(TracarbonException) as exception:
+        HardwareInfo.get_gpu_power_usage()
+    assert exception.value.args[0] == "No Nvidia GPU detected."

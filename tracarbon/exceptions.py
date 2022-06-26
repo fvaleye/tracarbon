@@ -20,3 +20,9 @@ class AWSSensorException(TracarbonException):
     """Error in the AWS Sensor Error."""
 
     pass
+
+
+class HardwareNoGPUDetectedException(TracarbonException):
+    """The hardware does not have a GPU."""
+
+    pass

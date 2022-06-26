@@ -3,6 +3,8 @@ import platform
 import psutil
 from pydantic import BaseModel
 
+from tracarbon.hardwares.gpu import GPUInfo
+
 
 class HardwareInfo(BaseModel):
     """
@@ -36,3 +38,12 @@ class HardwareInfo(BaseModel):
         :return:
         """
         return psutil.virtual_memory()[2]
+
+    @classmethod
+    def get_gpu_power_usage(cls) -> float:
+        """
+        Get the GPU power usage in watts.
+
+        :return: the gpu power usage in W
+        """
+        return GPUInfo.get_gpu_power_usage()
