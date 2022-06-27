@@ -33,16 +33,60 @@ def test_is_ec2_should_return_false_on_exception(not_ec2_mock):
 
 
 @pytest.mark.asyncio
-async def test_aws_sensor_should_return_energy_consumption(mocker):
-    aws_ec2_sensor = AWSEC2EnergyConsumption(instance_type="c3.8xlarge")
-    value_expected = 118.2
+async def test_aws_sensor_with_gpu_should_return_energy_consumption(mocker):
+    aws_ec2_sensor = AWSEC2EnergyConsumption(instance_type="p2.8xlarge")
 
-    assert aws_ec2_sensor.idle == 71.0
-    assert aws_ec2_sensor.at_10 == 118.2
-    assert aws_ec2_sensor.at_50 == 191.1
-    assert aws_ec2_sensor.at_100 == 251.2
+    assert aws_ec2_sensor.cpu_idle == 15.55
+    assert aws_ec2_sensor.cpu_at_10 == 44.38
+    assert aws_ec2_sensor.cpu_at_50 == 91.28
+    assert aws_ec2_sensor.cpu_at_100 == 124.95
+    assert aws_ec2_sensor.memory_idle == 97.6
+    assert aws_ec2_sensor.memory_at_10 == 146.4
+    assert aws_ec2_sensor.memory_at_50 == 195.2
+    assert aws_ec2_sensor.memory_at_100 == 292.8
+    assert aws_ec2_sensor.has_gpu is True
+    assert aws_ec2_sensor.delta_full_machine == 25.8
 
-    mocker.patch.object(HardwareInfo, "get_cpu_usage", return_value=10)
+    mocker.patch.object(HardwareInfo, "get_cpu_usage", return_value=50)
+    mocker.patch.object(HardwareInfo, "get_memory_usage", return_value=50)
+    gpu_power_usage = 1805.4
+    mocker.patch.object(
+        HardwareInfo, "get_gpu_power_usage", return_value=gpu_power_usage
+    )
+    value_expected = (
+        aws_ec2_sensor.cpu_at_50
+        + aws_ec2_sensor.memory_at_50
+        + aws_ec2_sensor.delta_full_machine
+        + gpu_power_usage
+    )
+
+    value = await aws_ec2_sensor.run()
+
+    assert value == value_expected
+
+
+@pytest.mark.asyncio
+async def test_aws_sensor_without_gpu_should_return_energy_consumption(mocker):
+    aws_ec2_sensor = AWSEC2EnergyConsumption(instance_type="m5.8xlarge")
+
+    assert aws_ec2_sensor.cpu_idle == 19.29
+    assert aws_ec2_sensor.cpu_at_10 == 48.88
+    assert aws_ec2_sensor.cpu_at_50 == 114.57
+    assert aws_ec2_sensor.cpu_at_100 == 159.33
+    assert aws_ec2_sensor.memory_idle == 19.27
+    assert aws_ec2_sensor.memory_at_10 == 30.8
+    assert aws_ec2_sensor.memory_at_50 == 79.37
+    assert aws_ec2_sensor.memory_at_100 == 127.94
+    assert aws_ec2_sensor.has_gpu is False
+    assert aws_ec2_sensor.delta_full_machine == 32.0
+
+    mocker.patch.object(HardwareInfo, "get_cpu_usage", return_value=50)
+    mocker.patch.object(HardwareInfo, "get_memory_usage", return_value=50)
+    value_expected = (
+        aws_ec2_sensor.cpu_at_50
+        + aws_ec2_sensor.memory_at_50
+        + aws_ec2_sensor.delta_full_machine
+    )
 
     value = await aws_ec2_sensor.run()
 

@@ -21,6 +21,9 @@ def logger_configuration() -> None:
 
 
 class TracarbonConfiguration(BaseModel):
+    """
+    The Configuration of Tracarbon.
+    """
 
     api_activated: bool
     metric_prefix_name: str

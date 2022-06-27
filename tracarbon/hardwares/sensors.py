@@ -79,6 +79,7 @@ class MacEnergyConsumption(EnergyConsumption):
             self.shell_command, stdout=asyncio.subprocess.PIPE
         )
         result, _ = await proc.communicate()
+
         return float(result)
 
 
@@ -115,12 +116,18 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
     The AWS EC2 Energy Consumption.
     """
 
-    idle: float
-    at_10: float
-    at_50: float
-    at_100: float
+    cpu_idle: float
+    cpu_at_10: float
+    cpu_at_50: float
+    cpu_at_100: float
+    memory_idle: float
+    memory_at_10: float
+    memory_at_50: float
+    memory_at_100: float
+    has_gpu: bool
+    delta_full_machine: float
 
-    def __init__(self, instance_type: str, **data: Any):
+    def __init__(self, instance_type: str, **data: Any) -> None:
         with importlib.resources.path(
             "tracarbon.hardwares.data", "aws-instances.csv"
         ) as resource:
@@ -131,10 +138,16 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
                     for row in reader:
                         if row[0] == instance_type:
                             super().__init__(
-                                idle=float(row[27].replace(",", ".")),
-                                at_10=float(row[28].replace(",", ".")),
-                                at_50=float(row[29].replace(",", ".")),
-                                at_100=float(row[30].replace(",", ".")),
+                                cpu_idle=float(row[14].replace(",", ".")),
+                                cpu_at_10=float(row[15].replace(",", ".")),
+                                cpu_at_50=float(row[16].replace(",", ".")),
+                                cpu_at_100=float(row[17].replace(",", ".")),
+                                memory_idle=float(row[18].replace(",", ".")),
+                                memory_at_10=float(row[19].replace(",", ".")),
+                                memory_at_50=float(row[20].replace(",", ".")),
+                                memory_at_100=float(row[21].replace(",", ".")),
+                                has_gpu=float(row[22].replace(",", ".")) > 0,
+                                delta_full_machine=float(row[26].replace(",", ".")),
                                 **data,
                             )
                             return
@@ -147,17 +160,37 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
 
     async def run(self) -> float:
         """
-        Run the sensor and get the current wattage.
+        Run the sensor and get the current wattage in watts.
 
         :return: the metric sent by the sensor.
         """
         cpu_usage = await HardwareInfo.get_cpu_usage()
-        logger.debug(f"CPU usage: {cpu_usage}")
         if cpu_usage >= 90:
-            return self.at_100
+            watts = self.cpu_at_100
         elif cpu_usage >= 50:
-            return self.at_50
+            watts = self.cpu_at_50
         elif cpu_usage >= 10:
-            return self.at_10
+            watts = self.cpu_at_10
         else:
-            return self.idle
+            watts = self.cpu_idle
+        logger.debug(f"CPU: {watts}W")
+
+        memory_usage = await HardwareInfo.get_memory_usage()
+        if memory_usage >= 90:
+            watts += self.memory_at_100
+        elif memory_usage >= 50:
+            watts += self.memory_at_50
+        elif memory_usage >= 10:
+            watts += self.memory_at_10
+        else:
+            watts += self.memory_idle
+        logger.debug(f"CPU with memory: {watts}W")
+
+        if self.has_gpu:
+            gpu_power_usage = HardwareInfo.get_gpu_power_usage()
+            watts += gpu_power_usage
+            logger.debug(f"CPU with memory and GPU: {watts}W")
+
+        watts += self.delta_full_machine
+        logger.debug(f"Total including the delta of the full machine: {watts}W")
+        return watts
