@@ -8,8 +8,8 @@ from tracarbon.exceptions import HardwareNoGPUDetectedException
 
 
 class GPUInfo(ABC, BaseModel):
-    """ "
-    GPUInfo.
+    """
+    GPU information.
     """
 
     @classmethod
@@ -36,7 +36,7 @@ class GPUInfo(ABC, BaseModel):
 
 class NvidiaGPU(GPUInfo):
     """
-    Nvidia GPU.
+    Nvidia GPU information.
     """
 
     shell_command: ClassVar[str] = """nvidia-smi --query-gpu=%s --format=csv,noheader"""
