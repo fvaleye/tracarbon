@@ -75,6 +75,7 @@ jobs:
           echo "Commit the new changes in the gh-pages"
           git reset --hard HEAD
           git clean -d -fx .
+          git fetch
           git checkout gh-pages
           cd ..
           cp -avr ~/build/html/.  ./documentation
