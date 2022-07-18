@@ -840,7 +840,7 @@ test = ["shellingham (>=1.3.0,<2.0.0)", "pytest (>=4.4.0,<5.4.0)", "pytest-cov (
 
 [[package]]
 name = "types-requests"
-version = "2.28.0"
+version = "2.28.1"
 description = "Typing stubs for requests"
 category = "dev"
 optional = false
@@ -936,7 +936,7 @@ datadog = ["datadog"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "dd38bb3a329f7a67d439b0ae453f20779ddf5ae0f31849edcc5488c03af553d2"
+content-hash = "8b3ca9871cac11c745eda94e691094c4ffd7c5fa2307a6527f83aa0d0a7f2a75"
 
 [metadata.files]
 aiocache = [
@@ -1654,8 +1654,8 @@ typer = [
     {file = "typer-0.6.1.tar.gz", hash = "sha256:2d5720a5e63f73eaf31edaa15f6ab87f35f0690f8ca233017d7d23d743a91d73"},
 ]
 types-requests = [
-    {file = "types-requests-2.28.0.tar.gz", hash = "sha256:9863d16dfbb3fa55dcda64fa3b989e76e8859033b26c1e1623e30465cfe294d3"},
-    {file = "types_requests-2.28.0-py3-none-any.whl", hash = "sha256:85383b4ef0535f639c3f06c5bbb6494bbf59570c4cd88bbcf540f0b2ac1b49ab"},
+    {file = "types-requests-2.28.1.tar.gz", hash = "sha256:acd8ed78509d27bdf04cddcc05f7066dfde4d30dd7dba67b808cdb1141d62ffe"},
+    {file = "types_requests-2.28.1-py3-none-any.whl", hash = "sha256:b097692e124001f0ed5e4490245bb090f5e8e929819972f9ace84f9c3e146e8c"},
 ]
 types-ujson = [
     {file = "types-ujson-5.4.0.tar.gz", hash = "sha256:c6124cadc36e565a90b01213aeec3447f571d9793d177e1653146a3867c81beb"},
