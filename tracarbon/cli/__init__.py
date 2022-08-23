@@ -72,7 +72,11 @@ def run_metrics(
         Metric(
             name="co2_emission",
             value=CarbonEmission(location=location).run,
-            tags=[f"platform:{platform}", f"location:{location}"],
+            tags=[
+                f"platform:{platform}",
+                f"location:{location.name}",
+                f"source:{location.co2g_kwh_source}",
+            ],
         )
     )
     metrics.append(
