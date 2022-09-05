@@ -482,7 +482,7 @@ email = ["email-validator (>=1.0.3)"]
 
 [[package]]
 name = "pydata-sphinx-theme"
-version = "0.9.0"
+version = "0.10.1"
 description = "Bootstrap-based Sphinx theme from the PyData community"
 category = "dev"
 optional = false
@@ -492,12 +492,13 @@ python-versions = ">=3.7"
 beautifulsoup4 = "*"
 docutils = "!=0.17.0"
 packaging = "*"
+pygments = ">=2.7"
 sphinx = ">=4.0.2"
 
 [package.extras]
 coverage = ["codecov", "pydata-sphinx-theme[test]", "pytest-cov"]
 dev = ["nox", "pre-commit", "pydata-sphinx-theme[coverage]", "pyyaml"]
-doc = ["jupyter_sphinx", "myst-parser", "numpy", "numpydoc", "pandas", "plotly", "pytest", "pytest-regressions", "sphinx-design", "sphinx-sitemap", "sphinxext-rediraffe", "xarray"]
+doc = ["ablog", "jupyter_sphinx", "matplotlib", "myst-nb", "nbsphinx", "numpy", "numpydoc", "pandas", "plotly", "pytest", "pytest-regressions", "rich", "sphinx-copybutton", "sphinx-design", "sphinx-sitemap", "sphinx-togglebutton", "sphinxext-rediraffe", "xarray"]
 test = ["pydata-sphinx-theme[doc]", "pytest"]
 
 [[package]]
@@ -930,7 +931,7 @@ datadog = ["datadog"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "def96a271edf23ce6481f89e2db740d9f80bfd853a6b710ae211aa77a2825043"
+content-hash = "2810daa8a3d4fed81cd522f1eabbafc2687edf1be0b5b41a9b472ee4cf3113c7"
 
 [metadata.files]
 aiocache = [
@@ -1528,8 +1529,8 @@ pydantic = [
     {file = "pydantic-1.10.1.tar.gz", hash = "sha256:d41bb80347a8a2d51fbd6f1748b42aca14541315878447ba159617544712f770"},
 ]
 pydata-sphinx-theme = [
-    {file = "pydata_sphinx_theme-0.9.0-py3-none-any.whl", hash = "sha256:b22b442a6d6437e5eaf0a1f057169ffcb31eaa9f10be7d5481a125e735c71c12"},
-    {file = "pydata_sphinx_theme-0.9.0.tar.gz", hash = "sha256:03598a86915b596f4bf80bef79a4d33276a83e670bf360def699dbb9f99dc57a"},
+    {file = "pydata_sphinx_theme-0.10.1-py3-none-any.whl", hash = "sha256:4731f937c7f42f516e927d52be0a356ab6b901698aef8331b097e6c4fd8100f4"},
+    {file = "pydata_sphinx_theme-0.10.1.tar.gz", hash = "sha256:0c203ff3761407da96c3a5b7a51ae079fb3268a9c95557a4a8bbe0593c88ada2"},
 ]
 pygments = [
     {file = "Pygments-2.13.0-py3-none-any.whl", hash = "sha256:f643f331ab57ba3c9d89212ee4a2dabc6e94f117cf4eefde99a0574720d14c42"},
