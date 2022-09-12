@@ -835,7 +835,7 @@ test = ["black (>=22.3.0,<23.0.0)", "coverage (>=5.2,<6.0)", "isort (>=5.0.6,<6.
 
 [[package]]
 name = "types-requests"
-version = "2.28.9"
+version = "2.28.10"
 description = "Typing stubs for requests"
 category = "dev"
 optional = false
@@ -931,7 +931,7 @@ datadog = ["datadog"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "2810daa8a3d4fed81cd522f1eabbafc2687edf1be0b5b41a9b472ee4cf3113c7"
+content-hash = "56eb8a276e7629661d6cedf8bb9e6625ac0a3f106cb992ab535af0c56c8c4a37"
 
 [metadata.files]
 aiocache = [
@@ -1654,8 +1654,8 @@ typer = [
     {file = "typer-0.6.1.tar.gz", hash = "sha256:2d5720a5e63f73eaf31edaa15f6ab87f35f0690f8ca233017d7d23d743a91d73"},
 ]
 types-requests = [
-    {file = "types-requests-2.28.9.tar.gz", hash = "sha256:feaf581bd580497a47fe845d506fa3b91b484cf706ff27774e87659837de9962"},
-    {file = "types_requests-2.28.9-py3-none-any.whl", hash = "sha256:86cb66d3de2f53eac5c09adc42cf6547eefbd0c7e1210beca1ee751c35d96083"},
+    {file = "types-requests-2.28.10.tar.gz", hash = "sha256:97d8f40aa1ffe1e58c3726c77d63c182daea9a72d9f1fa2cafdea756b2a19f2c"},
+    {file = "types_requests-2.28.10-py3-none-any.whl", hash = "sha256:45b485725ed58752f2b23461252f1c1ad9205b884a1e35f786bb295525a3e16a"},
 ]
 types-ujson = [
     {file = "types-ujson-5.4.0.tar.gz", hash = "sha256:c6124cadc36e565a90b01213aeec3447f571d9793d177e1653146a3867c81beb"},
