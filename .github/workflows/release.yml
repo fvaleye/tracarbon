@@ -23,6 +23,32 @@ jobs:
             exit 1
           fi
 
+  release-pypi-mac-and-windows:
+    needs: validate-git-tag
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ macos-11, windows-2019] 
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Setup
+        run: make setup
+
+      - name: Build and publish to pypi
+        uses: JRubics/poetry-publish@v1.13
+        with:
+          pypi_token: ${{ secrets.PYPI_TOKEN }}
+          repository_username: ${{ secrets.PYPI_USERNAME }}
+          repository_password: ${{ secrets.PYPI_PASSWORD }}
+          build_format: "wheel"
+          ignore_dev_requirements: "yes"
+
   release-pypi:
     needs: validate-git-tag
     runs-on: ubuntu-latest
@@ -33,17 +59,16 @@ jobs:
         with:
           python-version: 3.8
 
-      - name: Install Poetry
-        uses: abatilo/actions-poetry@v2.1.4
-
       - name: Setup
         run: make setup
 
-      - name: Build and publish
-        env:
-          PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
-          PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-        run: make publish
+      - name: Build and publish to pypi
+        uses: JRubics/poetry-publish@v1.13
+        with:
+          pypi_token: ${{ secrets.PYPI_TOKEN }}
+          repository_username: ${{ secrets.PYPI_USERNAME }}
+          repository_password: ${{ secrets.PYPI_PASSWORD }}
+          ignore_dev_requirements: "yes"
 
   release-documentation:
     needs: release-pypi
