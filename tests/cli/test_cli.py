@@ -9,8 +9,6 @@ from tracarbon.exporters import DatadogExporter, StdoutExporter
 
 def test_get_exporter_by_name():
     stdout_exporter = get_exporter(exporter_name="Stdout", metrics=[])
-    os.environ["DATADOG_API_KEY"] = "DATADOG_API_KEY"
-    os.environ["DATADOG_APP_KEY"] = "DATADOG_APP_KEY"
     datadadog_exporter = get_exporter(exporter_name="Datadog", metrics=[])
 
     assert isinstance(stdout_exporter, StdoutExporter) is True
@@ -37,7 +35,7 @@ def test_run_metrics_should_be_ok(not_ec2_mock, mocker, caplog):
 
     run_metrics(exporter_name=exporter, running=False)
 
-    assert "Metric name[tracarbon.co2_emission]" in caplog.text
-    assert "Metric name[tracarbon.hardware_memory_usage]" in caplog.text
-    assert "Metric name[tracarbon.hardware_cpu_usage]" in caplog.text
-    assert "Metric name[tracarbon.energy_consumption]" in caplog.text
+    assert "Metric name[test.co2_emission]" in caplog.text
+    assert "Metric name[test.hardware_memory_usage]" in caplog.text
+    assert "Metric name[test.hardware_cpu_usage]" in caplog.text
+    assert "Metric name[test.energy_consumption]" in caplog.text
