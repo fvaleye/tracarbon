@@ -77,11 +77,9 @@ jobs:
           git clean -d -fx .
           git fetch
           git checkout gh-pages
-          cd ..
           cp -avr ~/build/html/.  ./documentation
           
-          CURR_VER=$( grep version pyproject.toml | head -n 1 | awk '{print $3}' | tr -d '"' )          
           git status
           git add ./documentation
-          git commit -m "Publish the new documentation for v${CURR_VER}"
+          git commit -m "Publish the new documentation for ${GITHUB_REF_NAME}"
           git push origin gh-pages
