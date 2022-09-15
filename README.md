@@ -27,11 +27,11 @@ pip install 'tracarbon[datadog]'
 ```
 
 ### 🔌 Devices: energy consumption
-| **Devices** |                                **Description**                                 |
-|-------------|:------------------------------------------------------------------------------:|
-| **Mac**     | ✅ Global energy consumption of your Mac (must be plugged into a wall adapter). |
-| **Linux**   |                             ❌ Not yet implemented.                             |
-| **Windows** |                             ❌ Not yet implemented.                             |
+| **Devices** |                                    **Description**                                    |
+|-------------|:-------------------------------------------------------------------------------------:|
+| **Mac**     |    ✅ Global energy consumption of your Mac (must be plugged into a wall adapter).     |
+| **Linux**   | ❌ Not yet implemented. See [#184](https://github.com/hubblo-org/scaphandre/pull/184). |
+| **Windows** | ❌ Not yet implemented. See [#184](https://github.com/hubblo-org/scaphandre/pull/184). |
 
 | **Cloud Provider** |                                                                                               **Description**                                                                                               |
 |--------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
@@ -47,11 +47,11 @@ pip install 'tracarbon[datadog]'
 | **Datadog**  | Send the metrics to Datadog. |
 
 ### 🗺️ Locations
-| **Location** |                                         **Description**                                          | **Source**                                                                                                                                                    |
-|--------------|:------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Europe**   | Static file of the European Environment Agency Emission for the co2g/kwh for European countries. | [EEA website](https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-9#tab-googlechartid_googlechartid_googlechartid_googlechartid_chart_11111) |
-| **France**   |               Get the co2g/kwh in near real-time using the RTE energy consumption.               | [RTE API](https://opendata.reseaux-energies.fr)                                                                                                               |
-| **AWS**      |                 Static file of the AWS Grid emissions factors.                 | [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/cloud-carbon-coefficients/blob/main/data/grid-emissions-factors-aws.csv)                |
+| **Location** |                                          **Description**                                          | **Source**                                                                                                                                                    |
+|--------------|:-------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Europe**   | Static file of the European Environment Agency Emission for the co2g/kwh for European countries.  | [EEA website](https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-9#tab-googlechartid_googlechartid_googlechartid_googlechartid_chart_11111) |
+| **France**   |               Get the co2g/kwh in near real-time using the RTE energy consumption.                | [RTE API](https://opendata.reseaux-energies.fr)                                                                                                               |
+| **AWS**      |                          Static file of the AWS Grid emissions factors.                           | [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/cloud-carbon-coefficients/blob/main/data/grid-emissions-factors-aws.csv)                |
 
 ### ⚙️ Configuration
 | **Parameter**                     | **Description**                                                                |
@@ -59,7 +59,7 @@ pip install 'tracarbon[datadog]'
 | **TRACARBON_API_ACTIVATED**       | The activation of the real-time data collection of the carbon emission factor. |
 | **TRACARBON_METRIC_PREFIX_NAME**  | The prefix to use in all the metrics name.                                     |
 | **TRACARBON_INTERVAL_IN_SECONDS** | The interval in seconds to wait between the metrics evaluation.                |
-| **TRACARBON_LOG_LEVEL**        | The level to use for displaying the logs.                                      |
+| **TRACARBON_LOG_LEVEL**           | The level to use for displaying the logs.                                      |
 
 
 ## 🔎 Usage
