@@ -1,12 +1,9 @@
-import pytest
-
 from tracarbon import Country, HardwareInfo
-from tracarbon.conf import tracarbon_configuration as conf
 from tracarbon.exporters import Metric, StdoutExporter
 
 
 def test_exporters_should_run_and_print_the_metrics(mocker, caplog):
-
+    interval_in_seconds = 1
     mocker.patch.object(
         Country,
         "get_location",
@@ -25,7 +22,7 @@ def test_exporters_should_run_and_print_the_metrics(mocker, caplog):
 
     metrics = [memory_metric, cpu_metric]
     exporter = StdoutExporter(quit=True, metrics=metrics)
-    exporter.start()
+    exporter.start(interval_in_seconds=interval_in_seconds)
     exporter.stop()
 
     assert memory_metric.name in caplog.text
@@ -33,4 +30,3 @@ def test_exporters_should_run_and_print_the_metrics(mocker, caplog):
     assert str(memory_metric.tags) in caplog.text
     assert cpu_metric.name in caplog.text
     assert str(cpu_metric.value) in caplog.text
-    assert conf.metric_prefix_name in caplog.text

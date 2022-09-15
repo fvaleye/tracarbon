@@ -1,5 +1,3 @@
-import os
-
 import pytest
 
 from tracarbon import Country, MacEnergyConsumption
@@ -24,7 +22,7 @@ def test_get_exporter_by_name_should_raise_error():
 
 
 @pytest.mark.darwin
-def test_run_metrics_should_be_ok(not_ec2_mock, mocker, caplog):
+def test_run_metrics_should_be_ok(mocker, caplog):
     exporter = "Stdout"
     mocker.patch.object(
         Country,

@@ -5,7 +5,7 @@ import typer
 from loguru import logger
 
 from tracarbon import CarbonEmission, Country, EnergyConsumption
-from tracarbon.conf import tracarbon_configuration as conf
+from tracarbon.builder import TracarbonBuilder
 from tracarbon.exporters import Exporter, Metric
 from tracarbon.hardwares import HardwareInfo
 
@@ -47,70 +47,84 @@ def get_exporter(exporter_name: str, metrics: List[Metric]) -> Exporter:
 
 def run_metrics(
     exporter_name: str,
-    country_name_alpha_iso_2: Optional[str] = None,
+    country_code_alpha_iso_2: Optional[str] = None,
     running: bool = True,
 ) -> None:
     """
     Run the metrics with the selected exporter
 
-    :param country_name_alpha_iso_2: the alpha iso2 country name where it's running
+    :param country_code_alpha_iso_2: the alpha iso2 country name where it's running
     :param running: keep running the metrics
     :param exporter_name: the exporter name to run
     :return:
     """
-    location = Country.get_location(country_name_alpha_iso_2=country_name_alpha_iso_2)
+    tracarbon_builder = TracarbonBuilder()
+    location = Country.get_location(
+        co2signal_api_key=tracarbon_builder.configuration.co2signal_api_key,
+        country_code_alpha_iso_2=country_code_alpha_iso_2,
+    )
     platform = HardwareInfo.get_platform()
     metrics = list()
     metrics.append(
         Metric(
-            name="energy_consumption",
+            name=f"{tracarbon_builder.configuration.metric_prefix_name}.energy_consumption",
             value=EnergyConsumption.from_platform().run,
             tags=[f"platform:{platform}", f"location:{location.name}"],
         )
     )
     metrics.append(
         Metric(
-            name="co2_emission",
-            value=CarbonEmission(location=location).run,
+            name=f"{tracarbon_builder.configuration.metric_prefix_name}.co2_emission",
+            value=CarbonEmission(
+                co2signal_api_key=tracarbon_builder.configuration.co2signal_api_key,
+                location=location,
+            ).run,
             tags=[
                 f"platform:{platform}",
                 f"location:{location.name}",
-                f"source:{location.co2g_kwh_source}",
+                f"source:{location.co2g_kwh_source.value}",
             ],
         )
     )
     metrics.append(
         Metric(
-            name="hardware_memory_usage",
+            name=f"{tracarbon_builder.configuration.metric_prefix_name}.hardware_memory_usage",
             value=HardwareInfo().get_memory_usage,
             tags=[f"platform:{platform}", f"location:{location.name}"],
         )
     )
     metrics.append(
         Metric(
-            name="hardware_cpu_usage",
+            name=f"{tracarbon_builder.configuration.metric_prefix_name}.hardware_cpu_usage",
             value=HardwareInfo().get_cpu_usage,
             tags=[f"platform:{platform}", f"location:{location.name}"],
         )
     )
     try:
+        exporter = get_exporter(exporter_name=exporter_name, metrics=metrics)
+        tracarbon = tracarbon_builder.build(
+            location=location,
+            exporter=exporter,
+        )
+        from loguru import logger
+
         logger.info("Tracarbon CLI started.")
-        with get_exporter(exporter_name=exporter_name, metrics=metrics):
+        with tracarbon:
             while running:
-                time.sleep(conf.interval_in_seconds)
+                time.sleep(tracarbon_builder.configuration.interval_in_seconds)
     except KeyboardInterrupt:
         logger.info("Tracarbon CLI exited.")
 
 
 @app.command()
 def run(
-    exporter_name: str = "Stdout", country_name_alpha_iso_2: Optional[str] = None
+    exporter_name: str = "Stdout", country_code_alpha_iso_2: Optional[str] = None
 ) -> None:
     """
     Run Tracarbon.
     """
     run_metrics(
-        exporter_name=exporter_name, country_name_alpha_iso_2=country_name_alpha_iso_2
+        exporter_name=exporter_name, country_code_alpha_iso_2=country_code_alpha_iso_2
     )
 
 

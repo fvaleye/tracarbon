@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Awaitable, Dict
+from typing import Any, Awaitable, Dict, Optional
 
 import aiohttp
 import ujson
@@ -13,17 +13,22 @@ class Location(ABC, BaseModel):
     Generic Location.
     """
 
+    name: str
+
     @classmethod
-    async def request(cls, url: str) -> Dict[str, Any]:
+    async def request(
+        cls, url: str, headers: Optional[Dict[str, str]] = None
+    ) -> Dict[str, Any]:
         """
         Launch an async request.
 
         :param url: url to request
+        :param headers: headers to add to the request
         :return: the response
         """
 
         async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
+            async with session.get(url, headers=headers) as response:
                 try:
                     logger.info(f"Sending request to the url: {url}.")
                     text = await response.text()
@@ -41,14 +46,5 @@ class Location(ABC, BaseModel):
         :param today_date: the date for the request
         :param hour: the hour for the request
         :return: the latest co2g_kwh
-        """
-        pass
-
-    @abstractmethod
-    async def get_co2g_kwh(self) -> float:
-        """
-        Get the CO2g per kwh.
-
-        :return: the co2g/kwh value
         """
         pass
