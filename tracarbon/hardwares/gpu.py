@@ -13,18 +13,6 @@ class GPUInfo(ABC, BaseModel):
     """
 
     @classmethod
-    def launch_shell_command(cls, shell_command: str) -> Tuple[bytes, int]:
-        """
-        Launch a shell command using asyncio
-
-        :param shell_command: launch the shell command
-        :return: result of the shell command and returncode
-        """
-        process = subprocess.Popen(shell_command, stdout=subprocess.PIPE, shell=True)
-        stdout, _ = process.communicate()
-        return stdout, process.returncode
-
-    @classmethod
     def get_gpu_power_usage(cls) -> float:
         """
         Get the GPU power usage in watts.
@@ -39,7 +27,20 @@ class NvidiaGPU(GPUInfo):
     Nvidia GPU information.
     """
 
-    shell_command: ClassVar[str] = """nvidia-smi --query-gpu=%s --format=csv,noheader"""
+    @classmethod
+    def launch_shell_command(cls) -> Tuple[bytes, int]:
+        """
+        Launch a shell command.
+
+        :return: result of the shell command and returncode
+        """
+        process = subprocess.Popen(
+            "nvidia-smi --query-gpu=power.draw --format=csv,noheader",
+            stdout=subprocess.PIPE,
+            shell=True,
+        )
+        stdout, _ = process.communicate()
+        return stdout, process.returncode
 
     @classmethod
     def get_gpu_power_usage(cls) -> float:
@@ -48,9 +49,7 @@ class NvidiaGPU(GPUInfo):
 
         :return: the gpu power usage in W
         """
-        gpu_utilization, return_code = cls.launch_shell_command(
-            shell_command=cls.shell_command % "power.draw"
-        )
+        gpu_utilization, return_code = cls.launch_shell_command()
         if return_code == 0:
             return float(gpu_utilization.split()[0])
         raise HardwareNoGPUDetectedException(f"No Nvidia GPU detected.")

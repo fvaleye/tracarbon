@@ -128,5 +128,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+.idea/
+
 # Ignore test environment variables
 !.env
