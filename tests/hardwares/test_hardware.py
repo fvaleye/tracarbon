@@ -5,7 +5,7 @@ import pytest
 
 from tracarbon import HardwareInfo
 from tracarbon.exceptions import TracarbonException
-from tracarbon.hardwares.gpu import GPUInfo
+from tracarbon.hardwares.gpu import NvidiaGPU
 
 
 def test_get_platform_should_return_the_platform():
@@ -52,7 +52,7 @@ def test_get_gpu_power_usage(mocker):
 def test_get_gpu_power_usage(mocker):
     gpu_power_usage_returned = "0 W"
     mocker.patch.object(
-        GPUInfo, "launch_shell_command", return_value=[gpu_power_usage_returned, -1]
+        NvidiaGPU, "launch_shell_command", return_value=[gpu_power_usage_returned, -1]
     )
 
     with pytest.raises(TracarbonException) as exception:

@@ -37,7 +37,7 @@ jobs:
         uses: abatilo/actions-poetry@v2.1.4
 
       - name: Setup
-        run: make setup
+        run: make init
 
       - name: Build and publish
         env:
@@ -59,7 +59,7 @@ jobs:
         uses: abatilo/actions-poetry@v2.1.4
 
       - name: Setup
-        run: make setup
+        run: make init
 
       - name: Build and Publish Sphinx documentation
         run: |
