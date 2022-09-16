@@ -4,6 +4,7 @@ Development
 
 With Docker
 ===========
+
 .. code-block:: bash
 
     # Inside the root folder
@@ -12,12 +13,13 @@ With Docker
     # Build with Docker
     docker run -it tracarbon bash
 
-With poetry
-===============
+With Poetry
+===========
+
 .. code-block:: bash
 
     # Setup Python
-    make setup
+    make init
 
     # List everything
     make help

@@ -1,24 +1,21 @@
 import sys
 
 import pytest
-import requests
 from _pytest.logging import LogCaptureFixture
-from dotenv import load_dotenv
 from loguru import logger
+
+
+def test_some_interaction(monkeypatch):
+    monkeypatch.setattr("os.getcwd", lambda: "/")
+
 
 ALL = set("darwin linux windows".split())
 
 
-load_dotenv()
-
-
-@pytest.fixture
-def not_ec2_mock(mocker):
-    mocker.patch.object(
-        requests,
-        "head",
-        side_effect=ValueError(),
-    )
+@pytest.fixture(autouse=True)
+def no_requests(monkeypatch):
+    """Remove requests.sessions.Session.request for all tests."""
+    monkeypatch.delattr("requests.sessions.Session.request")
 
 
 @pytest.fixture

@@ -26,3 +26,9 @@ class HardwareNoGPUDetectedException(TracarbonException):
     """The hardware does not have a GPU."""
 
     pass
+
+
+class CO2SignalAPIKeyIsMissing(TracarbonException):
+    """The C02 Signal API key is missing."""
+
+    pass
