@@ -2,7 +2,6 @@ import sys
 
 import pytest
 from _pytest.logging import LogCaptureFixture
-from dotenv import load_dotenv
 from loguru import logger
 
 
@@ -11,9 +10,6 @@ def test_some_interaction(monkeypatch):
 
 
 ALL = set("darwin linux windows".split())
-
-
-load_dotenv()
 
 
 @pytest.fixture(autouse=True)

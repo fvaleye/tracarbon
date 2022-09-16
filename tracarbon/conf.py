@@ -1,7 +1,8 @@
 import os
 import sys
-from typing import Any
+from typing import Any, Optional
 
+from dotenv import load_dotenv
 from pydantic import BaseModel
 
 
@@ -36,8 +37,10 @@ class TracarbonConfiguration(BaseModel):
         interval_in_seconds: int = 60,
         log_level: str = "INFO",
         co2signal_api_key: str = "",
+        env_file_path: Optional[str] = None,
         **data: Any
     ) -> None:
+        load_dotenv(env_file_path)
         log_level = os.environ.get("TRACARBON_LOG_LEVEL", log_level)
         logger_configuration(level=log_level)
         super().__init__(
