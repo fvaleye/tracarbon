@@ -8,6 +8,19 @@ CLI
 .. automodule:: tracarbon.cli
     :members:
 
+Configuration
+=============
+
+.. automodule:: tracarbon.conf
+    :members:
+
+
+Builder
+=======
+
+.. automodule:: tracarbon.builder
+    :members:
+
 Hardware
 ========
 

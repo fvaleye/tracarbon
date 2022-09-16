@@ -301,6 +301,7 @@
 
 <div class="genindex-jumpbox">
  <a href="#A"><strong>A</strong></a>
+ | <a href="#B"><strong>B</strong></a>
  | <a href="#C"><strong>C</strong></a>
  | <a href="#D"><strong>D</strong></a>
  | <a href="#E"><strong>E</strong></a>
@@ -329,16 +330,28 @@
   </ul></td>
 </tr></table>
 
+<h2 id="B">B</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#tracarbon.builder.TracarbonBuilder.build">build() (tracarbon.builder.TracarbonBuilder method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#tracarbon.emissions.carbon_emissions.CarbonEmission">CarbonEmission (class in tracarbon.emissions.carbon_emissions)</a>
+</li>
+      <li><a href="api_reference.html#tracarbon.locations.country.CarbonIntensitySource">CarbonIntensitySource (class in tracarbon.locations.country)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.exceptions.CloudProviderRegionIsMissing">CloudProviderRegionIsMissing</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#tracarbon.emissions.carbon_emissions.CarbonEmission.co2g_from_watt_hours">co2g_from_watt_hours() (tracarbon.emissions.carbon_emissions.CarbonEmission method)</a>
+</li>
+      <li><a href="api_reference.html#tracarbon.exceptions.CO2SignalAPIKeyIsMissing">CO2SignalAPIKeyIsMissing</a>
 </li>
       <li><a href="api_reference.html#tracarbon.locations.country.Country">Country (class in tracarbon.locations.country)</a>
 </li>
@@ -372,12 +385,10 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_reference.html#tracarbon.locations.country.France">France (class in tracarbon.locations.country)</a>
+      <li><a href="api_reference.html#tracarbon.locations.country.Country.from_eu_file">from_eu_file() (tracarbon.locations.country.Country class method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_reference.html#tracarbon.locations.country.Country.from_eu_file">from_eu_file() (tracarbon.locations.country.Country class method)</a>
-</li>
       <li><a href="api_reference.html#tracarbon.hardwares.sensors.EnergyConsumption.from_platform">from_platform() (tracarbon.hardwares.sensors.EnergyConsumption static method)</a>
 </li>
   </ul></td>
@@ -387,15 +398,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#tracarbon.locations.country.AWSLocation.get_co2g_kwh">get_co2g_kwh() (tracarbon.locations.country.AWSLocation method)</a>
-
-      <ul>
-        <li><a href="api_reference.html#tracarbon.locations.country.Country.get_co2g_kwh">(tracarbon.locations.country.Country method)</a>
 </li>
-        <li><a href="api_reference.html#tracarbon.locations.country.France.get_co2g_kwh">(tracarbon.locations.country.France method)</a>
-</li>
-        <li><a href="api_reference.html#tracarbon.locations.location.Location.get_co2g_kwh">(tracarbon.locations.location.Location method)</a>
-</li>
-      </ul></li>
       <li><a href="api_reference.html#tracarbon.hardwares.hardware.HardwareInfo.get_cpu_usage">get_cpu_usage() (tracarbon.hardwares.hardware.HardwareInfo static method)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.locations.country.Country.get_current_country">get_current_country() (tracarbon.locations.country.Country class method)</a>
@@ -408,8 +411,6 @@
 
       <ul>
         <li><a href="api_reference.html#tracarbon.locations.country.Country.get_latest_co2g_kwh">(tracarbon.locations.country.Country method)</a>
-</li>
-        <li><a href="api_reference.html#tracarbon.locations.country.France.get_latest_co2g_kwh">(tracarbon.locations.country.France method)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.locations.location.Location.get_latest_co2g_kwh">(tracarbon.locations.location.Location method)</a>
 </li>
@@ -464,6 +465,8 @@
 </li>
       <li><a href="api_reference.html#tracarbon.locations.location.Location">Location (class in tracarbon.locations.location)</a>
 </li>
+      <li><a href="api_reference.html#tracarbon.conf.logger_configuration">logger_configuration() (in module tracarbon.conf)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -478,7 +481,11 @@
     module
 
       <ul>
+        <li><a href="api_reference.html#module-tracarbon.builder">tracarbon.builder</a>
+</li>
         <li><a href="api_reference.html#module-tracarbon.cli">tracarbon.cli</a>
+</li>
+        <li><a href="api_reference.html#module-tracarbon.conf">tracarbon.conf</a>
 </li>
         <li><a href="api_reference.html#module-tracarbon.emissions.carbon_emissions">tracarbon.emissions.carbon_emissions</a>
 </li>
@@ -537,25 +544,49 @@
 </li>
       <li><a href="api_reference.html#tracarbon.hardwares.sensors.Sensor.Config">Sensor.Config (class in tracarbon.hardwares.sensors)</a>
 </li>
+      <li><a href="api_reference.html#tracarbon.builder.Tracarbon.start">start() (tracarbon.builder.Tracarbon method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.exporters.exporter.Exporter.start">(tracarbon.exporters.exporter.Exporter method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_reference.html#tracarbon.exporters.exporter.Exporter.start">start() (tracarbon.exporters.exporter.Exporter method)</a>
-</li>
       <li><a href="api_reference.html#tracarbon.exporters.stdout.StdoutExporter">StdoutExporter (class in tracarbon.exporters.stdout)</a>
 </li>
-      <li><a href="api_reference.html#tracarbon.exporters.exporter.Exporter.stop">stop() (tracarbon.exporters.exporter.Exporter method)</a>
+      <li><a href="api_reference.html#tracarbon.builder.Tracarbon.stop">stop() (tracarbon.builder.Tracarbon method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.exporters.exporter.Exporter.stop">(tracarbon.exporters.exporter.Exporter method)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#tracarbon.builder.Tracarbon">Tracarbon (class in tracarbon.builder)</a>
+</li>
+      <li>
+    tracarbon.builder
+
+      <ul>
+        <li><a href="api_reference.html#module-tracarbon.builder">module</a>
+</li>
+      </ul></li>
       <li>
     tracarbon.cli
 
       <ul>
         <li><a href="api_reference.html#module-tracarbon.cli">module</a>
+</li>
+      </ul></li>
+      <li>
+    tracarbon.conf
+
+      <ul>
+        <li><a href="api_reference.html#module-tracarbon.conf">module</a>
 </li>
       </ul></li>
       <li>
@@ -623,6 +654,10 @@
         <li><a href="api_reference.html#module-tracarbon.locations.location">module</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#tracarbon.builder.TracarbonBuilder">TracarbonBuilder (class in tracarbon.builder)</a>
+</li>
+      <li><a href="api_reference.html#tracarbon.conf.TracarbonConfiguration">TracarbonConfiguration (class in tracarbon.conf)</a>
+</li>
       <li><a href="api_reference.html#tracarbon.exceptions.TracarbonException">TracarbonException</a>
 </li>
   </ul></td>

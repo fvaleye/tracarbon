@@ -339,13 +339,13 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tracarbon.cli.run">
-<span class="sig-prename descclassname"><span class="pre">tracarbon.cli.</span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exporter_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Stdout'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">country_name_alpha_iso_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.cli.run" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">tracarbon.cli.</span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exporter_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Stdout'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">country_code_alpha_iso_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.cli.run" title="Permalink to this definition">#</a></dt>
 <dd><p>Run Tracarbon.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>exporter_name</strong> (<em>str</em>) – </p></li>
-<li><p><strong>country_name_alpha_iso_2</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – </p></li>
+<li><p><strong>country_code_alpha_iso_2</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – </p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -356,12 +356,12 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tracarbon.cli.run_metrics">
-<span class="sig-prename descclassname"><span class="pre">tracarbon.cli.</span></span><span class="sig-name descname"><span class="pre">run_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exporter_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">country_name_alpha_iso_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">running</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.cli.run_metrics" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">tracarbon.cli.</span></span><span class="sig-name descname"><span class="pre">run_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exporter_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">country_code_alpha_iso_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">running</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.cli.run_metrics" title="Permalink to this definition">#</a></dt>
 <dd><p>Run the metrics with the selected exporter</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>country_name_alpha_iso_2</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – the alpha iso2 country name where it’s running</p></li>
+<li><p><strong>country_code_alpha_iso_2</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – the alpha iso2 country name where it’s running</p></li>
 <li><p><strong>running</strong> (<em>bool</em>) – keep running the metrics</p></li>
 <li><p><strong>exporter_name</strong> (<em>str</em>) – the exporter name to run</p></li>
 </ul>
@@ -373,6 +373,107 @@
 <dd class="field-odd"><p>None</p>
 </dd>
 </dl>
+</dd></dl>
+
+</section>
+<section id="module-tracarbon.conf">
+<span id="configuration"></span><h2>Configuration<a class="headerlink" href="#module-tracarbon.conf" title="Permalink to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.conf.TracarbonConfiguration">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.conf.</span></span><span class="sig-name descname"><span class="pre">TracarbonConfiguration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric_prefix_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tracarbon'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_in_seconds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'INFO'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.conf.TracarbonConfiguration" title="Permalink to this definition">#</a></dt>
+<dd><p>The Configuration of Tracarbon.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>metric_prefix_name</strong> (<em>str</em>) – </p></li>
+<li><p><strong>interval_in_seconds</strong> (<em>int</em>) – </p></li>
+<li><p><strong>log_level</strong> (<em>str</em>) – </p></li>
+<li><p><strong>co2signal_api_key</strong> (<em>str</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tracarbon.conf.logger_configuration">
+<span class="sig-prename descclassname"><span class="pre">tracarbon.conf.</span></span><span class="sig-name descname"><span class="pre">logger_configuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.conf.logger_configuration" title="Permalink to this definition">#</a></dt>
+<dd><p>Configure the logger format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>level</strong> (<em>str</em>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-tracarbon.builder">
+<span id="builder"></span><h2>Builder<a class="headerlink" href="#module-tracarbon.builder" title="Permalink to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.builder.Tracarbon">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.builder.</span></span><span class="sig-name descname"><span class="pre">Tracarbon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">configuration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exporter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.builder.Tracarbon" title="Permalink to this definition">#</a></dt>
+<dd><p>Tracarbon instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>configuration</strong> (<a class="reference internal" href="#tracarbon.conf.TracarbonConfiguration" title="tracarbon.conf.TracarbonConfiguration"><em>TracarbonConfiguration</em></a>) – </p></li>
+<li><p><strong>exporter</strong> (<a class="reference internal" href="#tracarbon.exporters.exporter.Exporter" title="tracarbon.exporters.exporter.Exporter"><em>Exporter</em></a>) – </p></li>
+<li><p><strong>location</strong> (<a class="reference internal" href="#tracarbon.locations.location.Location" title="tracarbon.locations.location.Location"><em>Location</em></a>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.builder.Tracarbon.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.builder.Tracarbon.start" title="Permalink to this definition">#</a></dt>
+<dd><p>Start Tracarbon.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.builder.Tracarbon.stop">
+<span class="sig-name descname"><span class="pre">stop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.builder.Tracarbon.stop" title="Permalink to this definition">#</a></dt>
+<dd><p>Stop Tracarbon.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.builder.TracarbonBuilder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.builder.</span></span><span class="sig-name descname"><span class="pre">TracarbonBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configuration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">TracarbonConfiguration(metric_prefix_name='tracarbon',</span> <span class="pre">log_level='INFO',</span> <span class="pre">interval_in_seconds=60,</span> <span class="pre">co2signal_api_key='')</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.builder.TracarbonBuilder" title="Permalink to this definition">#</a></dt>
+<dd><p>Tracarbon builder for building Tracarbon.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>configuration</strong> (<a class="reference internal" href="#tracarbon.conf.TracarbonConfiguration" title="tracarbon.conf.TracarbonConfiguration"><em>TracarbonConfiguration</em></a>) – </p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.builder.TracarbonBuilder.build">
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exporter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.builder.TracarbonBuilder.build" title="Permalink to this definition">#</a></dt>
+<dd><p>Build Tracarbon with its configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>exporter</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#tracarbon.exporters.exporter.Exporter" title="tracarbon.exporters.exporter.Exporter"><em>Exporter</em></a><em>]</em>) – the exporter to use</p></li>
+<li><p><strong>location</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#tracarbon.locations.location.Location" title="tracarbon.locations.location.Location"><em>Location</em></a><em>]</em>) – the location to use</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#tracarbon.builder.Tracarbon" title="tracarbon.builder.Tracarbon"><em>Tracarbon</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -672,14 +773,17 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="tracarbon.exporters.exporter.Exporter.start">
-<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.Exporter.start" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interval_in_seconds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.Exporter.start" title="Permalink to this definition">#</a></dt>
 <dd><p>Start the exporter and a dedicated timer configured with the configured timeout.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p></p>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>None</p>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>interval_in_seconds</strong> (<em>int</em>) – </p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -888,24 +992,13 @@
 <span id="locations"></span><h2>Locations<a class="headerlink" href="#module-tracarbon.locations.location" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.locations.location.Location">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.location.</span></span><span class="sig-name descname"><span class="pre">Location</span></span><a class="headerlink" href="#tracarbon.locations.location.Location" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.location.</span></span><span class="sig-name descname"><span class="pre">Location</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.location.Location" title="Permalink to this definition">#</a></dt>
 <dd><p>Generic Location.</p>
 <dl class="field-list simple">
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="tracarbon.locations.location.Location.get_co2g_kwh">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_co2g_kwh</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.location.Location.get_co2g_kwh" title="Permalink to this definition">#</a></dt>
-<dd><p>Get the CO2g per kwh.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>the co2g/kwh value</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>float</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – </p>
 </dd>
 </dl>
-</dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="tracarbon.locations.location.Location.get_latest_co2g_kwh">
 <em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_latest_co2g_kwh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">today_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hour</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.location.Location.get_latest_co2g_kwh" title="Permalink to this definition">#</a></dt>
@@ -928,11 +1021,14 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="tracarbon.locations.location.Location.request">
-<em class="property"><span class="pre">async</span><span class="w"> </span><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.location.Location.request" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">async</span><span class="w"> </span><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.location.Location.request" title="Permalink to this definition">#</a></dt>
 <dd><p>Launch an async request.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>url</strong> (<em>str</em>) – url to request</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url</strong> (<em>str</em>) – url to request</p></li>
+<li><p><strong>headers</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em><em>]</em>) – headers to add to the request</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>the response</p>
@@ -947,15 +1043,16 @@
 
 <span class="target" id="module-tracarbon.locations.country"></span><dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.locations.country.AWSLocation">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.country.</span></span><span class="sig-name descname"><span class="pre">AWSLocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">region_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'file'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.AWSLocation" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.country.</span></span><span class="sig-name descname"><span class="pre">AWSLocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">region_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CarbonIntensitySource.FILE</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.AWSLocation" title="Permalink to this definition">#</a></dt>
 <dd><p>AWS Location.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>region_name</strong> (<em>str</em>) – </p></li>
 <li><p><strong>name</strong> (<em>str</em>) – </p></li>
+<li><p><strong>co2signal_api_key</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – </p></li>
 <li><p><strong>co2g_kwh</strong> (<em>float</em>) – </p></li>
-<li><p><strong>co2g_kwh_source</strong> (<em>str</em>) – </p></li>
+<li><p><strong>co2g_kwh_source</strong> (<a class="reference internal" href="#tracarbon.locations.country.CarbonIntensitySource" title="tracarbon.locations.country.CarbonIntensitySource"><em>CarbonIntensitySource</em></a>) – </p></li>
 </ul>
 </dd>
 </dl>
@@ -996,45 +1093,38 @@
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.locations.country.CarbonIntensitySource">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.country.</span></span><span class="sig-name descname"><span class="pre">CarbonIntensitySource</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.CarbonIntensitySource" title="Permalink to this definition">#</a></dt>
+<dd><p>An enumeration.</p>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.locations.country.Country">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.country.</span></span><span class="sig-name descname"><span class="pre">Country</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'file'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.Country" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.country.</span></span><span class="sig-name descname"><span class="pre">Country</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CarbonIntensitySource.FILE</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.Country" title="Permalink to this definition">#</a></dt>
 <dd><p>Country definition.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – </p></li>
+<li><p><strong>co2signal_api_key</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – </p></li>
 <li><p><strong>co2g_kwh</strong> (<em>float</em>) – </p></li>
-<li><p><strong>co2g_kwh_source</strong> (<em>str</em>) – </p></li>
+<li><p><strong>co2g_kwh_source</strong> (<a class="reference internal" href="#tracarbon.locations.country.CarbonIntensitySource" title="tracarbon.locations.country.CarbonIntensitySource"><em>CarbonIntensitySource</em></a>) – </p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="tracarbon.locations.country.Country.from_eu_file">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_eu_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">country_name_alpha_iso_2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.Country.from_eu_file" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_eu_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">country_code_alpha_iso_2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.Country.from_eu_file" title="Permalink to this definition">#</a></dt>
 <dd><p>Get the country from the file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>country_name_alpha_iso_2</strong> (<em>str</em>) – the alpha_iso_2 name of the country</p>
+<dd class="field-odd"><p><strong>country_code_alpha_iso_2</strong> (<em>str</em>) – the alpha_iso_2 name of the country</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p></p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#tracarbon.locations.country.Country" title="tracarbon.locations.country.Country"><em>Country</em></a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="tracarbon.locations.country.Country.get_co2g_kwh">
-<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_co2g_kwh</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.Country.get_co2g_kwh" title="Permalink to this definition">#</a></dt>
-<dd><p>Get the CO2g per kwh for the Location.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>the CO2g/kwh.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>float</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1058,34 +1148,27 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="tracarbon.locations.country.Country.get_latest_co2g_kwh">
-<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_latest_co2g_kwh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">today_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hour</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.Country.get_latest_co2g_kwh" title="Permalink to this definition">#</a></dt>
-<dd><p>Get the latest CO2g_kwh for the Location.</p>
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_latest_co2g_kwh</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.Country.get_latest_co2g_kwh" title="Permalink to this definition">#</a></dt>
+<dd><p>Get the latest CO2g_kwh for the Location from <a class="reference external" href="https://www.co2signal.com/">https://www.co2signal.com/</a>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>today_date</strong> (<em>str</em>) – the date for the request</p></li>
-<li><p><strong>hour</strong> (<em>str</em>) – the hour for the request</p></li>
-</ul>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the latest CO2g_kwh</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>the latest CO2g_kwh</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>float</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="tracarbon.locations.country.Country.get_location">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_location</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">country_name_alpha_iso_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_activated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.Country.get_location" title="Permalink to this definition">#</a></dt>
-<dd><p>Get the current location automatically: on cloud provider or a country.
-If country_name_alpha_iso_2 is provided, the country will be configured from the local carbon emission file.</p>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_location</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">co2signal_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">country_code_alpha_iso_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.Country.get_location" title="Permalink to this definition">#</a></dt>
+<dd><p>Get the current location automatically: on cloud provider or a country.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>country_name_alpha_iso_2</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – the alpha iso 2 country name.</p></li>
-<li><p><strong>api_activated</strong> (<em>bool</em>) – activation of the live carbon emissions from available country’s APIs.</p></li>
+<li><p><strong>country_code_alpha_iso_2</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – the alpha iso 2 country name.</p></li>
+<li><p><strong>co2signal_api_key</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – api key for fetching CO2 Signal API.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1099,55 +1182,6 @@ If country_name_alpha_iso_2 is provided, the country will be configured from the
 
 </dd></dl>
 
-<dl class="py class">
-<dt class="sig sig-object py" id="tracarbon.locations.country.France">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.country.</span></span><span class="sig-name descname"><span class="pre">France</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'API'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.France" title="Permalink to this definition">#</a></dt>
-<dd><p>France Location.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<em>str</em>) – </p></li>
-<li><p><strong>co2g_kwh</strong> (<em>float</em>) – </p></li>
-<li><p><strong>co2g_kwh_source</strong> (<em>str</em>) – </p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="tracarbon.locations.country.France.get_co2g_kwh">
-<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_co2g_kwh</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.France.get_co2g_kwh" title="Permalink to this definition">#</a></dt>
-<dd><p>Get the latest co2/kwh update from the French’s website <a class="reference external" href="https://www.rte-france.com/eco2mix">https://www.rte-france.com/eco2mix</a>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>the last known CO2g/kwh value</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="tracarbon.locations.country.France.get_latest_co2g_kwh">
-<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_latest_co2g_kwh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">today_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hour</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.France.get_latest_co2g_kwh" title="Permalink to this definition">#</a></dt>
-<dd><p>Get the latest CO2g_kwh for France.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>today_date</strong> (<em>str</em>) – the date for the request</p></li>
-<li><p><strong>hour</strong> (<em>str</em>) – the hour for the request</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>the latest CO2g_kwh</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 </section>
 <section id="module-tracarbon.exceptions">
 <span id="exceptions"></span><h2>Exceptions<a class="headerlink" href="#module-tracarbon.exceptions" title="Permalink to this heading">#</a></h2>
@@ -1155,6 +1189,12 @@ If country_name_alpha_iso_2 is provided, the country will be configured from the
 <dt class="sig sig-object py" id="tracarbon.exceptions.AWSSensorException">
 <em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exceptions.</span></span><span class="sig-name descname"><span class="pre">AWSSensorException</span></span><a class="headerlink" href="#tracarbon.exceptions.AWSSensorException" title="Permalink to this definition">#</a></dt>
 <dd><p>Error in the AWS Sensor Error.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="tracarbon.exceptions.CO2SignalAPIKeyIsMissing">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exceptions.</span></span><span class="sig-name descname"><span class="pre">CO2SignalAPIKeyIsMissing</span></span><a class="headerlink" href="#tracarbon.exceptions.CO2SignalAPIKeyIsMissing" title="Permalink to this definition">#</a></dt>
+<dd><p>The C02 Signal API key is missing.</p>
 </dd></dl>
 
 <dl class="py exception">
@@ -1225,6 +1265,16 @@ If country_name_alpha_iso_2 is provided, the country will be configured from the
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#module-tracarbon.cli">
    CLI
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-tracarbon.conf">
+   Configuration
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-tracarbon.builder">
+   Builder
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
