@@ -1,3 +1,4 @@
+from tracarbon.builder import *
 from tracarbon.conf import *
 from tracarbon.emissions import *
 from tracarbon.exceptions import *

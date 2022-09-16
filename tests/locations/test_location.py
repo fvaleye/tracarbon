@@ -51,28 +51,28 @@ def test_unknown_location(mocker):
 
 def test_world_emission_should_get_country():
 
-    country_name_alpha_iso_2 = "fr"
+    country_code_alpha_iso_2 = "fr"
     co2g_kwh_expected = 51.1
     country_expected = Country(
-        name=country_name_alpha_iso_2,
+        name=country_code_alpha_iso_2,
         co2g_kwh=co2g_kwh_expected,
     )
 
-    country = Country.from_eu_file(country_name_alpha_iso_2=country_name_alpha_iso_2)
+    country = Country.from_eu_file(country_code_alpha_iso_2=country_code_alpha_iso_2)
 
     assert country == country_expected
 
 
 def test_world_emission_should_raise_error_when_country_is_missing():
 
-    country_name_alpha_iso_2 = "zf"
+    country_code_alpha_iso_2 = "zf"
 
     with pytest.raises(CountryIsMissing) as exception:
-        Country.from_eu_file(country_name_alpha_iso_2=country_name_alpha_iso_2)
+        Country.from_eu_file(country_code_alpha_iso_2=country_code_alpha_iso_2)
 
     assert (
         exception.value.args[0]
-        == f"The country [{country_name_alpha_iso_2}] is not in the co2 emission file."
+        == f"The country [{country_code_alpha_iso_2}] is not in the co2 emission file."
     )
 
 
@@ -94,4 +94,4 @@ def test_aws_location_should_return_ok_if_region_exists():
 
     assert location.name == "AWS(eu-west-1)"
     assert location.co2g_kwh == 316.0
-    assert location.co2g_kwh_source == "file"
+    assert location.co2g_kwh_source.value == "file"

@@ -3,15 +3,15 @@ import datetime
 import pytest
 
 from tracarbon import CarbonEmission, EnergyConsumption, MacEnergyConsumption
-from tracarbon.locations import France, Location
+from tracarbon.locations import Country, Location
 
 
 @pytest.mark.darwin
-def test_carbon_emission_should_convert_watt_hours_to_co2g(not_ec2_mock):
+def test_carbon_emission_should_convert_watt_hours_to_co2g():
     co2g_per_kwh = 20.3
     watt_hours = 10.1
     carbon_emission = CarbonEmission(
-        location=France(co2g_per_kwh=co2g_per_kwh),
+        location=Country(co2g_per_kwh=co2g_per_kwh),
     )
     co2g_expected = 0.20503
 
@@ -23,13 +23,13 @@ def test_carbon_emission_should_convert_watt_hours_to_co2g(not_ec2_mock):
 
 
 @pytest.mark.darwin
-def test_carbon_emission_should_convert_watt_hours_to_co2g(not_ec2_mock):
+def test_carbon_emission_should_convert_watt_hours_to_co2g():
     wattage = 50
     co2g_per_kwh = 20.3
     watt_hours_expected = 0.833
     name_alpha_iso_2 = "fr"
     carbon_emission = CarbonEmission(
-        location=France(name_alpha_iso_2=name_alpha_iso_2, co2g_kwh=co2g_per_kwh),
+        location=Country(name=name_alpha_iso_2, co2g_kwh=co2g_per_kwh),
     )
     one_minute_ago = datetime.datetime.now() - datetime.timedelta(seconds=60)
     carbon_emission.previous_energy_consumption_time = one_minute_ago
@@ -41,16 +41,14 @@ def test_carbon_emission_should_convert_watt_hours_to_co2g(not_ec2_mock):
 
 @pytest.mark.asyncio
 @pytest.mark.darwin
-async def test_carbon_emission_should_run_to_convert_watt_hours_to_co2g(
-    not_ec2_mock, mocker
-):
+async def test_carbon_emission_should_run_to_convert_watt_hours_to_co2g(mocker):
     co2g_per_kwh = 20.0
     co2_expected = 0.0003333333333333334
     name_alpha_iso_2 = "fr"
-    mocker.patch.object(France, "get_latest_co2g_kwh", return_value=co2g_per_kwh)
+    mocker.patch.object(Country, "get_latest_co2g_kwh", return_value=co2g_per_kwh)
     mocker.patch.object(MacEnergyConsumption, "run", return_value=60.0)
     carbon_emission = CarbonEmission(
-        location=France(name_alpha_iso_2=name_alpha_iso_2, co2g_kwh=co2g_per_kwh),
+        location=Country(name=name_alpha_iso_2, co2g_kwh=co2g_per_kwh),
     )
 
     co2g = await carbon_emission.run()

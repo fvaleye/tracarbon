@@ -67,7 +67,7 @@ class CarbonEmission(Sensor):
         logger.debug(f"Energy consumption run: {wattage}W")
         watt_hours = self.wattage_to_watt_hours(wattage=wattage)
         logger.debug(f"Energy consumption run: {watt_hours}W/h")
-        co2g_per_kwh = await self.location.get_co2g_kwh()
+        co2g_per_kwh = await self.location.get_latest_co2g_kwh()
         logger.debug(f"co2g_per_kwh of the location: {co2g_per_kwh}g CO2 eq/kWh")
         return self.co2g_from_watt_hours(
             watt_hours=watt_hours, co2g_per_kwh=co2g_per_kwh

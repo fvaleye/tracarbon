@@ -6,8 +6,6 @@ from typing import Awaitable, Callable, List, Optional, Set
 from loguru import logger
 from pydantic import BaseModel, validator
 
-from tracarbon.conf import tracarbon_configuration as conf
-
 
 class Exporter(BaseModel, metaclass=ABCMeta):
     """The Exporter interface."""
@@ -21,12 +19,6 @@ class Exporter(BaseModel, metaclass=ABCMeta):
 
         arbitrary_types_allowed = True
 
-    def __enter__(self) -> None:
-        self.start()
-
-    def __exit__(self, type, value, traceback) -> None:  # type: ignore
-        self.stop()
-
     @abstractmethod
     async def launch(self, metric: "Metric") -> None:
         """
@@ -37,7 +29,7 @@ class Exporter(BaseModel, metaclass=ABCMeta):
         """
         pass
 
-    def start(self) -> None:
+    def start(self, interval_in_seconds: int) -> None:
         """
         Start the exporter and a dedicated timer configured with the configured timeout.
 
@@ -50,7 +42,7 @@ class Exporter(BaseModel, metaclass=ABCMeta):
         def _run() -> None:
             asyncio.run(self._launch_all())
             if self.event and not self.stopped and not self.event.is_set():
-                timer = Timer(conf.interval_in_seconds, _run, [])
+                timer = Timer(interval_in_seconds, _run, [])
                 timer.daemon = True
                 timer.start()
 
@@ -94,7 +86,3 @@ class Metric(BaseModel):
     name: str
     value: Callable[[], Awaitable[float]]
     tags: Optional[List[str]] = None
-
-    @validator("name", always=True)
-    def metric_name_prefixed(cls, name: str) -> str:
-        return f"{conf.metric_prefix_name}.{name}"
