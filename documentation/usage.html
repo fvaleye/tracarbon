@@ -304,22 +304,26 @@
 <section id="tracarbon">
 <h2>Tracarbon<a class="headerlink" href="#tracarbon" title="Permalink to this heading">#</a></h2>
 <ol class="arabic simple">
-<li><p>Set the environment variable or set the configuration</p></li>
-<li><p>Choose <a class="reference internal" href="api_reference.html#tracarbon.exporters.exporter.Exporter" title="tracarbon.exporters.exporter.Exporter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exporter</span></code></a> with your <a class="reference internal" href="api_reference.html#tracarbon.exporters.exporter.Metric" title="tracarbon.exporters.exporter.Metric"><code class="xref py py-class docutils literal notranslate"><span class="pre">Metric</span></code></a></p></li>
-<li><p>Run it!</p></li>
+<li><p>Set the environment variable or directly set the configuration.</p></li>
+<li><p>Choose <a class="reference internal" href="api_reference.html#tracarbon.exporters.exporter.Exporter" title="tracarbon.exporters.exporter.Exporter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exporter</span></code></a> with your list of <a class="reference internal" href="api_reference.html#tracarbon.exporters.exporter.Metric" title="tracarbon.exporters.exporter.Metric"><code class="xref py py-class docutils literal notranslate"><span class="pre">Metric</span></code></a>.</p></li>
+<li><p>Launch Tracarbon!</p></li>
 </ol>
 </section>
 <section id="run-the-cli">
 <h2>Run the CLI<a class="headerlink" href="#run-the-cli" title="Permalink to this heading">#</a></h2>
-<p>Run the tracarbon cli with Stdout exporter and the API key:</p>
+<p>Run Tracarbon CLI with the default Stdout exporter and the C02 Signal API:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">TRACARBON_CO2SIGNAL_API_KEY</span><span class="o">=</span><span class="n">API_KEY</span> <span class="n">tracarbon</span> <span class="n">run</span>
 </pre></div>
 </div>
-<p>Run the tracarbon cli with Stdout exporter with the static file:</p>
+<p>Run Tracarbon CLI with the default Stdout exporter without the CO2 Signal API:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tracarbon</span> <span class="n">run</span>
 </pre></div>
 </div>
-<p>Run the tracarbon cli with Datadog exporter:</p>
+<p>Run Tracarbon CLI with the default Stdout exporter with a specified location:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tracarbon</span> <span class="n">run</span> <span class="o">--</span><span class="n">country</span><span class="o">-</span><span class="n">code</span><span class="o">-</span><span class="n">alpha</span><span class="o">-</span><span class="n">iso</span><span class="o">-</span><span class="mi">2</span> <span class="n">fr</span>
+</pre></div>
+</div>
+<p>Run Tracarbon CLI with the Datadog exporter:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">TRACARBON_CO2SIGNAL_API_KEY</span><span class="o">=</span><span class="n">API_KEY</span> <span class="n">DATADOG_API_KEY</span><span class="o">=</span><span class="n">DATADOG_API_KEY</span> <span class="n">DATADOG_APP_KEY</span><span class="o">=</span><span class="n">DATADOG_APP_KEY</span> <span class="n">tracarbon</span> <span class="n">run</span> <span class="o">--</span><span class="n">exporter</span><span class="o">-</span><span class="n">name</span> <span class="n">Datadog</span>
 </pre></div>
 </div>
@@ -339,8 +343,8 @@
 </pre></div>
 </div>
 </section>
-<section id="run-the-code-with-a-customs-configuration">
-<h2>Run the code with a customs configuration<a class="headerlink" href="#run-the-code-with-a-customs-configuration" title="Permalink to this heading">#</a></h2>
+<section id="run-the-code-with-a-custom-configuration">
+<h2>Run the code with a custom configuration<a class="headerlink" href="#run-the-code-with-a-custom-configuration" title="Permalink to this heading">#</a></h2>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tracarbon</span> <span class="kn">import</span> <span class="n">TracarbonBuilder</span><span class="p">,</span> <span class="n">TracarbonConfiguration</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tracarbon.exporters</span> <span class="kn">import</span> <span class="n">StdoutExporter</span><span class="p">,</span> <span class="n">Metric</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tracarbon.emissions</span> <span class="kn">import</span> <span class="n">CarbonEmission</span>
@@ -416,8 +420,8 @@
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#run-the-code-with-a-customs-configuration">
-   Run the code with a customs configuration
+  <a class="reference internal nav-link" href="#run-the-code-with-a-custom-configuration">
+   Run the code with a custom configuration
   </a>
  </li>
 </ul>
