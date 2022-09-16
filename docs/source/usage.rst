@@ -5,22 +5,26 @@ Usage
 Tracarbon
 =========
 
-1. Set the environment variable or set the configuration
-2. Choose :class:`.Exporter` with your :class:`.Metric`
-3. Run it!
+1. Set the environment variable or directly set the configuration.
+2. Choose :class:`.Exporter` with your list of :class:`.Metric`.
+3. Launch Tracarbon!
 
 Run the CLI
 ===========
 
-Run the tracarbon cli with Stdout exporter and the API key:
+Run Tracarbon CLI with the default Stdout exporter and the C02 Signal API:
 
 >>> TRACARBON_CO2SIGNAL_API_KEY=API_KEY tracarbon run
 
-Run the tracarbon cli with Stdout exporter with the static file:
+Run Tracarbon CLI with the default Stdout exporter without the CO2 Signal API:
 
 >>> tracarbon run
 
-Run the tracarbon cli with Datadog exporter:
+Run Tracarbon CLI with the default Stdout exporter with a specified location:
+
+>>> tracarbon run --country-code-alpha-iso-2 fr
+
+Run Tracarbon CLI with the Datadog exporter:
 
 >>> TRACARBON_CO2SIGNAL_API_KEY=API_KEY DATADOG_API_KEY=DATADOG_API_KEY DATADOG_APP_KEY=DATADOG_APP_KEY tracarbon run --exporter-name Datadog
 
@@ -37,7 +41,7 @@ Run the code
 >>> with tracarbon:
 >>>    # Your code
 
-Run the code with a customs configuration
+Run the code with a custom configuration
 =========================================
 >>> from tracarbon import TracarbonBuilder, TracarbonConfiguration
 >>> from tracarbon.exporters import StdoutExporter, Metric
