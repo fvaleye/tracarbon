@@ -42,6 +42,9 @@ Exporters
 .. automodule:: tracarbon.exporters.datadog_exporter
     :members:
 
+.. automodule:: tracarbon.exporters.json_exporter
+    :members:
+
 Emissions
 =========
 
