@@ -45,7 +45,7 @@ class JSONExporter(Exporter):
                 {
                     "timestamp": str(datetime.utcnow()),
                     "metric_name": metric.name,
-                    "metric_value": await metric.value(),  # type: ignore
+                    "metric_value": await metric.value(),
                     "metric_tags": metric.tags,
                 },
                 file,
