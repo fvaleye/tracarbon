@@ -50,7 +50,7 @@ if DATADOG_INSTALLED:
             :param metric: the metric to send
             :return:
             """
-            metric_value = await metric.value()  # type: ignore
+            metric_value = await metric.value()
             logger.info(
                 f"Sending metric[{metric.name}] with value [{metric_value}] to Datadog."
             )

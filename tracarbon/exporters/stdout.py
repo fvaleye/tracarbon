@@ -16,7 +16,7 @@ class StdoutExporter(Exporter):
         :return:
         """
         logger.info(
-            f"Metric name[{metric.name}], value[{await metric.value()}], tags[{metric.tags}]"  # type: ignore
+            f"Metric name[{metric.name}], value[{await metric.value()}], tags[{metric.tags}]"
         )
 
     @classmethod
