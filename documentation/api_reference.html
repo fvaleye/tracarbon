@@ -34,6 +34,7 @@
     <script src="_static/underscore.js"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'api_reference';</script>
     <link rel="shortcut icon" href="_static/logo.png"/>
     <link rel="index" title="Index" href="genindex.html" />
@@ -305,13 +306,14 @@
 <span id="cli"></span><h2>CLI<a class="headerlink" href="#module-tracarbon.cli" title="Permalink to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="tracarbon.cli.get_exporter">
-<span class="sig-prename descclassname"><span class="pre">tracarbon.cli.</span></span><span class="sig-name descname"><span class="pre">get_exporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exporter_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.cli.get_exporter" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">tracarbon.cli.</span></span><span class="sig-name descname"><span class="pre">get_exporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exporter_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tracarbon_builder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">TracarbonBuilder(configuration=TracarbonConfiguration(metric_prefix_name='test',</span> <span class="pre">log_level='INFO',</span> <span class="pre">interval_in_seconds=1,</span> <span class="pre">co2signal_api_key=''))</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.cli.get_exporter" title="Permalink to this definition">#</a></dt>
 <dd><p>Get the exporter based on the name with its metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>exporter_name</strong> (<em>str</em>) – the name of the exporter</p></li>
 <li><p><strong>metrics</strong> (<em>List</em><em>[</em><a class="reference internal" href="#tracarbon.exporters.exporter.Metric" title="tracarbon.exporters.exporter.Metric"><em>Metric</em></a><em>]</em>) – the list of the associated metrics</p></li>
+<li><p><strong>tracarbon_builder</strong> (<a class="reference internal" href="#tracarbon.builder.TracarbonBuilder" title="tracarbon.builder.TracarbonBuilder"><em>TracarbonBuilder</em></a>) – the configuration of Tracarbon</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -724,7 +726,7 @@
 <span id="exporters"></span><h2>Exporters<a class="headerlink" href="#module-tracarbon.exporters.exporter" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.exporters.exporter.Exporter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.exporter.</span></span><span class="sig-name descname"><span class="pre">Exporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stopped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.Exporter" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.exporter.</span></span><span class="sig-name descname"><span class="pre">Exporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stopped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_prefix_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.Exporter" title="Permalink to this definition">#</a></dt>
 <dd><p>The Exporter interface.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -732,6 +734,7 @@
 <li><p><strong>metrics</strong> (<em>List</em><em>[</em><a class="reference internal" href="#tracarbon.exporters.exporter.Metric" title="tracarbon.exporters.exporter.Metric"><em>Metric</em></a><em>]</em>) – </p></li>
 <li><p><strong>event</strong> (<em>Optional</em><em>[</em><em>Event</em><em>]</em>) – </p></li>
 <li><p><strong>stopped</strong> (<em>bool</em>) – </p></li>
+<li><p><strong>metric_prefix_name</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – </p></li>
 </ul>
 </dd>
 </dl>
@@ -807,14 +810,59 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.exporters.exporter.Metric">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.exporter.</span></span><span class="sig-name descname"><span class="pre">Metric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.Metric" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.exporter.</span></span><span class="sig-name descname"><span class="pre">Metric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.Metric" title="Permalink to this definition">#</a></dt>
 <dd><p>Global metric to use for the exporters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – </p></li>
 <li><p><strong>value</strong> (<em>Callable</em><em>[</em><em>[</em><em>]</em><em>, </em><em>Awaitable</em><em>[</em><em>float</em><em>]</em><em>]</em>) – </p></li>
-<li><p><strong>tags</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>tags</strong> (<em>List</em><em>[</em><a class="reference internal" href="#tracarbon.exporters.exporter.Tag" title="tracarbon.exporters.exporter.Tag"><em>Tag</em></a><em>]</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.exporters.exporter.Metric.format_name">
+<span class="sig-name descname"><span class="pre">format_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric_prefix_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.Metric.format_name" title="Permalink to this definition">#</a></dt>
+<dd><p>Format the name of the metric with a prefix and separator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>metric_prefix_name</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – the prefix to insert before the separator and the name.</p></li>
+<li><p><strong>separator</strong> (<em>str</em>) – the separator to use between the prefix and the name.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.exporters.exporter.Metric.format_tags">
+<span class="sig-name descname"><span class="pre">format_tags</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">separator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">':'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.Metric.format_tags" title="Permalink to this definition">#</a></dt>
+<dd><p>Format tags with a separator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>separator</strong> (<em>str</em>) – the separator to insert between the key and value.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>List</em>[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.exporters.exporter.Tag">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.exporter.</span></span><span class="sig-name descname"><span class="pre">Tag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.Tag" title="Permalink to this definition">#</a></dt>
+<dd><p>Tag for a metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – </p></li>
+<li><p><strong>value</strong> (<em>str</em>) – </p></li>
 </ul>
 </dd>
 </dl>
@@ -822,7 +870,7 @@
 
 <span class="target" id="module-tracarbon.exporters.stdout"></span><dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.exporters.stdout.StdoutExporter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.stdout.</span></span><span class="sig-name descname"><span class="pre">StdoutExporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stopped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.stdout.StdoutExporter" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.stdout.</span></span><span class="sig-name descname"><span class="pre">StdoutExporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stopped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_prefix_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.stdout.StdoutExporter" title="Permalink to this definition">#</a></dt>
 <dd><p>Print the metrics to Stdout.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -830,6 +878,7 @@
 <li><p><strong>metrics</strong> (<em>List</em><em>[</em><a class="reference internal" href="#tracarbon.exporters.exporter.Metric" title="tracarbon.exporters.exporter.Metric"><em>Metric</em></a><em>]</em>) – </p></li>
 <li><p><strong>event</strong> (<em>Optional</em><em>[</em><em>Event</em><em>]</em>) – </p></li>
 <li><p><strong>stopped</strong> (<em>bool</em>) – </p></li>
+<li><p><strong>metric_prefix_name</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – </p></li>
 </ul>
 </dd>
 </dl>
@@ -855,11 +904,8 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>metric</strong> (<a class="reference internal" href="#tracarbon.exporters.exporter.Metric" title="tracarbon.exporters.exporter.Metric"><em>Metric</em></a>) – the metric to send</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>None</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -868,7 +914,7 @@
 
 <span class="target" id="module-tracarbon.exporters.datadog_exporter"></span><dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.exporters.datadog_exporter.DatadogExporter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.datadog_exporter.</span></span><span class="sig-name descname"><span class="pre">DatadogExporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stopped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disable_buffering</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datadog_flush_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.datadog_exporter.DatadogExporter" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.datadog_exporter.</span></span><span class="sig-name descname"><span class="pre">DatadogExporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stopped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_prefix_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disable_buffering</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datadog_flush_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.datadog_exporter.DatadogExporter" title="Permalink to this definition">#</a></dt>
 <dd><p>Datadog exporter for the metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -876,6 +922,7 @@
 <li><p><strong>metrics</strong> (<em>List</em><em>[</em><a class="reference internal" href="#tracarbon.exporters.exporter.Metric" title="tracarbon.exporters.exporter.Metric"><em>Metric</em></a><em>]</em>) – </p></li>
 <li><p><strong>event</strong> (<em>Optional</em><em>[</em><em>Event</em><em>]</em>) – </p></li>
 <li><p><strong>stopped</strong> (<em>bool</em>) – </p></li>
+<li><p><strong>metric_prefix_name</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – </p></li>
 <li><p><strong>api_key</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – </p></li>
 <li><p><strong>app_key</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – </p></li>
 <li><p><strong>stats</strong> (<em>Optional</em><em>[</em><em>ThreadStats</em><em>]</em>) – </p></li>
@@ -902,6 +949,66 @@
 <dt class="sig sig-object py" id="tracarbon.exporters.datadog_exporter.DatadogExporter.launch">
 <em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">launch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.datadog_exporter.DatadogExporter.launch" title="Permalink to this definition">#</a></dt>
 <dd><p>Launch the Datadog exporter with the metrics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>metric</strong> (<a class="reference internal" href="#tracarbon.exporters.exporter.Metric" title="tracarbon.exporters.exporter.Metric"><em>Metric</em></a>) – the metric to send</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-tracarbon.exporters.json_exporter"></span><dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.exporters.json_exporter.JSONExporter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.json_exporter.</span></span><span class="sig-name descname"><span class="pre">JSONExporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stopped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_prefix_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tracarbon_export_14_10_2022.json'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.json_exporter.JSONExporter" title="Permalink to this definition">#</a></dt>
+<dd><p>Write the metrics to a local JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>metrics</strong> (<em>List</em><em>[</em><a class="reference internal" href="#tracarbon.exporters.exporter.Metric" title="tracarbon.exporters.exporter.Metric"><em>Metric</em></a><em>]</em>) – </p></li>
+<li><p><strong>event</strong> (<em>Optional</em><em>[</em><em>Event</em><em>]</em>) – </p></li>
+<li><p><strong>stopped</strong> (<em>bool</em>) – </p></li>
+<li><p><strong>metric_prefix_name</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – </p></li>
+<li><p><strong>path</strong> (<em>str</em>) – </p></li>
+<li><p><strong>indent</strong> (<em>int</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.exporters.json_exporter.JSONExporter.flush">
+<span class="sig-name descname"><span class="pre">flush</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.json_exporter.JSONExporter.flush" title="Permalink to this definition">#</a></dt>
+<dd><p>Flush the file and add the closing bracket.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.exporters.json_exporter.JSONExporter.get_name">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.json_exporter.JSONExporter.get_name" title="Permalink to this definition">#</a></dt>
+<dd><p>Get the name of the exporter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the Exporter’s name</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.exporters.json_exporter.JSONExporter.launch">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">launch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.json_exporter.JSONExporter.launch" title="Permalink to this definition">#</a></dt>
+<dd><p>Launch the Stdout exporter with the metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>metric</strong> (<a class="reference internal" href="#tracarbon.exporters.exporter.Metric" title="tracarbon.exporters.exporter.Metric"><em>Metric</em></a>) – the metric to send</p>
@@ -1002,20 +1109,14 @@
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="tracarbon.locations.location.Location.get_latest_co2g_kwh">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_latest_co2g_kwh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">today_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hour</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.location.Location.get_latest_co2g_kwh" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_latest_co2g_kwh</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.location.Location.get_latest_co2g_kwh" title="Permalink to this definition">#</a></dt>
 <dd><p>Get the latest co2g_kwh for France.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>today_date</strong> (<em>str</em>) – the date for the request</p></li>
-<li><p><strong>hour</strong> (<em>str</em>) – the hour for the request</p></li>
-</ul>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the latest co2g_kwh</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>the latest co2g_kwh</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>float</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1267,41 +1368,732 @@
   <a class="reference internal nav-link" href="#module-tracarbon.cli">
    CLI
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.cli.get_exporter">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       get_exporter()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.cli.list_exporters">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       list_exporters()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.cli.run">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       run()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.cli.run_metrics">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       run_metrics()
+      </span>
+     </code>
+    </a>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#module-tracarbon.conf">
    Configuration
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.conf.TracarbonConfiguration">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       TracarbonConfiguration
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.conf.logger_configuration">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       logger_configuration()
+      </span>
+     </code>
+    </a>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#module-tracarbon.builder">
    Builder
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.builder.Tracarbon">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Tracarbon
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.builder.Tracarbon.start">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Tracarbon.start()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.builder.Tracarbon.stop">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Tracarbon.stop()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.builder.TracarbonBuilder">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       TracarbonBuilder
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.builder.TracarbonBuilder.build">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         TracarbonBuilder.build()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#module-tracarbon.hardwares.hardware">
    Hardware
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.hardwares.hardware.HardwareInfo">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       HardwareInfo
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.hardwares.hardware.HardwareInfo.get_cpu_usage">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         HardwareInfo.get_cpu_usage()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.hardwares.hardware.HardwareInfo.get_gpu_power_usage">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         HardwareInfo.get_gpu_power_usage()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.hardwares.hardware.HardwareInfo.get_memory_usage">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         HardwareInfo.get_memory_usage()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.hardwares.hardware.HardwareInfo.get_platform">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         HardwareInfo.get_platform()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.AWSEC2EnergyConsumption">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       AWSEC2EnergyConsumption
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.AWSEC2EnergyConsumption.run">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         AWSEC2EnergyConsumption.run()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.EnergyConsumption">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       EnergyConsumption
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.EnergyConsumption.from_platform">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         EnergyConsumption.from_platform()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.LinuxEnergyConsumption">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       LinuxEnergyConsumption
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.LinuxEnergyConsumption.run">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         LinuxEnergyConsumption.run()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.MacEnergyConsumption">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       MacEnergyConsumption
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.MacEnergyConsumption.run">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         MacEnergyConsumption.run()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.Sensor">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Sensor
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.Sensor.Config">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Sensor.Config
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.Sensor.run">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Sensor.run()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.WindowsEnergyConsumption">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       WindowsEnergyConsumption
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.WindowsEnergyConsumption.run">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         WindowsEnergyConsumption.run()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#module-tracarbon.exporters.exporter">
    Exporters
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Exporter">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Exporter
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Exporter.Config">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Exporter.Config
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Exporter.get_name">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Exporter.get_name()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Exporter.launch">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Exporter.launch()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Exporter.start">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Exporter.start()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Exporter.stop">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Exporter.stop()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Metric">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Metric
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Metric.format_name">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Metric.format_name()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Metric.format_tags">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Metric.format_tags()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Tag">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Tag
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.exporters.stdout.StdoutExporter">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       StdoutExporter
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.exporters.stdout.StdoutExporter.get_name">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         StdoutExporter.get_name()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.exporters.stdout.StdoutExporter.launch">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         StdoutExporter.launch()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.exporters.datadog_exporter.DatadogExporter">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       DatadogExporter
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.exporters.datadog_exporter.DatadogExporter.get_name">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         DatadogExporter.get_name()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.exporters.datadog_exporter.DatadogExporter.launch">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         DatadogExporter.launch()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.exporters.json_exporter.JSONExporter">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       JSONExporter
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.exporters.json_exporter.JSONExporter.flush">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         JSONExporter.flush()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.exporters.json_exporter.JSONExporter.get_name">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         JSONExporter.get_name()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.exporters.json_exporter.JSONExporter.launch">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         JSONExporter.launch()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#module-tracarbon.emissions.carbon_emissions">
    Emissions
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.emissions.carbon_emissions.CarbonEmission">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       CarbonEmission
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.emissions.carbon_emissions.CarbonEmission.co2g_from_watt_hours">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         CarbonEmission.co2g_from_watt_hours()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.emissions.carbon_emissions.CarbonEmission.run">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         CarbonEmission.run()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.emissions.carbon_emissions.CarbonEmission.wattage_to_watt_hours">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         CarbonEmission.wattage_to_watt_hours()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#module-tracarbon.locations.location">
    Locations
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.locations.location.Location">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Location
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.locations.location.Location.get_latest_co2g_kwh">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Location.get_latest_co2g_kwh()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.locations.location.Location.request">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Location.request()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.locations.country.AWSLocation">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       AWSLocation
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.locations.country.AWSLocation.get_co2g_kwh">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         AWSLocation.get_co2g_kwh()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.locations.country.AWSLocation.get_latest_co2g_kwh">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         AWSLocation.get_latest_co2g_kwh()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.locations.country.CarbonIntensitySource">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       CarbonIntensitySource
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.locations.country.Country">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Country
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.locations.country.Country.from_eu_file">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Country.from_eu_file()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.locations.country.Country.get_current_country">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Country.get_current_country()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.locations.country.Country.get_latest_co2g_kwh">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Country.get_latest_co2g_kwh()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#tracarbon.locations.country.Country.get_location">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Country.get_location()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#module-tracarbon.exceptions">
    Exceptions
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.exceptions.AWSSensorException">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       AWSSensorException
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.exceptions.CO2SignalAPIKeyIsMissing">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       CO2SignalAPIKeyIsMissing
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.exceptions.CloudProviderRegionIsMissing">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       CloudProviderRegionIsMissing
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.exceptions.CountryIsMissing">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       CountryIsMissing
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.exceptions.HardwareNoGPUDetectedException">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       HardwareNoGPUDetectedException
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.exceptions.TracarbonException">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       TracarbonException
+      </span>
+     </code>
+    </a>
+   </li>
+  </ul>
  </li>
 </ul>
 
@@ -1356,7 +2148,7 @@
   <div class="footer-item">
     
 <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.1.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.3.<br>
 </p>
 
   </div>
