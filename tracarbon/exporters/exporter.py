@@ -1,10 +1,10 @@
 import asyncio
 from abc import ABCMeta, abstractmethod
-from threading import Event, Lock, Timer
-from typing import Awaitable, Callable, List, Optional, Set
+from threading import Event, Timer
+from typing import Awaitable, Callable, Dict, List, Optional
 
 from loguru import logger
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 
 
 class Exporter(BaseModel, metaclass=ABCMeta):
@@ -13,6 +13,7 @@ class Exporter(BaseModel, metaclass=ABCMeta):
     metrics: List["Metric"]
     event: Optional[Event] = None
     stopped: bool = False
+    metric_prefix_name: Optional[str] = None
 
     class Config:
         """Pydantic configuration."""
@@ -78,6 +79,15 @@ class Exporter(BaseModel, metaclass=ABCMeta):
         pass
 
 
+class Tag(BaseModel):
+    """
+    Tag for a metric.
+    """
+
+    key: str
+    value: str
+
+
 class Metric(BaseModel):
     """
     Global metric to use for the exporters.
@@ -85,4 +95,25 @@ class Metric(BaseModel):
 
     name: str
     value: Callable[[], Awaitable[float]]
-    tags: Optional[List[str]] = None
+    tags: List[Tag] = list()
+
+    def format_name(
+        self, metric_prefix_name: Optional[str] = None, separator: str = "."
+    ) -> str:
+        """
+        Format the name of the metric with a prefix and separator.
+
+        :param metric_prefix_name: the prefix to insert before the separator and the name.
+        :param separator: the separator to use between the prefix and the name.
+        """
+        if metric_prefix_name:
+            return f"{metric_prefix_name}{separator}{self.name}"
+        return self.name
+
+    def format_tags(self, separator: str = ":") -> List[str]:
+        """
+        Format tags with a separator.
+
+        :param separator: the separator to insert between the key and value.
+        """
+        return [f"{tag.key}{separator}{tag.value}" for tag in self.tags]

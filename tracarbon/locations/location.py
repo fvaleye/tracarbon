@@ -39,12 +39,10 @@ class Location(ABC, BaseModel):
 
     @abstractmethod
     @cached()  # type: ignore
-    async def get_latest_co2g_kwh(self, today_date: str, hour: str) -> float:
+    async def get_latest_co2g_kwh(self) -> float:
         """
         Get the latest co2g_kwh for France.
 
-        :param today_date: the date for the request
-        :param hour: the hour for the request
         :return: the latest co2g_kwh
         """
         pass

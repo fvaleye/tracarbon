@@ -2,9 +2,9 @@ import pytest
 
 from tracarbon.builder import TracarbonBuilder, TracarbonConfiguration
 from tracarbon.emissions import CarbonEmission
-from tracarbon.exporters import Metric, StdoutExporter
+from tracarbon.exporters import Metric, StdoutExporter, Tag
 from tracarbon.hardwares import HardwareInfo
-from tracarbon.locations import Country, Location
+from tracarbon.locations import Country
 
 
 @pytest.mark.darwin
@@ -20,8 +20,8 @@ def test_builder_without_configuration(mocker):
                     location=Country(name=location, co2g_kwh=51.1)
                 ).run,
                 tags=[
-                    f"platform:{HardwareInfo.get_platform()}",
-                    f"location:{location}",
+                    Tag(key="platform", value=str(HardwareInfo.get_platform())),
+                    Tag(key="location", value=str(location)),
                 ],
             )
         ]
@@ -45,8 +45,8 @@ def test_builder_with_configuration():
                 name="co2_emission",
                 value=CarbonEmission(location=expected_location).run,
                 tags=[
-                    f"platform:{HardwareInfo.get_platform()}",
-                    f"location:{expected_location}",
+                    Tag(key="platform", value=str(HardwareInfo.get_platform())),
+                    Tag(key="location", value=str(expected_location)),
                 ],
             )
         ]

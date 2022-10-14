@@ -6,7 +6,7 @@ from loguru import logger
 
 from tracarbon import CarbonEmission, Country, EnergyConsumption
 from tracarbon.builder import TracarbonBuilder
-from tracarbon.exporters import Exporter, Metric
+from tracarbon.exporters import Exporter, Metric, Tag
 from tracarbon.hardwares import HardwareInfo
 
 app = typer.Typer()
@@ -23,12 +23,17 @@ def list_exporters(displayed: bool = True) -> List[str]:
     return exporters
 
 
-def get_exporter(exporter_name: str, metrics: List[Metric]) -> Exporter:
+def get_exporter(
+    exporter_name: str,
+    metrics: List[Metric],
+    tracarbon_builder: TracarbonBuilder = TracarbonBuilder(),
+) -> Exporter:
     """
     Get the exporter based on the name with its metrics.
 
     :param exporter_name: the name of the exporter
     :param metrics: the list of the associated metrics
+    :param tracarbon_builder: the configuration of Tracarbon
     :return: the configured exporter
     """
     exporters = list_exporters(displayed=False)
@@ -42,7 +47,7 @@ def get_exporter(exporter_name: str, metrics: List[Metric]) -> Exporter:
     except Exception as exception:
         logger.exception("This exporter initiation failed.")
         raise exception
-    return selected_exporter(metrics=metrics)  # type: ignore
+    return selected_exporter(metrics=metrics, metric_prefix_name=tracarbon_builder.configuration.metric_prefix_name)  # type: ignore
 
 
 def run_metrics(
@@ -67,41 +72,54 @@ def run_metrics(
     metrics = list()
     metrics.append(
         Metric(
-            name=f"{tracarbon_builder.configuration.metric_prefix_name}.energy_consumption",
+            name="energy_consumption",
             value=EnergyConsumption.from_platform().run,
-            tags=[f"platform:{platform}", f"location:{location.name}"],
-        )
-    )
-    metrics.append(
-        Metric(
-            name=f"{tracarbon_builder.configuration.metric_prefix_name}.co2_emission",
-            value=CarbonEmission(
-                co2signal_api_key=tracarbon_builder.configuration.co2signal_api_key,
-                location=location,
-            ).run,
             tags=[
-                f"platform:{platform}",
-                f"location:{location.name}",
-                f"source:{location.co2g_kwh_source.value}",
+                Tag(key="platform", value=platform),
+                Tag(key="location", value=location.name),
             ],
         )
     )
     metrics.append(
         Metric(
-            name=f"{tracarbon_builder.configuration.metric_prefix_name}.hardware_memory_usage",
-            value=HardwareInfo().get_memory_usage,
-            tags=[f"platform:{platform}", f"location:{location.name}"],
+            name="co2_emission",
+            value=CarbonEmission(
+                co2signal_api_key=tracarbon_builder.configuration.co2signal_api_key,
+                location=location,
+            ).run,
+            tags=[
+                Tag(key="platform", value=platform),
+                Tag(key="location", value=location.name),
+                Tag(key="source", value=location.co2g_kwh_source.value),
+            ],
         )
     )
     metrics.append(
         Metric(
-            name=f"{tracarbon_builder.configuration.metric_prefix_name}.hardware_cpu_usage",
+            name="hardware_memory_usage",
+            value=HardwareInfo().get_memory_usage,
+            tags=[
+                Tag(key="platform", value=platform),
+                Tag(key="location", value=location.name),
+            ],
+        )
+    )
+    metrics.append(
+        Metric(
+            name="hardware_cpu_usage",
             value=HardwareInfo().get_cpu_usage,
-            tags=[f"platform:{platform}", f"location:{location.name}"],
+            tags=[
+                Tag(key="platform", value=platform),
+                Tag(key="location", value=location.name),
+            ],
         )
     )
     try:
-        exporter = get_exporter(exporter_name=exporter_name, metrics=metrics)
+        exporter = get_exporter(
+            exporter_name=exporter_name,
+            metrics=metrics,
+            tracarbon_builder=tracarbon_builder,
+        )
         tracarbon = tracarbon_builder.build(
             location=location,
             exporter=exporter,

@@ -44,9 +44,11 @@ class JSONExporter(Exporter):
             ujson.dump(
                 {
                     "timestamp": str(datetime.utcnow()),
-                    "metric_name": metric.name,
+                    "metric_name": metric.format_name(
+                        metric_prefix_name=self.metric_prefix_name
+                    ),
                     "metric_value": await metric.value(),
-                    "metric_tags": metric.tags,
+                    "metric_tags": metric.format_tags(),
                 },
                 file,
                 indent=self.indent,
@@ -59,4 +61,4 @@ class JSONExporter(Exporter):
 
         :return: the Exporter's name
         """
-        return "JSONExporter"
+        return "JSON"

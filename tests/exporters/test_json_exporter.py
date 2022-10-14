@@ -4,7 +4,7 @@ import psutil
 import ujson
 
 from tracarbon import Country, HardwareInfo
-from tracarbon.exporters import JSONExporter, Metric
+from tracarbon.exporters import JSONExporter, Metric, Tag
 
 
 def test_json_exporter_should_write_well_formatted_metrics_in_json_file(mocker, tmpdir):
@@ -23,25 +23,25 @@ def test_json_exporter_should_write_well_formatted_metrics_in_json_file(mocker, 
             "timestamp": str(fixed_timestamp),
             "metric_name": "test_metric_1",
             "metric_value": "70",
-            "metric_tags": ["test_tags"],
+            "metric_tags": ["test:tags"],
         },
         {
             "timestamp": str(fixed_timestamp),
             "metric_name": "test_metric_2",
             "metric_value": "5.0",
-            "metric_tags": ["test_tags"],
+            "metric_tags": ["test:tags"],
         },
         {
             "timestamp": str(fixed_timestamp),
             "metric_name": "test_metric_1",
             "metric_value": "70",
-            "metric_tags": ["test_tags"],
+            "metric_tags": ["test:tags"],
         },
         {
             "timestamp": str(fixed_timestamp),
             "metric_name": "test_metric_2",
             "metric_value": "5.0",
-            "metric_tags": ["test_tags"],
+            "metric_tags": ["test:tags"],
         },
     ]
 
@@ -53,12 +53,12 @@ def test_json_exporter_should_write_well_formatted_metrics_in_json_file(mocker, 
     memory_metric = Metric(
         name="test_metric_1",
         value=HardwareInfo.get_memory_usage,
-        tags=["test_tags"],
+        tags=[Tag(key="test", value="tags")],
     )
     cpu_metric = Metric(
         name="test_metric_2",
         value=HardwareInfo.get_cpu_usage,
-        tags=["test_tags"],
+        tags=[Tag(key="test", value="tags")],
     )
 
     metrics = [memory_metric, cpu_metric]
