@@ -13,10 +13,9 @@ class StdoutExporter(Exporter):
         Launch the Stdout exporter with the metrics.
 
         :param metric: the metric to send
-        :return:
         """
         logger.info(
-            f"Metric name[{metric.name}], value[{await metric.value()}], tags[{metric.tags}]"
+            f"Metric name[{metric.format_name(metric_prefix_name=self.metric_prefix_name)}], value[{await metric.value()}], tags[{metric.format_tags()}]"
         )
 
     @classmethod

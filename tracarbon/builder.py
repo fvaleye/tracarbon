@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 from tracarbon.conf import TracarbonConfiguration
 from tracarbon.emissions import CarbonEmission
-from tracarbon.exporters import Exporter, Metric, StdoutExporter
+from tracarbon.exporters import Exporter, Metric, StdoutExporter, Tag
 from tracarbon.hardwares import HardwareInfo
 from tracarbon.locations import Country, Location
 
@@ -40,8 +40,8 @@ class Tracarbon:
                         name="co2_emission",
                         value=CarbonEmission(location=self.location).run,
                         tags=[
-                            f"platform:{HardwareInfo.get_platform()}",
-                            f"location:{self.location.name}",
+                            Tag(key="platform", value=HardwareInfo.get_platform()),
+                            Tag(key="location", value=self.location.name),
                         ],
                     )
                 ]

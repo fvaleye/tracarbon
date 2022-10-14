@@ -51,10 +51,11 @@ if DATADOG_INSTALLED:
             :return:
             """
             metric_value = await metric.value()
-            logger.info(
-                f"Sending metric[{metric.name}] with value [{metric_value}] to Datadog."
+            metric_name = metric.format_name(metric_prefix_name=self.metric_prefix_name)
+            logger.debug(
+                f"Sending metric[{metric_name}] with value [{metric_value}] to Datadog."
             )
-            self.stats.gauge(metric.name, metric_value, tags=metric.tags)  # type: ignore
+            self.stats.gauge(metric_name, metric_value, tags=metric.format_tags())  # type: ignore
 
         @classmethod
         def get_name(cls) -> str:

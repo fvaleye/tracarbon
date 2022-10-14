@@ -41,10 +41,12 @@ pip install 'tracarbon[datadog]'
 
 
 ## 📡 Exporters
-| **Exporter** |       **Description**        |
-|--------------|:----------------------------:|
-| Stdout       | Print the metrics in Stdout. |
-| Datadog      | Send the metrics to Datadog. |
+| **Exporter** |          **Description**          |
+|--------------|:---------------------------------:|
+| Stdout       |   Print the metrics in Stdout.    |
+| JSON         | Write the metrics in a JSON file. |
+| Promotheus   |  Send the metrics to Promotheus.  |
+| Datadog      |   Send the metrics to Datadog.    |
 
 ### 🗺️ Locations
 | **Location** |                                                                     **Description**                                                                     | **Source**                                                                                                                                                    |

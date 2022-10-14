@@ -96,7 +96,9 @@ class Country(Location):
             )
         return cls.from_eu_file(country_code_alpha_iso_2=country_code_alpha_iso_2)
 
-    @cached()  # type: ignore
+    @cached(
+        ttl=3600,
+    )  # type: ignore
     async def get_latest_co2g_kwh(self) -> float:
         """
         Get the latest CO2g_kwh for the Location from https://www.co2signal.com/.
