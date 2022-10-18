@@ -1075,7 +1075,7 @@ promotheus = ["prometheus-client"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "0dab7061f023c96a70076312ea1ba081729f75d83d85e59bc8cbcc961ab269bb"
+content-hash = "84e3b0e6b751829da23a675deb2579925dbd428f113618d7b6db99d42b026e0c"
 
 [metadata.files]
 aiocache = [
