@@ -1,14 +1,15 @@
 import asyncio
 import csv
 import importlib
-from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from abc import ABC
+from typing import Any
 
 from loguru import logger
 from pydantic import BaseModel
 
 from tracarbon.exceptions import AWSSensorException, TracarbonException
 from tracarbon.hardwares.cloud_providers import CloudProviders
+from tracarbon.hardwares.energy import Power
 from tracarbon.hardwares.hardware import HardwareInfo
 
 
@@ -94,6 +95,10 @@ class LinuxEnergyConsumption(EnergyConsumption):
 
         :return: the sensor metric.
         """
+        if HardwareInfo.is_rapl_compatible():
+            return Power.watts_from_microjoules(
+                microjoules=await HardwareInfo.get_rapl_power_usage()
+            )
         raise NotImplementedError("Linux platform is not yet supported.")
 
 

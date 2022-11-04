@@ -22,6 +22,12 @@ class AWSSensorException(TracarbonException):
     pass
 
 
+class HardwareRAPLException(TracarbonException):
+    """The hardware is not compatible with RAPL."""
+
+    pass
+
+
 class HardwareNoGPUDetectedException(TracarbonException):
     """The hardware does not have a GPU."""
 

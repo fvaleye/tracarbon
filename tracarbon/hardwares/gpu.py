@@ -1,6 +1,6 @@
 import subprocess
 from abc import ABC
-from typing import ClassVar, Optional, Tuple
+from typing import Tuple
 
 from pydantic import BaseModel
 

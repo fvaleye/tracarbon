@@ -1,5 +1,4 @@
 import psutil
-from prometheus_client import REGISTRY, Gauge
 
 from tracarbon import Country, HardwareInfo
 from tracarbon.exporters import Metric, PromotheusExporter, Tag

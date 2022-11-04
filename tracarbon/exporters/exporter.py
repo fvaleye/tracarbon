@@ -1,7 +1,7 @@
 import asyncio
 from abc import ABCMeta, abstractmethod
 from threading import Event, Timer
-from typing import Awaitable, Callable, Dict, List, Optional
+from typing import Awaitable, Callable, List, Optional
 
 from loguru import logger
 from pydantic import BaseModel
