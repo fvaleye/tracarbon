@@ -35,7 +35,7 @@ async def test_france_location_should_return_latest_known(mocker):
 
 
 @pytest.mark.asyncio
-async def test_france_location_should_return_taux_co2(mocker):
+async def test_france_location_should_return_taux_co2():
     co2_expected = 51.1
     co2signal_api_key = ""
     country = Country(co2signal_api_key=co2signal_api_key, name="fr", co2g_kwh=51.1)

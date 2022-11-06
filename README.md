@@ -27,11 +27,11 @@ pip install 'tracarbon[datadog]'
 ```
 
 ### 🔌 Devices: energy consumption
-| **Devices** |                                    **Description**                                    |
-|-------------|:-------------------------------------------------------------------------------------:|
-| Mac         |    ✅ Global energy consumption of your Mac (must be plugged into a wall adapter).     |
-| Linux       | ❌ Not yet implemented. See [#184](https://github.com/hubblo-org/scaphandre/pull/184). |
-| Windows     | ❌ Not yet implemented. See [#184](https://github.com/hubblo-org/scaphandre/pull/184). |
+| **Devices** |                                                          **Description**                                                          |
+|-------------|:---------------------------------------------------------------------------------------------------------------------------------:|
+| Mac         |                          ✅ Global energy consumption of your Mac (must be plugged into a wall adapter).                           |
+| Linux       | ⚠️ Only with [RAPL](https://web.eece.maine.edu/~vweaver/projects/rapl/). See [#1](https://github.com/fvaleye/tracarbon/issues/1). |
+| Windows     |                       ❌ Not yet implemented. See [#184](https://github.com/hubblo-org/scaphandre/pull/184).                       |
 
 | **Cloud Provider** |                                                                                                  **Description**                                                                                                  |
 |--------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|

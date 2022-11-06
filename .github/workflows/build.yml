@@ -11,7 +11,7 @@ jobs:
   format:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -20,11 +20,6 @@ jobs:
 
       - name: Install Poetry
         uses: snok/install-poetry@v1
-
-      - name: Run pre-commit
-        run: |
-          pip install pre-commit
-          pre-commit run --all-files
 
       - name: Check Python
         run: |
@@ -45,7 +40,7 @@ jobs:
           - ubuntu-latest
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
 
       - name: Setup Python
         uses: actions/setup-python@v2

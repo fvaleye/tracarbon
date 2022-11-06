@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from typing import Any
 
+import aiofiles
 import ujson
 
 from tracarbon.exporters.exporter import Exporter, Metric
@@ -36,22 +37,23 @@ class JSONExporter(Exporter):
         :return:
         """
         file_exists = os.path.isfile(self.path)
-        with open(self.path, "a+") as file:
+        async with aiofiles.open(self.path, "a+") as file:
             if file_exists:
-                file.write(f",{os.linesep}")
+                await file.write(f",{os.linesep}")
             else:
-                file.write(f"[{os.linesep}")
-            ujson.dump(
-                {
-                    "timestamp": str(datetime.utcnow()),
-                    "metric_name": metric.format_name(
-                        metric_prefix_name=self.metric_prefix_name
-                    ),
-                    "metric_value": await metric.value(),
-                    "metric_tags": metric.format_tags(),
-                },
-                file,
-                indent=self.indent,
+                await file.write(f"[{os.linesep}")
+            await file.write(
+                ujson.dumps(
+                    {
+                        "timestamp": str(datetime.utcnow()),
+                        "metric_name": metric.format_name(
+                            metric_prefix_name=self.metric_prefix_name
+                        ),
+                        "metric_value": await metric.value(),
+                        "metric_tags": metric.format_tags(),
+                    },
+                    indent=self.indent,
+                )
             )
 
     @classmethod

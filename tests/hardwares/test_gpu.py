@@ -1,7 +1,7 @@
 import pytest
 
 from tracarbon.exceptions import TracarbonException
-from tracarbon.hardwares.gpu import GPUInfo, NvidiaGPU
+from tracarbon.hardwares.gpu import NvidiaGPU
 
 
 def test_get_nvidia_gpu_power_usage(mocker):

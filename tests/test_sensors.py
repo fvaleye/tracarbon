@@ -1,14 +1,9 @@
 import pytest
 import requests
 
-from tracarbon import (
-    AWSEC2EnergyConsumption,
-    AWSSensorException,
-    EnergyConsumption,
-    TracarbonException,
-)
+from tracarbon import AWSEC2EnergyConsumption, EnergyConsumption, TracarbonException
 from tracarbon.hardwares import HardwareInfo
-from tracarbon.hardwares.cloud_providers import AWS, CloudProviders
+from tracarbon.hardwares.cloud_providers import AWS
 
 
 @pytest.mark.darwin

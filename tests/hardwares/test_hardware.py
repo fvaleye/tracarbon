@@ -1,3 +1,4 @@
+import pathlib
 import platform
 
 import psutil
@@ -64,3 +65,28 @@ def test_get_gpu_power_usage_with_no_gpu():
     with pytest.raises(TracarbonException) as exception:
         HardwareInfo.get_gpu_power_usage()
     assert exception.value.args[0] == "No Nvidia GPU detected."
+
+
+@pytest.mark.linux
+@pytest.mark.darwin
+def test_is_rapl_compatible(tmpdir):
+    assert HardwareInfo.is_rapl_compatible() is False
+
+    path = tmpdir.mkdir("intel-rapl")
+
+    assert HardwareInfo.is_rapl_compatible(path=path) is True
+
+
+@pytest.mark.asyncio
+@pytest.mark.linux
+@pytest.mark.darwin
+async def test_get_rapl_power_usage():
+    path = f"{pathlib.Path(__file__).parent.resolve()}/data/intel-rapl"
+    expected = 101668.0
+    rapl_separator_for_windows = "T"
+
+    results = await HardwareInfo.get_rapl_power_usage(
+        path=path, rapl_separator=rapl_separator_for_windows
+    )
+
+    assert results == expected
