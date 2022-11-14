@@ -1,7 +1,7 @@
 import asyncio
 import csv
 import importlib
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Any
 
 from loguru import logger
@@ -23,6 +23,7 @@ class Sensor(ABC, BaseModel):
 
         arbitrary_types_allowed = True
 
+    @abstractmethod
     async def run(self) -> float:
         """
         Run the sensor and get the current wattage in watt.
