@@ -70,6 +70,7 @@ class Exporter(BaseModel, metaclass=ABCMeta):
             await self.launch(metric=metric)
 
     @classmethod
+    @abstractmethod
     def get_name(cls) -> str:
         """
         Get the name of the exporter.
