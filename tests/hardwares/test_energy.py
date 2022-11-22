@@ -16,8 +16,8 @@ def test_power_should_convert_watt_hours_to_co2g():
 
 
 def test_energy_should_convert_watt_hours_to_co2g():
-    watts = 50
-    watt_hours_expected = 0.833
+    watts = 45
+    watt_hours_expected = 0.75
     one_minute_ago = datetime.datetime.now() - datetime.timedelta(seconds=60)
     previous_energy_measurement_time = one_minute_ago
 

@@ -58,10 +58,10 @@ class EnergyConsumption(Sensor):
         if platform == "Darwin":
             return MacEnergyConsumption()
         if platform == "Linux":
-            LinuxEnergyConsumption()
+            return LinuxEnergyConsumption()
         if platform == "Windows":
-            WindowsEnergyConsumption()
-        raise TracarbonException(f"This platform {platform} is not yet implemented.")
+            return WindowsEnergyConsumption()
+        raise TracarbonException(f"This {platform} hardware is not yet implemented.")
 
 
 class MacEnergyConsumption(EnergyConsumption):
@@ -100,7 +100,7 @@ class LinuxEnergyConsumption(EnergyConsumption):
             return Power.watts_from_microjoules(
                 microjoules=await HardwareInfo.get_rapl_power_usage()
             )
-        raise NotImplementedError("Linux platform is not yet supported.")
+        raise TracarbonException(f"This Linux hardware is not yet supported.")
 
 
 class WindowsEnergyConsumption(EnergyConsumption):
@@ -114,7 +114,7 @@ class WindowsEnergyConsumption(EnergyConsumption):
 
         :return: the sensor metric.
         """
-        raise NotImplementedError("Windows platform is not yet supported.")
+        raise TracarbonException("This Windows hardware is not yet supported.")
 
 
 class AWSEC2EnergyConsumption(EnergyConsumption):
