@@ -13,7 +13,7 @@ jobs:
     name: Validate the git tag
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: compare git tag with cargo metadata
         run: |
           TAG=${GITHUB_REF##*/}
@@ -27,14 +27,14 @@ jobs:
     needs: validate-git-tag
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
       - name: Install Poetry
-        uses: abatilo/actions-poetry@v2.1.4
+        uses: abatilo/actions-poetry
 
       - name: Setup
         run: make init
@@ -49,14 +49,14 @@ jobs:
     needs: release-pypi
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
       - name: Install Poetry
-        uses: abatilo/actions-poetry@v2.1.4
+        uses: abatilo/actions-poetry@v2
 
       - name: Setup
         run: make init
