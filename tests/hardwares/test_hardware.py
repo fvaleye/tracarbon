@@ -82,7 +82,22 @@ def test_is_rapl_compatible(tmpdir):
 @pytest.mark.darwin
 async def test_get_rapl_power_usage():
     path = f"{pathlib.Path(__file__).parent.resolve()}/data/intel-rapl"
-    expected = 101668.0
+    expected = 52232.0
+    rapl_separator_for_windows = "T"
+
+    results = await HardwareInfo.get_rapl_power_usage(
+        path=path, rapl_separator=rapl_separator_for_windows
+    )
+
+    assert results == expected
+
+
+@pytest.mark.asyncio
+@pytest.mark.linux
+@pytest.mark.darwin
+async def test_get_rapl_power_usage_max_when_0():
+    path = f"{pathlib.Path(__file__).parent.resolve()}/data/intel-rapl2"
+    expected = 40000.0
     rapl_separator_for_windows = "T"
 
     results = await HardwareInfo.get_rapl_power_usage(
