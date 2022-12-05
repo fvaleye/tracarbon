@@ -83,13 +83,9 @@ class HardwareInfo(BaseModel):
             )
         file_list = list()
         intel_rapl_regex = re.compile("intel-rapl")
-        for directory_path, directory_names, filenames in os.walk(path, topdown=True):
-            for directory in directory_names:
-                if not intel_rapl_regex.search(directory):
-                    directory_names.remove(directory)
-            current_directory = directory_path.split("/")[-1]
-            if len(current_directory.split(rapl_separator)) >= 2:
-                file_list.append(directory_path)
+        for file_path in os.listdir(path):
+            if intel_rapl_regex.search(file_path) and rapl_separator in file_path:
+                file_list.append(os.path.join(path, file_path))
         return file_list
 
     @classmethod
@@ -98,6 +94,9 @@ class HardwareInfo(BaseModel):
     ) -> float:
         """
         Read the RAPL energy measurements files on the path provided.
+
+        If energy_uj is greater than max_energy_range_uj, the value is set to 0.
+        In this case, max_energy_range_uj contanst must be returned.
 
         :parm path for reading files containing RAPL energy measurements.
         :parm rapl_separator only used for testing purposes on finding RAPL files on the Windows file system.
@@ -109,7 +108,14 @@ class HardwareInfo(BaseModel):
                 path=path, rapl_separator=rapl_separator
             ):
                 async with aiofiles.open(f"{file_path}/energy_uj", "r") as rapl_file:
-                    microjoules += float(await rapl_file.read())
+                    rapl_microjoules = float(await rapl_file.read())
+                    max_energy_uj_value_reached = rapl_microjoules < 1
+                    if max_energy_uj_value_reached:
+                        async with aiofiles.open(
+                            f"{file_path}/max_energy_range_uj", "r"
+                        ) as max_energy_rapl_file:
+                            rapl_microjoules = float(await max_energy_rapl_file.read())
+                    microjoules += rapl_microjoules
         except Exception as exception:
             raise HardwareRAPLException(exception)
         return microjoules
