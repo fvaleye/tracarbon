@@ -10,4 +10,4 @@ Using Pip
     pip install 'tracarbon'
 
     # Install one or more exporters from the list
-    pip install 'tracarbon[datadog]'
+    pip install 'tracarbon[datadog,prometheus]'

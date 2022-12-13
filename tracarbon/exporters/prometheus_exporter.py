@@ -11,23 +11,23 @@ try:
 
     PROMOTHEUS_INSTALLED = True
 except ImportError:
-    logger.debug("Promotheus optional dependency is not installed.")
+    logger.debug("Prometheus optional dependency is not installed.")
     PROMOTHEUS_INSTALLED = False
 
 if PROMOTHEUS_INSTALLED:
 
-    class PromotheusExporter(Exporter):
+    class PrometheusExporter(Exporter):
         """
-        Send the metrics to Promotheus by running an HTTP server for the metrics exposure.
+        Send the metrics to Prometheus by running an HTTP server for the metrics exposure.
         """
 
-        promotheus_metrics: Dict[str, Gauge] = dict()
+        prometheus_metrics: Dict[str, Gauge] = dict()
         address: Optional[str] = None
         port: Optional[int] = None
 
         def __init__(self, **data: Any) -> None:
             """
-            Initialize the Promotheus Exporter with basic configuration.
+            Initialize the Prometheus Exporter with basic configuration.
 
             Use
             """
@@ -48,7 +48,7 @@ if PROMOTHEUS_INSTALLED:
 
         async def launch(self, metric: Metric) -> None:
             """
-            Launch the Promotheus exporter with the metrics.
+            Launch the Prometheus exporter with the metrics.
 
             :param metric: the metric to send
             :return:
@@ -56,8 +56,8 @@ if PROMOTHEUS_INSTALLED:
             metric_name = metric.format_name(
                 metric_prefix_name=self.metric_prefix_name, separator="_"
             )
-            if metric_name not in self.promotheus_metrics:
-                self.promotheus_metrics[metric_name] = Gauge(
+            if metric_name not in self.prometheus_metrics:
+                self.prometheus_metrics[metric_name] = Gauge(
                     metric_name,
                     f"Tracarbon metric {metric_name}",
                     [tag.key for tag in metric.tags],
@@ -66,7 +66,7 @@ if PROMOTHEUS_INSTALLED:
             logger.info(
                 f"Sending metric[{metric_name}] with value [{metric_value}] to Promoteus."
             )
-            self.promotheus_metrics[metric_name].labels(
+            self.prometheus_metrics[metric_name].labels(
                 *[tag.value for tag in metric.tags]
             ).set(metric_value)
 
@@ -77,4 +77,4 @@ if PROMOTHEUS_INSTALLED:
 
             :return: the Exporter's name
             """
-            return "Promotheus"
+            return "Prometheus"

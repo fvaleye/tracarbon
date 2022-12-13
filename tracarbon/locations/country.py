@@ -1,6 +1,5 @@
 import csv
 import importlib.resources
-from enum import Enum
 from typing import Any, Optional
 
 import requests
@@ -14,22 +13,13 @@ from tracarbon.exceptions import (
     CountryIsMissing,
 )
 from tracarbon.hardwares import CloudProviders
-from tracarbon.locations.location import Location
-
-
-class CarbonIntensitySource(Enum):
-    FILE: str = "file"
-    CO2SignalAPI: str = "CO2SignalAPI"
+from tracarbon.locations.location import CarbonIntensitySource, Location
 
 
 class Country(Location):
     """
     Country definition.
     """
-
-    co2signal_api_key: Optional[str] = None
-    co2g_kwh: float = 0.0
-    co2g_kwh_source: CarbonIntensitySource = CarbonIntensitySource.FILE
 
     @classmethod
     def from_eu_file(cls, country_code_alpha_iso_2: str) -> "Country":

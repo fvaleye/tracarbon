@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from enum import Enum
 from typing import Any, Awaitable, Dict, Optional
 
 import aiohttp
@@ -8,12 +9,20 @@ from loguru import logger
 from pydantic import BaseModel
 
 
+class CarbonIntensitySource(Enum):
+    FILE: str = "file"
+    CO2SignalAPI: str = "CO2SignalAPI"
+
+
 class Location(ABC, BaseModel):
     """
     Generic Location.
     """
 
     name: str
+    co2g_kwh_source: CarbonIntensitySource = CarbonIntensitySource.FILE
+    co2signal_api_key: Optional[str] = None
+    co2g_kwh: float = 0.0
 
     @classmethod
     async def request(

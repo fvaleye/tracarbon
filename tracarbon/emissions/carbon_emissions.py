@@ -4,15 +4,15 @@ from typing import Any, Optional
 from loguru import logger
 
 from tracarbon.hardwares import EnergyConsumption, Power, Sensor
-from tracarbon.locations import Country
+from tracarbon.locations import Country, Location
 
 
 class CarbonEmission(Sensor):
     """
-    Carbon Metric sensor from watts per second to calculate the CO2g/kwh generated.
+    Carbon Metric sensor in watts per second to calculate the CO2g/kwh emitted.
     """
 
-    location: Country
+    location: Location
     energy_consumption: EnergyConsumption
     previous_energy_consumption_time: Optional[datetime] = None
 

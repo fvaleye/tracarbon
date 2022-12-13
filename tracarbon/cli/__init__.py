@@ -4,10 +4,17 @@ from typing import List, Optional
 import typer
 from loguru import logger
 
-from tracarbon import CarbonEmission, Country, EnergyConsumption
 from tracarbon.builder import TracarbonBuilder
+from tracarbon.emissions import CarbonEmission
 from tracarbon.exporters import Exporter, Metric, Tag
-from tracarbon.hardwares import HardwareInfo
+from tracarbon.general_metrics import (
+    CarbonEmissionMetric,
+    EnergyConsumptionMetric,
+    HardwareCPUUsageMetric,
+    HardwareMemoryUsageMetric,
+)
+from tracarbon.hardwares import EnergyConsumption, HardwareInfo
+from tracarbon.locations import Country
 
 app = typer.Typer()
 
@@ -68,52 +75,16 @@ def run_metrics(
         co2signal_api_key=tracarbon_builder.configuration.co2signal_api_key,
         country_code_alpha_iso_2=country_code_alpha_iso_2,
     )
-    platform = HardwareInfo.get_platform()
-    metrics = list()
+    platform: str = HardwareInfo.get_platform()
+    metrics: List[Metric] = list()
+    metrics.append(EnergyConsumptionMetric(location=location))
     metrics.append(
-        Metric(
-            name="energy_consumption",
-            value=EnergyConsumption.from_platform().run,
-            tags=[
-                Tag(key="platform", value=platform),
-                Tag(key="location", value=location.name),
-            ],
+        CarbonEmissionMetric(
+            location=location,
         )
     )
-    metrics.append(
-        Metric(
-            name="co2_emission",
-            value=CarbonEmission(
-                co2signal_api_key=tracarbon_builder.configuration.co2signal_api_key,
-                location=location,
-            ).run,
-            tags=[
-                Tag(key="platform", value=platform),
-                Tag(key="location", value=location.name),
-                Tag(key="source", value=location.co2g_kwh_source.value),
-            ],
-        )
-    )
-    metrics.append(
-        Metric(
-            name="hardware_memory_usage",
-            value=HardwareInfo().get_memory_usage,
-            tags=[
-                Tag(key="platform", value=platform),
-                Tag(key="location", value=location.name),
-            ],
-        )
-    )
-    metrics.append(
-        Metric(
-            name="hardware_cpu_usage",
-            value=HardwareInfo().get_cpu_usage,
-            tags=[
-                Tag(key="platform", value=platform),
-                Tag(key="location", value=location.name),
-            ],
-        )
-    )
+    metrics.append(HardwareMemoryUsageMetric(location=location))
+    metrics.append(HardwareCPUUsageMetric(location=location))
     try:
         exporter = get_exporter(
             exporter_name=exporter_name,

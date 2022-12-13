@@ -3,6 +3,7 @@ import pytest
 from tracarbon.builder import TracarbonBuilder, TracarbonConfiguration
 from tracarbon.emissions import CarbonEmission
 from tracarbon.exporters import Metric, StdoutExporter, Tag
+from tracarbon.general_metrics import CarbonEmissionMetric
 from tracarbon.hardwares import HardwareInfo
 from tracarbon.locations import Country
 
@@ -13,18 +14,7 @@ def test_builder_without_configuration(mocker):
     mocker.patch.object(Country, "get_current_country", return_value=location)
     builder = TracarbonBuilder()
     expected_exporter = StdoutExporter(
-        metrics=[
-            Metric(
-                name="co2_emission",
-                value=CarbonEmission(
-                    location=Country(name=location, co2g_kwh=51.1)
-                ).run,
-                tags=[
-                    Tag(key="platform", value=str(HardwareInfo.get_platform())),
-                    Tag(key="location", value=str(location)),
-                ],
-            )
-        ]
+        metrics=[CarbonEmissionMetric(location=Country(name=location, co2g_kwh=51.1))]
     )
 
     tracarbon = builder.build()
@@ -40,16 +30,7 @@ def test_builder_with_configuration():
     configuration = TracarbonConfiguration(co2signal_api_key="API_KEY")
     expected_location = Country(name="fr", co2g_kwh=51.1)
     expected_exporter = StdoutExporter(
-        metrics=[
-            Metric(
-                name="co2_emission",
-                value=CarbonEmission(location=expected_location).run,
-                tags=[
-                    Tag(key="platform", value=str(HardwareInfo.get_platform())),
-                    Tag(key="location", value=str(expected_location)),
-                ],
-            )
-        ]
+        metrics=[CarbonEmissionMetric(location=expected_location)]
     )
     builder = TracarbonBuilder(configuration=configuration)
 

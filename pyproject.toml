@@ -52,7 +52,7 @@ types-aiofiles = "^22.1.0"
 
 [tool.poetry.extras]
 datadog = ["datadog"]
-promotheus = ["prometheus-client"]
+prometheus = ["prometheus-client"]
 
 [tool.poetry.scripts]
 tracarbon = "tracarbon.cli:main"
