@@ -1,4 +1,4 @@
-![Alt text](logo.png?raw=true "Tracarbon logo")
+![Tracarbon Logo](https://raw.githubusercontent.com/fvaleye/tracarbon/main/logo.png "Tracarbon logo")
 
 ![example workflow](https://github.com/fvaleye/tracarbon/actions/workflows/build.yml/badge.svg)
 [![pypi](https://img.shields.io/pypi/v/tracarbon.svg?style=flat-square)](https://pypi.org/project/tracarbon/)
