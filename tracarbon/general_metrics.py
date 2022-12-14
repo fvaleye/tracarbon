@@ -8,13 +8,13 @@ from tracarbon.locations import Location
 
 class EnergyConsumptionMetric(Metric):
     """
-    Energy consumption metric in W.
+    Energy consumption metric in watts.
     """
 
     location: Location
     platform: str = HardwareInfo.get_platform()
     name: str = "energy_consumption"
-    value: Optional[Callable[[], Awaitable[float]]] = None
+    value: Optional[Callable[[], Awaitable[float]]] = None  # type: ignore
     tags: List[Tag] = list()
 
     def __init__(self, **data: Any) -> None:
@@ -38,7 +38,7 @@ class CarbonEmissionMetric(Metric):
     platform: str = HardwareInfo.get_platform()
     name: str = "carbon_emission"
     co2signal_api_key: Optional[str] = None
-    value: Optional[Callable[[], Awaitable[float]]] = None
+    value: Optional[Callable[[], Awaitable[float]]] = None  # type: ignore
     tags: List[Tag] = list()
 
     def __init__(self, **data: Any) -> None:
