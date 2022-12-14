@@ -14,7 +14,6 @@ Configuration
 .. automodule:: tracarbon.conf
     :members:
 
-
 Builder
 =======
 
@@ -51,7 +50,6 @@ Emissions
 .. automodule:: tracarbon.emissions.carbon_emissions
     :members:
 
-
 Locations
 =========
 
@@ -65,4 +63,10 @@ Exceptions
 ==========
 
 .. automodule:: tracarbon.exceptions
+    :members:
+
+General Metrics
+===============
+
+.. automodule:: tracarbon.general_metrics
     :members:
