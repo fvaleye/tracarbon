@@ -23,7 +23,7 @@ pip install tracarbon
 
 ```sh
 # Install one or more exporters from the list
-pip install 'tracarbon[datadog]'
+pip install 'tracarbon[datadog,prometheus]'
 ```
 
 ### 🔌 Devices: energy consumption
@@ -45,7 +45,7 @@ pip install 'tracarbon[datadog]'
 |--------------|:---------------------------------:|
 | Stdout       |   Print the metrics in Stdout.    |
 | JSON         | Write the metrics in a JSON file. |
-| Promotheus   |  Send the metrics to Promotheus.  |
+| Prometheus   |  Send the metrics to Prometheus.  |
 | Datadog      |   Send the metrics to Datadog.    |
 
 ### 🗺️ Locations

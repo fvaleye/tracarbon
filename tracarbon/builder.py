@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from tracarbon.conf import TracarbonConfiguration
 from tracarbon.emissions import CarbonEmission
 from tracarbon.exporters import Exporter, Metric, StdoutExporter, Tag
+from tracarbon.general_metrics import CarbonEmissionMetric
 from tracarbon.hardwares import HardwareInfo
 from tracarbon.locations import Country, Location
 
@@ -29,22 +30,13 @@ class Tracarbon:
             self.location = location
         else:
             self.location = Country.get_location(
-                co2signal_api_key=configuration.co2signal_api_key,
+                co2signal_api_key=self.configuration.co2signal_api_key,
             )
         if exporter:
             self.exporter = exporter
         else:
             self.exporter = StdoutExporter(
-                metrics=[
-                    Metric(
-                        name="co2_emission",
-                        value=CarbonEmission(location=self.location).run,
-                        tags=[
-                            Tag(key="platform", value=HardwareInfo.get_platform()),
-                            Tag(key="location", value=self.location.name),
-                        ],
-                    )
-                ]
+                metrics=[CarbonEmissionMetric(location=self.location)]
             )
 
     def __enter__(self) -> None:

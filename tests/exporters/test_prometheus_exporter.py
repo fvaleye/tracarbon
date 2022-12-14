@@ -1,10 +1,10 @@
 import psutil
 
 from tracarbon import Country, HardwareInfo
-from tracarbon.exporters import Metric, PromotheusExporter, Tag
+from tracarbon.exporters import Metric, PrometheusExporter, Tag
 
 
-def test_promotheus_exporter(mocker):
+def test_prometheus_exporter(mocker):
     interval_in_seconds = 1
     cpu_value = "5.0"
     memory_value = "70"
@@ -30,15 +30,15 @@ def test_promotheus_exporter(mocker):
         tags=[Tag(key="test", value="tags")],
     )
     metrics = [memory_metric, cpu_metric]
-    exporter = PromotheusExporter(
+    exporter = PrometheusExporter(
         quit=True, metrics=metrics, metric_prefix_name="tracarbon"
     )
     exporter.start(interval_in_seconds=interval_in_seconds)
     exporter.stop()
 
     assert (
-        str(exporter.promotheus_metrics["tracarbon_test_metric_1"]) == expected_metric_1
+        str(exporter.prometheus_metrics["tracarbon_test_metric_1"]) == expected_metric_1
     )
     assert (
-        str(exporter.promotheus_metrics["tracarbon_test_metric_2"]) == expected_metric_2
+        str(exporter.prometheus_metrics["tracarbon_test_metric_2"]) == expected_metric_2
     )

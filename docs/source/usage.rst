@@ -32,7 +32,7 @@ Run the code
 ============
 >>> from tracarbon import TracarbonBuilder, TracarbonConfiguration
 >>>
->>> configuration = TracarbonConfiguration()  # Your configuration
+>>> configuration = TracarbonConfiguration(co2signal_api_key="API_KEY")  # Your configuration
 >>> tracarbon = TracarbonBuilder(configuration=configuration).build()
 >>> tracarbon.start()
 >>> # Your code
@@ -49,10 +49,9 @@ Run the code with a custom configuration
 >>> from tracarbon.locations import Country
 >>>
 >>> configuration = TracarbonConfiguration(co2signal_api_key="API_KEY")  # Your configuration
->>> location = Country.get_location()
->>> metrics = [Metric(name="co2_emission", value=CarbonEmission().run, tags=[])]
->>> exporter = StdoutExporter(metrics=metrics)
->>> tracarbon = TracarbonBuilder(configuration=configuration).build(exporter=exporter, location=location)
+>>> metrics = [Metric(name="custom_metric", value=CustomClass().run, tags=[Tag(key="key", value="value")])]  # Your custom metrics
+>>> exporter = StdoutExporter(metrics=metrics) # Your exporter
+>>> tracarbon = TracarbonBuilder(configuration=configuration).build(exporter=exporter)
 >>> tracarbon.start()
 >>> # Your code
 >>> tracarbon.stop()
