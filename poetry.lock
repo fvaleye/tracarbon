@@ -983,7 +983,7 @@ types-urllib3 = "<1.27"
 
 [[package]]
 name = "types-ujson"
-version = "5.6.0.0"
+version = "5.7.0.0"
 description = "Typing stubs for ujson"
 category = "dev"
 optional = false
@@ -1069,7 +1069,7 @@ prometheus = ["prometheus-client"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "30c08d618a6456c741dcb5977b1fa71fbbe701d0abfb566f0512759415854b25"
+content-hash = "0007c359ffc10fb969f29318fbea71f710b1c243b37358c8e349325f964e505d"
 
 [metadata.files]
 aiocache = [
@@ -1908,8 +1908,8 @@ types-requests = [
     {file = "types_requests-2.28.11.7-py3-none-any.whl", hash = "sha256:b6a2fca8109f4fdba33052f11ed86102bddb2338519e1827387137fefc66a98b"},
 ]
 types-ujson = [
-    {file = "types-ujson-5.6.0.0.tar.gz", hash = "sha256:1a20cf7946772756736582612e0da5656d2dbeccd24be4c1e97d1e66b072b97e"},
-    {file = "types_ujson-5.6.0.0-py3-none-any.whl", hash = "sha256:010b221260c24a915c6e713a83f366b91390766850ec110304de5b20c86b4b11"},
+    {file = "types-ujson-5.7.0.0.tar.gz", hash = "sha256:d7c001f668a2e1ac2decbafd2c42cc0bf58798a5cc3b5a3ee397b7ee37775919"},
+    {file = "types_ujson-5.7.0.0-py3-none-any.whl", hash = "sha256:ad48848c3da10e8023e9e75b1833282c28568ea680938c271e34d4d1426be816"},
 ]
 types-urllib3 = [
     {file = "types-urllib3-1.26.25.4.tar.gz", hash = "sha256:eec5556428eec862b1ac578fb69aab3877995a99ffec9e5a12cf7fbd0cc9daee"},
