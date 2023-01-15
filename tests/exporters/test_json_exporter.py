@@ -3,7 +3,7 @@ from datetime import datetime
 import psutil
 import ujson
 
-from tracarbon import Country, HardwareInfo
+from tracarbon import Country, HardwareInfo, MetricGenerator
 from tracarbon.exporters import JSONExporter, Metric, Tag
 
 
@@ -61,8 +61,10 @@ def test_json_exporter_should_write_well_formatted_metrics_in_json_file(mocker, 
         tags=[Tag(key="test", value="tags")],
     )
 
-    metrics = [memory_metric, cpu_metric]
-    exporter = JSONExporter(quit=True, metrics=metrics, path=str(test_json_file))
+    metric_generators = [MetricGenerator(metrics=[memory_metric, cpu_metric])]
+    exporter = JSONExporter(
+        quit=True, metric_generators=metric_generators, path=str(test_json_file)
+    )
     exporter.start(interval_in_seconds=interval_in_seconds)
     exporter.stop()
 

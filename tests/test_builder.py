@@ -3,7 +3,7 @@ import pytest
 from tracarbon.builder import TracarbonBuilder, TracarbonConfiguration
 from tracarbon.emissions import CarbonEmission
 from tracarbon.exporters import Metric, StdoutExporter, Tag
-from tracarbon.general_metrics import CarbonEmissionMetric
+from tracarbon.general_metrics import CarbonEmissionGenerator
 from tracarbon.hardwares import HardwareInfo
 from tracarbon.locations import Country
 
@@ -14,14 +14,18 @@ def test_builder_without_configuration(mocker):
     mocker.patch.object(Country, "get_current_country", return_value=location)
     builder = TracarbonBuilder()
     expected_exporter = StdoutExporter(
-        metrics=[CarbonEmissionMetric(location=Country(name=location, co2g_kwh=51.1))]
+        metric_generators=[
+            CarbonEmissionGenerator(location=Country(name=location, co2g_kwh=51.1))
+        ]
     )
 
     tracarbon = builder.build()
 
     assert tracarbon.configuration == TracarbonConfiguration()
     assert type(tracarbon.exporter) == type(expected_exporter)
-    assert type(tracarbon.exporter.metrics[0]) == type(expected_exporter.metrics[0])
+    assert type(tracarbon.exporter.metric_generators[0]) == type(
+        expected_exporter.metric_generators[0]
+    )
     assert tracarbon.location == Country(name=location, co2g_kwh=51.1)
 
 
@@ -30,7 +34,7 @@ def test_builder_with_configuration():
     configuration = TracarbonConfiguration(co2signal_api_key="API_KEY")
     expected_location = Country(name="fr", co2g_kwh=51.1)
     expected_exporter = StdoutExporter(
-        metrics=[CarbonEmissionMetric(location=expected_location)]
+        metric_generators=[CarbonEmissionGenerator(location=expected_location)]
     )
     builder = TracarbonBuilder(configuration=configuration)
 

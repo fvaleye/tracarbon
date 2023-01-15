@@ -6,7 +6,7 @@ from typing import Any
 import aiofiles
 import ujson
 
-from tracarbon.exporters.exporter import Exporter, Metric
+from tracarbon.exporters.exporter import Exporter, MetricGenerator
 
 
 class JSONExporter(Exporter):
@@ -29,32 +29,32 @@ class JSONExporter(Exporter):
         with open(self.path, "a+") as file:
             file.write(f"{os.linesep}]")
 
-    async def launch(self, metric: Metric) -> None:
+    async def launch(self, metric_generator: MetricGenerator) -> None:
         """
         Launch the Stdout exporter with the metrics.
 
-        :param metric: the metric to send
-        :return:
+        :param metric_generator: the metric generator
         """
-        file_exists = os.path.isfile(self.path)
-        async with aiofiles.open(self.path, "a+") as file:
-            if file_exists:
-                await file.write(f",{os.linesep}")
-            else:
-                await file.write(f"[{os.linesep}")
-            await file.write(
-                ujson.dumps(
-                    {
-                        "timestamp": str(datetime.utcnow()),
-                        "metric_name": metric.format_name(
-                            metric_prefix_name=self.metric_prefix_name
-                        ),
-                        "metric_value": await metric.value(),
-                        "metric_tags": metric.format_tags(),
-                    },
-                    indent=self.indent,
+        for metric in metric_generator.generate():
+            file_exists = os.path.isfile(self.path)
+            async with aiofiles.open(self.path, "a+") as file:
+                if file_exists:
+                    await file.write(f",{os.linesep}")
+                else:
+                    await file.write(f"[{os.linesep}")
+                await file.write(
+                    ujson.dumps(
+                        {
+                            "timestamp": str(datetime.utcnow()),
+                            "metric_name": metric.format_name(
+                                metric_prefix_name=self.metric_prefix_name
+                            ),
+                            "metric_value": await metric.value(),
+                            "metric_tags": metric.format_tags(),
+                        },
+                        indent=self.indent,
+                    )
                 )
-            )
 
     @classmethod
     def get_name(cls) -> str:

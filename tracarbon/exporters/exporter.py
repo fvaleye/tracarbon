@@ -1,7 +1,7 @@
 import asyncio
 from abc import ABCMeta, abstractmethod
 from threading import Event, Timer
-from typing import Awaitable, Callable, List, Optional
+from typing import Awaitable, Callable, Generator, List, Optional
 
 from loguru import logger
 from pydantic import BaseModel
@@ -10,7 +10,7 @@ from pydantic import BaseModel
 class Exporter(BaseModel, metaclass=ABCMeta):
     """The Exporter interface."""
 
-    metrics: List["Metric"]
+    metric_generators: List["MetricGenerator"]
     event: Optional[Event] = None
     stopped: bool = False
     metric_prefix_name: Optional[str] = None
@@ -21,20 +21,17 @@ class Exporter(BaseModel, metaclass=ABCMeta):
         arbitrary_types_allowed = True
 
     @abstractmethod
-    async def launch(self, metric: "Metric") -> None:
+    async def launch(self, metric_generator: "MetricGenerator") -> None:
         """
         Launch the exporter.
 
-        :param metric: the metric to send
-        :return:
+        :param metric_generator: the metric generator
         """
         pass
 
     def start(self, interval_in_seconds: int) -> None:
         """
         Start the exporter and a dedicated timer configured with the configured timeout.
-
-        :return:
         """
         self.stopped = False
         if not self.event:
@@ -61,13 +58,11 @@ class Exporter(BaseModel, metaclass=ABCMeta):
 
     async def _launch_all(self) -> None:
         """
-        Launch the exporter with all the metrics.
-
-        :return:
+        Launch the exporter with all the metric generators.
         """
-        for metric in self.metrics:
-            logger.debug(f"Running Metric[{metric}].")
-            await self.launch(metric=metric)
+        for metric_generator in self.metric_generators:
+            logger.debug(f"Running MetricGenerator[{metric_generator}].")
+            await self.launch(metric_generator=metric_generator)
 
     @classmethod
     @abstractmethod
@@ -118,3 +113,18 @@ class Metric(BaseModel):
         :param separator: the separator to insert between the key and value.
         """
         return [f"{tag.key}{separator}{tag.value}" for tag in self.tags]
+
+
+class MetricGenerator(BaseModel):
+    """
+    MetricGenerator generates metrics for the Exporter.
+    """
+
+    metrics: List[Metric]
+
+    def generate(self) -> Generator[Metric, None, None]:
+        """
+        Generate a metric.
+        """
+        for metric in self.metrics:
+            yield metric

@@ -44,13 +44,13 @@ Run the code
 Run the code with a custom configuration
 =========================================
 >>> from tracarbon import TracarbonBuilder, TracarbonConfiguration
->>> from tracarbon.exporters import StdoutExporter, Metric
+>>> from tracarbon.exporters import StdoutExporter, MetricGenerator, Metric, Tag
 >>> from tracarbon.emissions import CarbonEmission
 >>> from tracarbon.locations import Country
 >>>
 >>> configuration = TracarbonConfiguration(co2signal_api_key="API_KEY")  # Your configuration
->>> metrics = [Metric(name="custom_metric", value=CustomClass().run, tags=[Tag(key="key", value="value")])]  # Your custom metrics
->>> exporter = StdoutExporter(metrics=metrics) # Your exporter
+>>> metric_generators = [MetricGenerator(metrics=[Metric(name="custom_metric", value=CustomClass().run, tags=[Tag(key="key", value="value")])])]  # Your custom metrics
+>>> exporter = StdoutExporter(metric_generators=metric_generators) # Your exporter
 >>> tracarbon = TracarbonBuilder(configuration=configuration).build(exporter=exporter)
 >>> tracarbon.start()
 >>> # Your code

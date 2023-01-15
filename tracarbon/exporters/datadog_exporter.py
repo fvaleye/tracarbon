@@ -1,9 +1,9 @@
 import os
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 from loguru import logger
 
-from tracarbon.exporters.exporter import Exporter, Metric
+from tracarbon.exporters.exporter import Exporter, MetricGenerator
 
 try:
     from datadog import ThreadStats, initialize
@@ -43,19 +43,22 @@ if DATADOG_INSTALLED:
             self.stats = ThreadStats()
             self.stats.start()
 
-        async def launch(self, metric: Metric) -> None:
+        async def launch(self, metric_generator: MetricGenerator) -> None:
             """
             Launch the Datadog exporter with the metrics.
 
-            :param metric: the metric to send
+            :param metric_generator: the metric generators
             :return:
             """
-            metric_value = await metric.value()
-            metric_name = metric.format_name(metric_prefix_name=self.metric_prefix_name)
-            logger.debug(
-                f"Sending metric[{metric_name}] with value [{metric_value}] to Datadog."
-            )
-            self.stats.gauge(metric_name, metric_value, tags=metric.format_tags())  # type: ignore
+            for metric in metric_generator.generate():
+                metric_value = await metric.value()
+                metric_name = metric.format_name(
+                    metric_prefix_name=self.metric_prefix_name
+                )
+                logger.debug(
+                    f"Sending metric[{metric_name}] with value [{metric_value}] to Datadog."
+                )
+                self.stats.gauge(metric_name, metric_value, tags=metric.format_tags())  # type: ignore
 
         @classmethod
         def get_name(cls) -> str:

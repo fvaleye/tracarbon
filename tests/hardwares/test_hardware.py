@@ -50,7 +50,7 @@ def test_get_gpu_power_usage(mocker):
     assert gpu_usage == gpu_usage_expected
 
 
-def test_get_gpu_power_usage(mocker):
+def test_get_gpu_power_usage_with_no_0(mocker):
     gpu_power_usage_returned = "0 W"
     mocker.patch.object(
         NvidiaGPU, "launch_shell_command", return_value=[gpu_power_usage_returned, -1]
