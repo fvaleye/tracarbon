@@ -1,6 +1,6 @@
 import pytest
 
-from tracarbon import CarbonEmission, MacEnergyConsumption, Power
+from tracarbon import CarbonEmission, MacEnergyConsumption
 from tracarbon.locations import Country
 
 

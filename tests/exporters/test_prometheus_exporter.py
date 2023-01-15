@@ -1,6 +1,6 @@
 import psutil
 
-from tracarbon import Country, HardwareInfo
+from tracarbon import Country, HardwareInfo, MetricGenerator
 from tracarbon.exporters import Metric, PrometheusExporter, Tag
 
 
@@ -29,9 +29,9 @@ def test_prometheus_exporter(mocker):
         value=HardwareInfo.get_cpu_usage,
         tags=[Tag(key="test", value="tags")],
     )
-    metrics = [memory_metric, cpu_metric]
+    metric_generators = [MetricGenerator(metrics=[memory_metric, cpu_metric])]
     exporter = PrometheusExporter(
-        quit=True, metrics=metrics, metric_prefix_name="tracarbon"
+        quit=True, metric_generators=metric_generators, metric_prefix_name="tracarbon"
     )
     exporter.start(interval_in_seconds=interval_in_seconds)
     exporter.stop()

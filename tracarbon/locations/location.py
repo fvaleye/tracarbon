@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Awaitable, Dict, Optional
+from typing import Any, Dict, Optional
 
 import aiohttp
 import ujson

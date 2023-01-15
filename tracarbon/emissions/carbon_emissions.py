@@ -17,10 +17,10 @@ class CarbonEmission(Sensor):
     previous_energy_consumption_time: Optional[datetime] = None
 
     def __init__(self, **data: Any) -> None:
-        if not "location" in data:
+        if "location" not in data:
             data["location"] = Country.get_location()
 
-        if not "energy_consumption" in data:
+        if "energy_consumption" not in data:
             data["energy_consumption"] = EnergyConsumption.from_platform()
 
         super().__init__(**data)

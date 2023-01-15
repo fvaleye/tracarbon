@@ -1,12 +1,10 @@
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel
 
 from tracarbon.conf import TracarbonConfiguration
-from tracarbon.emissions import CarbonEmission
-from tracarbon.exporters import Exporter, Metric, StdoutExporter, Tag
-from tracarbon.general_metrics import CarbonEmissionMetric
-from tracarbon.hardwares import HardwareInfo
+from tracarbon.exporters import Exporter, StdoutExporter
+from tracarbon.general_metrics import CarbonEmissionGenerator
 from tracarbon.locations import Country, Location
 
 
@@ -36,7 +34,7 @@ class Tracarbon:
             self.exporter = exporter
         else:
             self.exporter = StdoutExporter(
-                metrics=[CarbonEmissionMetric(location=self.location)]
+                metric_generators=[CarbonEmissionGenerator(location=self.location)]
             )
 
     def __enter__(self) -> None:

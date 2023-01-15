@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 
 from loguru import logger
 
-from tracarbon.exporters.exporter import Exporter, Metric
+from tracarbon.exporters.exporter import Exporter, MetricGenerator
 
 try:
     import prometheus_client
@@ -46,29 +46,30 @@ if PROMOTHEUS_INSTALLED:
                 port=port,
             )
 
-        async def launch(self, metric: Metric) -> None:
+        async def launch(self, metric_generator: MetricGenerator) -> None:
             """
             Launch the Prometheus exporter with the metrics.
 
-            :param metric: the metric to send
+            :param metric_generator: the metric generator
             :return:
             """
-            metric_name = metric.format_name(
-                metric_prefix_name=self.metric_prefix_name, separator="_"
-            )
-            if metric_name not in self.prometheus_metrics:
-                self.prometheus_metrics[metric_name] = Gauge(
-                    metric_name,
-                    f"Tracarbon metric {metric_name}",
-                    [tag.key for tag in metric.tags],
+            for metric in metric_generator.generate():
+                metric_name = metric.format_name(
+                    metric_prefix_name=self.metric_prefix_name, separator="_"
                 )
-            metric_value = await metric.value()
-            logger.info(
-                f"Sending metric[{metric_name}] with value [{metric_value}] to Promoteus."
-            )
-            self.prometheus_metrics[metric_name].labels(
-                *[tag.value for tag in metric.tags]
-            ).set(metric_value)
+                if metric_name not in self.prometheus_metrics:
+                    self.prometheus_metrics[metric_name] = Gauge(
+                        metric_name,
+                        f"Tracarbon metric {metric_name}",
+                        [tag.key for tag in metric.tags],
+                    )
+                metric_value = await metric.value()
+                logger.info(
+                    f"Sending metric[{metric_name}] with value [{metric_value}] to Promoteus."
+                )
+                self.prometheus_metrics[metric_name].labels(
+                    *[tag.value for tag in metric.tags]
+                ).set(metric_value)
 
         @classmethod
         def get_name(cls) -> str:

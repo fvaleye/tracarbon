@@ -5,15 +5,13 @@ import typer
 from loguru import logger
 
 from tracarbon.builder import TracarbonBuilder
-from tracarbon.emissions import CarbonEmission
-from tracarbon.exporters import Exporter, Metric, Tag
+from tracarbon.exporters import Exporter, MetricGenerator
 from tracarbon.general_metrics import (
-    CarbonEmissionMetric,
-    EnergyConsumptionMetric,
-    HardwareCPUUsageMetric,
-    HardwareMemoryUsageMetric,
+    CarbonEmissionGenerator,
+    EnergyConsumptionGenerator,
+    HardwareCPUUsageGenerator,
+    HardwareMemoryUsageGenerator,
 )
-from tracarbon.hardwares import EnergyConsumption, HardwareInfo
 from tracarbon.locations import Country
 
 app = typer.Typer()
@@ -32,14 +30,14 @@ def list_exporters(displayed: bool = True) -> List[str]:
 
 def get_exporter(
     exporter_name: str,
-    metrics: List[Metric],
+    metric_generators: List[MetricGenerator],
     tracarbon_builder: TracarbonBuilder = TracarbonBuilder(),
 ) -> Exporter:
     """
     Get the exporter based on the name with its metrics.
 
     :param exporter_name: the name of the exporter
-    :param metrics: the list of the associated metrics
+    :param metric_generators: the list of the metrics generators
     :param tracarbon_builder: the configuration of Tracarbon
     :return: the configured exporter
     """
@@ -54,7 +52,7 @@ def get_exporter(
     except Exception as exception:
         logger.exception("This exporter initiation failed.")
         raise exception
-    return selected_exporter(metrics=metrics, metric_prefix_name=tracarbon_builder.configuration.metric_prefix_name)  # type: ignore
+    return selected_exporter(metric_generators=metric_generators, metric_prefix_name=tracarbon_builder.configuration.metric_prefix_name)  # type: ignore
 
 
 def run_metrics(
@@ -75,20 +73,18 @@ def run_metrics(
         co2signal_api_key=tracarbon_builder.configuration.co2signal_api_key,
         country_code_alpha_iso_2=country_code_alpha_iso_2,
     )
-    platform: str = HardwareInfo.get_platform()
-    metrics: List[Metric] = list()
-    metrics.append(EnergyConsumptionMetric(location=location))
-    metrics.append(
-        CarbonEmissionMetric(
+    metric_generators: List[MetricGenerator] = [
+        EnergyConsumptionGenerator(location=location),
+        CarbonEmissionGenerator(
             location=location,
-        )
-    )
-    metrics.append(HardwareMemoryUsageMetric(location=location))
-    metrics.append(HardwareCPUUsageMetric(location=location))
+        ),
+        HardwareMemoryUsageGenerator(location=location),
+        HardwareCPUUsageGenerator(location=location),
+    ]
     try:
         exporter = get_exporter(
             exporter_name=exporter_name,
-            metrics=metrics,
+            metric_generators=metric_generators,
             tracarbon_builder=tracarbon_builder,
         )
         tracarbon = tracarbon_builder.build(

@@ -1,4 +1,4 @@
-from tracarbon import Country, HardwareInfo
+from tracarbon import Country, HardwareInfo, MetricGenerator
 from tracarbon.exporters import Metric, StdoutExporter, Tag
 
 
@@ -19,9 +19,10 @@ def test_exporters_should_run_and_print_the_metrics(mocker, caplog):
         value=HardwareInfo.get_cpu_usage,
         tags=[Tag(key="test", value="tags")],
     )
+    metric_generator = MetricGenerator(metrics=[memory_metric, cpu_metric])
 
-    metrics = [memory_metric, cpu_metric]
-    exporter = StdoutExporter(quit=True, metrics=metrics)
+    metric_generators = [metric_generator]
+    exporter = StdoutExporter(quit=True, metric_generators=metric_generators)
     exporter.start(interval_in_seconds=interval_in_seconds)
     exporter.stop()
 

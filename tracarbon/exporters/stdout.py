@@ -1,6 +1,6 @@
 from loguru import logger
 
-from tracarbon.exporters.exporter import Exporter, Metric
+from tracarbon.exporters.exporter import Exporter, MetricGenerator
 
 
 class StdoutExporter(Exporter):
@@ -8,15 +8,16 @@ class StdoutExporter(Exporter):
     Print the metrics to Stdout.
     """
 
-    async def launch(self, metric: Metric) -> None:
+    async def launch(self, metric_generator: MetricGenerator) -> None:
         """
         Launch the Stdout exporter with the metrics.
 
-        :param metric: the metric to send
+        :param metric_generator: the metric generator
         """
-        logger.info(
-            f"Metric name[{metric.format_name(metric_prefix_name=self.metric_prefix_name)}], value[{await metric.value()}], tags[{metric.format_tags()}]"
-        )
+        for metric in metric_generator.generate():
+            logger.info(
+                f"Metric name[{metric.format_name(metric_prefix_name=self.metric_prefix_name)}], value[{await metric.value()}], tags[{metric.format_tags()}]"
+            )
 
     @classmethod
     def get_name(cls) -> str:
