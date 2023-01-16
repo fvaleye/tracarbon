@@ -1,7 +1,104 @@
 from datetime import datetime
+from enum import Enum
 from typing import ClassVar, Optional
 
 from pydantic import BaseModel
+
+
+class EnergyUsageUnit(Enum):
+    """
+    Energy usage unit.
+    """
+
+    WATT = "watts"
+    MILLIWATT = "milliwatts"
+
+
+class UsageType(Enum):
+    """
+    Usage type.
+    """
+
+    HOST = 0
+    CPU = 1
+    MEMORY = 2
+    GPU = 3
+
+
+class EnergyUsage(BaseModel):
+    """
+    Energy report in watts.
+    """
+
+    host_energy_usage: float = 0.0
+    cpu_energy_usage: Optional[float] = None
+    memory_energy_usage: Optional[float] = None
+    gpu_energy_usage: Optional[float] = None
+    unit: EnergyUsageUnit = EnergyUsageUnit.WATT
+
+    def get_energy_usage_on_type(self, usage_type: UsageType) -> Optional[float]:
+        """
+        Get the energy usage based on the type.
+
+        :param: usage_type: the type of energy to return
+        :return: the energy of the type
+        """
+        if usage_type == UsageType.CPU:
+            return self.cpu_energy_usage
+        elif usage_type == UsageType.GPU:
+            return self.gpu_energy_usage
+        elif usage_type == UsageType.HOST:
+            return self.host_energy_usage
+        elif usage_type == UsageType.MEMORY:
+            return self.memory_energy_usage
+        return None
+
+    def convert_unit(self, unit: EnergyUsageUnit) -> None:
+        """
+        Convert the EnergyUsage with the right energy usage type
+
+        :param: unit: the energy usage unit for the conversion
+        """
+        if self.unit != unit:
+            if unit == EnergyUsageUnit.WATT and self.unit == EnergyUsageUnit.MILLIWATT:
+                self.host_energy_usage = self.host_energy_usage * 1000
+                self.cpu_energy_usage = (
+                    self.cpu_energy_usage * 1000
+                    if self.cpu_energy_usage is not None
+                    else None
+                )
+                self.memory_energy_usage = (
+                    self.memory_energy_usage * 1000
+                    if self.memory_energy_usage is not None
+                    else None
+                )
+                self.gpu_energy_usage = (
+                    self.gpu_energy_usage / 1000
+                    if self.gpu_energy_usage is not None
+                    else None
+                )
+                self.unit = EnergyUsageUnit.MILLIWATT
+            elif (
+                unit == EnergyUsageUnit.MILLIWATT and self.unit == EnergyUsageUnit.WATT
+            ):
+                self.host_energy_usage = self.host_energy_usage * 1000
+
+                self.cpu_energy_usage = (
+                    self.cpu_energy_usage * 1000
+                    if self.cpu_energy_usage is not None
+                    else None
+                )
+                self.memory_energy_usage = (
+                    self.memory_energy_usage * 1000
+                    if self.memory_energy_usage is not None
+                    else None
+                )
+                self.gpu_energy_usage = (
+                    self.gpu_energy_usage * 1000
+                    if self.gpu_energy_usage is not None
+                    else None
+                )
+                self.unit = EnergyUsageUnit.MILLIWATT
 
 
 class Power(BaseModel):

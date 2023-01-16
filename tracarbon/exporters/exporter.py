@@ -1,10 +1,12 @@
 import asyncio
 from abc import ABCMeta, abstractmethod
 from threading import Event, Timer
-from typing import Awaitable, Callable, Generator, List, Optional
+from typing import AsyncGenerator, Awaitable, Callable, List, Optional
 
 from loguru import logger
 from pydantic import BaseModel
+
+from tracarbon.hardwares.hardware import HardwareInfo
 
 
 class Exporter(BaseModel, metaclass=ABCMeta):
@@ -32,6 +34,8 @@ class Exporter(BaseModel, metaclass=ABCMeta):
     def start(self, interval_in_seconds: int) -> None:
         """
         Start the exporter and a dedicated timer configured with the configured timeout.
+
+        :param: interval_in_seconds: the interval for the timer
         """
         self.stopped = False
         if not self.event:
@@ -121,8 +125,9 @@ class MetricGenerator(BaseModel):
     """
 
     metrics: List[Metric]
+    platform: str = HardwareInfo.get_platform()
 
-    def generate(self) -> Generator[Metric, None, None]:
+    async def generate(self) -> AsyncGenerator[Metric, None]:
         """
         Generate a metric.
         """

@@ -14,9 +14,9 @@ class StdoutExporter(Exporter):
 
         :param metric_generator: the metric generator
         """
-        for metric in metric_generator.generate():
+        async for metric in metric_generator.generate():
             logger.info(
-                f"Metric name[{metric.format_name(metric_prefix_name=self.metric_prefix_name)}], value[{await metric.value()}], tags[{metric.format_tags()}]"
+                f"Metric name[{metric.format_name(metric_prefix_name=self.metric_prefix_name)}], value[{await metric.value()}], tags{metric.format_tags()}"
             )
 
     @classmethod

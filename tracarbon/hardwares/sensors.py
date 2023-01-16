@@ -8,9 +8,10 @@ from loguru import logger
 from pydantic import BaseModel
 
 from tracarbon.exceptions import AWSSensorException, TracarbonException
+from tracarbon.hardwares import EnergyUsage
 from tracarbon.hardwares.cloud_providers import CloudProviders
-from tracarbon.hardwares.energy import Power
-from tracarbon.hardwares.hardware import RAPL, HardwareInfo
+from tracarbon.hardwares.hardware import HardwareInfo
+from tracarbon.hardwares.rapl import RAPL
 
 
 class Sensor(ABC, BaseModel):
@@ -24,18 +25,18 @@ class Sensor(ABC, BaseModel):
         arbitrary_types_allowed = True
 
     @abstractmethod
-    async def run(self) -> float:
+    async def get_energy_usage(self) -> EnergyUsage:
         """
-        Run the sensor and get the current wattage in watt.
+        Run the sensor and generate energy usage in watt.
 
-        :return: the metric sent by the sensor.
+        :return: the generated energy usage.
         """
         pass
 
 
 class EnergyConsumption(Sensor):
     """
-    A sensor to calculate the energy consumption in watts.
+    A sensor to calculate the energy consumption.
     """
 
     init: bool = False
@@ -64,11 +65,11 @@ class EnergyConsumption(Sensor):
         raise TracarbonException(f"This {platform} hardware is not yet implemented.")
 
     @abstractmethod
-    async def run(self) -> float:
+    async def get_energy_usage(self) -> EnergyUsage:
         """
-        Run the sensor and get the current wattage in watt.
+        Run the sensor and generate energy usage.
 
-        :return: the metric sent by the sensor.
+        :return: the generated energy usage.
         """
         pass
 
@@ -80,18 +81,18 @@ class MacEnergyConsumption(EnergyConsumption):
 
     shell_command: str = """/usr/sbin/ioreg -rw0 -c AppleSmartBattery | grep BatteryData | grep -o '"AdapterPower"=[0-9]*' | cut -c 16- | xargs -I %  lldb --batch -o "print/f %" | grep -o '$0 = [0-9.]*' | cut -c 6-"""
 
-    async def run(self) -> float:
+    async def get_energy_usage(self) -> EnergyUsage:
         """
-        Run the sensor and get the current wattage in watts.
+        Run the sensor and generate energy usage.
 
-        :return: the sensor metric.
+        :return: the generated energy usage.
         """
         proc = await asyncio.create_subprocess_shell(
             self.shell_command, stdout=asyncio.subprocess.PIPE
         )
         result, _ = await proc.communicate()
 
-        return float(result)
+        return EnergyUsage(host_energy_usage=float(result))
 
 
 class LinuxEnergyConsumption(EnergyConsumption):
@@ -101,15 +102,14 @@ class LinuxEnergyConsumption(EnergyConsumption):
 
     rapl: RAPL = RAPL()
 
-    async def run(self) -> float:
+    async def get_energy_usage(self) -> EnergyUsage:
         """
-        Run the sensor and get the current wattage in watts.
+        Run the sensor and generate energy usage.
 
-        :return: the sensor metric.
+        :return: the generated energy usage.
         """
         if self.rapl.is_rapl_compatible():
-            total_uj = await self.rapl.get_total_uj()
-            return Power.watts_from_microjoules(uj=total_uj)
+            return await self.rapl.get_energy_report()
         raise TracarbonException(f"This Linux hardware is not yet supported.")
 
 
@@ -118,11 +118,11 @@ class WindowsEnergyConsumption(EnergyConsumption):
     Energy Consumption of a Windows device: https://github.com/fvaleye/tracarbon/issues/2
     """
 
-    async def run(self) -> float:
+    async def get_energy_usage(self) -> EnergyUsage:
         """
-        Run the sensor and get the current wattage in watts.
+        Run the sensor and generate energy usage.
 
-        :return: the sensor metric.
+        :return: the generated energy usage.
         """
         raise TracarbonException("This Windows hardware is not yet supported.")
 
@@ -174,39 +174,44 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
                 logger.exception("Error in the AWSSensor")
                 raise AWSSensorException(exception)
 
-    async def run(self) -> float:
+    async def get_energy_usage(self) -> EnergyUsage:
         """
-        Run the sensor and get the current wattage in watts.
+        Run the sensor and generate energy usage.
 
-        :return: the metric sent by the sensor.
+        :return: the generated energy usage.
         """
-        cpu_usage = await HardwareInfo.get_cpu_usage()
+        cpu_usage = HardwareInfo.get_cpu_usage()
         if cpu_usage >= 90:
-            watts = self.cpu_at_100
+            cpu_watts = self.cpu_at_100
         elif cpu_usage >= 50:
-            watts = self.cpu_at_50
+            cpu_watts = self.cpu_at_50
         elif cpu_usage >= 10:
-            watts = self.cpu_at_10
+            cpu_watts = self.cpu_at_10
         else:
-            watts = self.cpu_idle
-        logger.debug(f"CPU: {watts}W")
+            cpu_watts = self.cpu_idle
+        logger.debug(f"CPU: {cpu_watts}W")
 
-        memory_usage = await HardwareInfo.get_memory_usage()
+        memory_usage = HardwareInfo.get_memory_usage()
         if memory_usage >= 90:
-            watts += self.memory_at_100
+            memory_watts = self.memory_at_100
         elif memory_usage >= 50:
-            watts += self.memory_at_50
+            memory_watts = self.memory_at_50
         elif memory_usage >= 10:
-            watts += self.memory_at_10
+            memory_watts = self.memory_at_10
         else:
-            watts += self.memory_idle
-        logger.debug(f"CPU with memory: {watts}W")
+            memory_watts = self.memory_idle
+        logger.debug(f"Memory: {memory_watts}W")
 
+        gpu_watts = 0.0
         if self.has_gpu:
-            gpu_power_usage = HardwareInfo.get_gpu_power_usage()
-            watts += gpu_power_usage
-            logger.debug(f"CPU with memory and GPU: {watts}W")
+            gpu_watts = HardwareInfo.get_gpu_power_usage()
+            logger.debug(f"CPU: {gpu_watts}W")
 
-        watts += self.delta_full_machine
-        logger.debug(f"Total including the delta of the full machine: {watts}W")
-        return watts
+        total_watts = cpu_watts + memory_watts + gpu_watts + self.delta_full_machine
+        logger.debug(f"Total including the delta of the full machine: {total_watts}W")
+        return EnergyUsage(
+            host_energy_usage=total_watts,
+            cpu_energy_usage=cpu_watts,
+            memory_energy_usage=memory_watts,
+            gpu_energy_usage=gpu_watts,
+        )

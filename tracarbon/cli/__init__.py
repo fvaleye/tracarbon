@@ -8,9 +8,9 @@ from tracarbon.builder import TracarbonBuilder
 from tracarbon.exporters import Exporter, MetricGenerator
 from tracarbon.general_metrics import (
     CarbonEmissionGenerator,
+    CarbonEmissionKubernetesGenerator,
     EnergyConsumptionGenerator,
-    HardwareCPUUsageGenerator,
-    HardwareMemoryUsageGenerator,
+    EnergyConsumptionKubernetesGenerator,
 )
 from tracarbon.locations import Country
 
@@ -59,6 +59,7 @@ def run_metrics(
     exporter_name: str,
     country_code_alpha_iso_2: Optional[str] = None,
     running: bool = True,
+    containers: bool = False,
 ) -> None:
     """
     Run the metrics with the selected exporter
@@ -66,6 +67,7 @@ def run_metrics(
     :param country_code_alpha_iso_2: the alpha iso2 country name where it's running
     :param running: keep running the metrics
     :param exporter_name: the exporter name to run
+    :param containers: activate the containers feature
     :return:
     """
     tracarbon_builder = TracarbonBuilder()
@@ -78,9 +80,14 @@ def run_metrics(
         CarbonEmissionGenerator(
             location=location,
         ),
-        HardwareMemoryUsageGenerator(location=location),
-        HardwareCPUUsageGenerator(location=location),
     ]
+    if containers:
+        metric_generators.extend(
+            [
+                EnergyConsumptionKubernetesGenerator(location=location),
+                CarbonEmissionKubernetesGenerator(location=location),
+            ]
+        )
     try:
         exporter = get_exporter(
             exporter_name=exporter_name,
@@ -103,13 +110,17 @@ def run_metrics(
 
 @app.command()
 def run(
-    exporter_name: str = "Stdout", country_code_alpha_iso_2: Optional[str] = None
+    exporter_name: str = "Stdout",
+    country_code_alpha_iso_2: Optional[str] = None,
+    containers: bool = False,
 ) -> None:
     """
     Run Tracarbon.
     """
     run_metrics(
-        exporter_name=exporter_name, country_code_alpha_iso_2=country_code_alpha_iso_2
+        exporter_name=exporter_name,
+        country_code_alpha_iso_2=country_code_alpha_iso_2,
+        containers=containers,
     )
 
 

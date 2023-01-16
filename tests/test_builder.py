@@ -1,10 +1,8 @@
 import pytest
 
 from tracarbon.builder import TracarbonBuilder, TracarbonConfiguration
-from tracarbon.emissions import CarbonEmission
-from tracarbon.exporters import Metric, StdoutExporter, Tag
+from tracarbon.exporters import StdoutExporter
 from tracarbon.general_metrics import CarbonEmissionGenerator
-from tracarbon.hardwares import HardwareInfo
 from tracarbon.locations import Country
 
 

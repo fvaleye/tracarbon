@@ -35,7 +35,7 @@ class JSONExporter(Exporter):
 
         :param metric_generator: the metric generator
         """
-        for metric in metric_generator.generate():
+        async for metric in metric_generator.generate():
             file_exists = os.path.isfile(self.path)
             async with aiofiles.open(self.path, "a+") as file:
                 if file_exists:
