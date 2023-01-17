@@ -41,11 +41,13 @@ class Power(BaseModel):
         return (watts_hour / Power.WH_TO_KWH_FACTOR) * co2g_per_kwh
 
     @staticmethod
-    def watts_from_microjoules(microjoules: float) -> float:
+    def watts_from_microjoules(
+        uj: float,
+    ) -> float:
         """
-        Create watts from microjoules
+        Get watts from microjoules.
 
-        :param: microjoules
-        :return watts
+        :param: uj: energy in microjoules
+        :return: watts
         """
-        return microjoules / Power.MICROJOULES_TO_WATT_FACTOR
+        return uj / Power.MICROJOULES_TO_WATT_FACTOR

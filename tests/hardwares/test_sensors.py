@@ -2,11 +2,11 @@ import pytest
 import requests
 
 from tracarbon import (
+    RAPL,
     AWSEC2EnergyConsumption,
     EnergyConsumption,
     LinuxEnergyConsumption,
     TracarbonException,
-    WindowsEnergyConsumption,
 )
 from tracarbon.hardwares import HardwareInfo, WindowsEnergyConsumption
 from tracarbon.hardwares.cloud_providers import AWS
@@ -115,7 +115,7 @@ def test_is_ec2_should_return_true(mocker):
 async def test_get_platform_should_return_the_platform_energy_consumption_linux_error(
     mocker,
 ):
-    mocker.patch.object(HardwareInfo, "is_rapl_compatible", return_value=False)
+    mocker.patch.object(RAPL, "is_rapl_compatible", return_value=False)
 
     with pytest.raises(TracarbonException) as exception:
         await LinuxEnergyConsumption().run()
@@ -125,8 +125,8 @@ async def test_get_platform_should_return_the_platform_energy_consumption_linux_
 @pytest.mark.asyncio
 async def test_get_platform_should_return_the_platform_energy_consumption_linux(mocker):
     power_usage = 1800000
-    mocker.patch.object(HardwareInfo, "is_rapl_compatible", return_value=True)
-    mocker.patch.object(HardwareInfo, "get_rapl_power_usage", return_value=power_usage)
+    mocker.patch.object(RAPL, "is_rapl_compatible", return_value=True)
+    mocker.patch.object(RAPL, "get_total_uj", return_value=power_usage)
     expected = 1.8
 
     results = await LinuxEnergyConsumption().run()

@@ -1,11 +1,13 @@
 import pathlib
 import platform
+from datetime import datetime, timedelta
 
 import psutil
 import pytest
 
-from tracarbon import HardwareInfo
+from tracarbon import RAPL, HardwareInfo
 from tracarbon.exceptions import TracarbonException
+from tracarbon.hardwares import RAPLResult
 from tracarbon.hardwares.gpu import NvidiaGPU
 
 
@@ -70,11 +72,11 @@ def test_get_gpu_power_usage_with_no_gpu():
 @pytest.mark.linux
 @pytest.mark.darwin
 def test_is_rapl_compatible(tmpdir):
-    assert HardwareInfo.is_rapl_compatible() is False
+    assert RAPL().is_rapl_compatible() is False
 
     path = tmpdir.mkdir("intel-rapl")
 
-    assert HardwareInfo.is_rapl_compatible(path=path) is True
+    assert RAPL(path=str(path)).is_rapl_compatible() is True
 
 
 @pytest.mark.asyncio
@@ -82,14 +84,28 @@ def test_is_rapl_compatible(tmpdir):
 @pytest.mark.darwin
 async def test_get_rapl_power_usage():
     path = f"{pathlib.Path(__file__).parent.resolve()}/data/intel-rapl"
-    expected = 52232.0
     rapl_separator_for_windows = "T"
 
-    results = await HardwareInfo.get_rapl_power_usage(
+    rapl_results = await RAPL(
         path=path, rapl_separator=rapl_separator_for_windows
-    )
+    ).get_rapl_power_usage()
 
-    assert results == expected
+    def by_name(rapl_result: RAPLResult) -> str:
+        return (rapl_result.name,)
+
+    rapl_results.sort(key=by_name)
+    assert rapl_results[0].name == "core"
+    assert rapl_results[0].energy_uj == 3.0
+    assert rapl_results[1].name == "core"
+    assert rapl_results[1].energy_uj == 43725162336.0
+    assert rapl_results[2].name == "dram"
+    assert rapl_results[2].energy_uj == 2433.0
+    assert rapl_results[3].name == "dram"
+    assert rapl_results[3].energy_uj == 2592370025.0
+    assert rapl_results[4].name == "package-0"
+    assert rapl_results[4].energy_uj == 24346753748.0
+    assert rapl_results[5].name == "package-1"
+    assert rapl_results[5].energy_uj == 20232.0
 
 
 @pytest.mark.asyncio
@@ -97,11 +113,39 @@ async def test_get_rapl_power_usage():
 @pytest.mark.darwin
 async def test_get_rapl_power_usage_max_when_0():
     path = f"{pathlib.Path(__file__).parent.resolve()}/data/intel-rapl2"
-    expected = 40000.0
     rapl_separator_for_windows = "T"
 
-    results = await HardwareInfo.get_rapl_power_usage(
+    rapl_results = await RAPL(
         path=path, rapl_separator=rapl_separator_for_windows
+    ).get_rapl_power_usage()
+    assert rapl_results[0].name == "package-0"
+    assert rapl_results[0].energy_uj == 70000.0
+    assert rapl_results[0].timestamp is not None
+    assert rapl_results[1].name == "core"
+    assert rapl_results[1].energy_uj == 50000.0
+    assert rapl_results[1].timestamp is not None
+
+
+@pytest.mark.asyncio
+@pytest.mark.linux
+@pytest.mark.darwin
+@pytest.mark.parametrize(
+    "domain,uj_expected", [("host", 250.0), ("memory", 0.0), ("cpu", 167.0)]
+)
+async def test_get_total_uj_one_call(domain, uj_expected):
+    path = f"{pathlib.Path(__file__).parent.resolve()}/data/intel-rapl2"
+    rapl_separator_for_windows = "T"
+    one_minute_ago = datetime.now() - timedelta(seconds=60)
+    rapl_results = dict()
+    rapl_results["package-0"] = RAPLResult(
+        name="package", energy_uj=55000, timestamp=one_minute_ago
+    )
+    rapl_results["core"] = RAPLResult(
+        name="core", energy_uj=40000, timestamp=one_minute_ago
+    )
+    rapl = RAPL(
+        path=path, rapl_separator=rapl_separator_for_windows, rapl_results=rapl_results
     )
 
-    assert results == expected
+    uj = await rapl.get_total_uj(domain=domain)
+    assert round(uj, 0) == uj_expected

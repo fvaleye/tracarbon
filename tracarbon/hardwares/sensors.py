@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from tracarbon.exceptions import AWSSensorException, TracarbonException
 from tracarbon.hardwares.cloud_providers import CloudProviders
 from tracarbon.hardwares.energy import Power
-from tracarbon.hardwares.hardware import HardwareInfo
+from tracarbon.hardwares.hardware import RAPL, HardwareInfo
 
 
 class Sensor(ABC, BaseModel):
@@ -63,6 +63,15 @@ class EnergyConsumption(Sensor):
             return WindowsEnergyConsumption()
         raise TracarbonException(f"This {platform} hardware is not yet implemented.")
 
+    @abstractmethod
+    async def run(self) -> float:
+        """
+        Run the sensor and get the current wattage in watt.
+
+        :return: the metric sent by the sensor.
+        """
+        pass
+
 
 class MacEnergyConsumption(EnergyConsumption):
     """
@@ -90,16 +99,17 @@ class LinuxEnergyConsumption(EnergyConsumption):
     Energy Consumption of a Linux device: https://github.com/fvaleye/tracarbon/issues/1
     """
 
+    rapl: RAPL = RAPL()
+
     async def run(self) -> float:
         """
         Run the sensor and get the current wattage in watts.
 
         :return: the sensor metric.
         """
-        if HardwareInfo.is_rapl_compatible():
-            return Power.watts_from_microjoules(
-                microjoules=await HardwareInfo.get_rapl_power_usage()
-            )
+        if self.rapl.is_rapl_compatible():
+            total_uj = await self.rapl.get_total_uj()
+            return Power.watts_from_microjoules(uj=total_uj)
         raise TracarbonException(f"This Linux hardware is not yet supported.")
 
 

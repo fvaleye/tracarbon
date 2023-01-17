@@ -1,7 +1,5 @@
 import datetime
 
-import pytest
-
 from tracarbon.hardwares import Power
 
 
@@ -29,9 +27,11 @@ def test_energy_should_convert_watt_hours_to_co2g():
 
 
 def test_energy_should_convert_watts_from_microjoules():
-    microjoules = 43043430
-    watts_expected = 43.043
+    uj = 4304343000
+    watts_expected = 4304.343
 
-    watts = Power.watts_from_microjoules(microjoules=microjoules)
+    watts = Power.watts_from_microjoules(
+        uj=uj,
+    )
 
     assert round(watts, 3) == watts_expected
