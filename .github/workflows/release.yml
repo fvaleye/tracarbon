@@ -23,7 +23,7 @@ jobs:
             exit 1
           fi
 
-  release-pypi:
+  release-pypi-ubuntu:
     needs: validate-git-tag
     runs-on: ubuntu-latest
     steps:
@@ -39,14 +39,12 @@ jobs:
       - name: Setup
         run: make init
 
-      - name: Build and publish
-        env:
-          PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
-          PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-        run: make publish
+      - name: Publish
+        run: poetry publish --build --username "${{ secrets.PYPI_USERNAME }}" --password "${{ secrets.PYPI_PASSWORD }}"
+
 
   release-documentation:
-    needs: release-pypi
+    needs: release-pypi-ubuntu
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
