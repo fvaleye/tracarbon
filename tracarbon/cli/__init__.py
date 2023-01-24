@@ -5,12 +5,11 @@ import typer
 from loguru import logger
 
 from tracarbon.builder import TracarbonBuilder
+from tracarbon.conf import KUBERNETES_INSTALLED
 from tracarbon.exporters import Exporter, MetricGenerator
 from tracarbon.general_metrics import (
     CarbonEmissionGenerator,
-    CarbonEmissionKubernetesGenerator,
     EnergyConsumptionGenerator,
-    EnergyConsumptionKubernetesGenerator,
 )
 from tracarbon.locations import Country
 
@@ -55,6 +54,27 @@ def get_exporter(
     return selected_exporter(metric_generators=metric_generators, metric_prefix_name=tracarbon_builder.configuration.metric_prefix_name)  # type: ignore
 
 
+def add_containers_generator(location: Country) -> List[MetricGenerator]:
+    """
+    Add metric generators for containers if available
+
+    :param: country for the metric generators of containers
+    :return: the list of metric generators for containers
+    """
+    if KUBERNETES_INSTALLED:
+        from tracarbon.general_metrics import (
+            CarbonEmissionKubernetesGenerator,
+            EnergyConsumptionKubernetesGenerator,
+        )
+
+        return [
+            EnergyConsumptionKubernetesGenerator(location=location),
+            CarbonEmissionKubernetesGenerator(location=location),
+        ]
+    else:
+        raise ImportError("kubernetes optional dependency is not installed")
+
+
 def run_metrics(
     exporter_name: str,
     country_code_alpha_iso_2: Optional[str] = None,
@@ -82,12 +102,7 @@ def run_metrics(
         ),
     ]
     if containers:
-        metric_generators.extend(
-            [
-                EnergyConsumptionKubernetesGenerator(location=location),
-                CarbonEmissionKubernetesGenerator(location=location),
-            ]
-        )
+        metric_generators.extend(add_containers_generator(location=location))
     try:
         exporter = get_exporter(
             exporter_name=exporter_name,

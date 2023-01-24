@@ -3,18 +3,12 @@ from typing import Any, Dict, Optional
 
 from loguru import logger
 
+from tracarbon.conf import PROMETHEUS_INSTALLED
 from tracarbon.exporters.exporter import Exporter, MetricGenerator
 
-try:
+if PROMETHEUS_INSTALLED:
     import prometheus_client
-    from prometheus_client import CollectorRegistry, Gauge, start_http_server
-
-    PROMOTHEUS_INSTALLED = True
-except ImportError:
-    logger.debug("Prometheus optional dependency is not installed.")
-    PROMOTHEUS_INSTALLED = False
-
-if PROMOTHEUS_INSTALLED:
+    from prometheus_client import Gauge, start_http_server
 
     class PrometheusExporter(Exporter):
         """

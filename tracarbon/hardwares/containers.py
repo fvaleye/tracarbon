@@ -1,21 +1,14 @@
 from typing import Any, Iterator, List, Optional
 
-from loguru import logger
 from pydantic import BaseModel
 
+from tracarbon.conf import KUBERNETES_INSTALLED
 from tracarbon.exceptions import TracarbonException
 from tracarbon.hardwares.hardware import HardwareInfo
 
-try:
+if KUBERNETES_INSTALLED:
     from kubernetes import config
     from kubernetes.client import CoreV1Api, CustomObjectsApi
-
-    KUBERNETES_INSTALLED = True
-except ImportError:
-    logger.debug("Kubernetes optional dependency is not installed.")
-    KUBERNETES_INSTALLED = False
-
-if KUBERNETES_INSTALLED:
 
     class Container(BaseModel):
         """

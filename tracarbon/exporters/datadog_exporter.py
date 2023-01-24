@@ -3,18 +3,11 @@ from typing import Any, Optional
 
 from loguru import logger
 
+from tracarbon.conf import DATADOG_INSTALLED
 from tracarbon.exporters.exporter import Exporter, MetricGenerator
 
-try:
-    from datadog import ThreadStats, initialize
-
-    DATADOG_INSTALLED = True
-except ImportError:
-    logger.debug("Datadog optional dependency is not installed.")
-    DATADOG_INSTALLED = False
-
-
 if DATADOG_INSTALLED:
+    from datadog import ThreadStats, initialize
 
     class DatadogExporter(Exporter):
         """

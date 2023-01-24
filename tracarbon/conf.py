@@ -6,6 +6,24 @@ from dotenv import load_dotenv
 from pydantic import BaseModel
 
 
+def check_optional_dependency(name: str) -> bool:
+    import importlib.util
+
+    from loguru import logger
+
+    try:
+        importlib.import_module(name)
+    except ImportError:
+        logger.debug(f"{name} optional dependency is not installed.")
+        return False
+    return True
+
+
+KUBERNETES_INSTALLED = check_optional_dependency(name="kubernetes")
+DATADOG_INSTALLED = check_optional_dependency(name="datadog")
+PROMETHEUS_INSTALLED = check_optional_dependency(name="prometheus_client")
+
+
 def logger_configuration(level: str) -> None:
     """
     Configure the logger format.
@@ -38,7 +56,7 @@ class TracarbonConfiguration(BaseModel):
         log_level: str = "INFO",
         co2signal_api_key: str = "",
         env_file_path: Optional[str] = None,
-        **data: Any
+        **data: Any,
     ) -> None:
         load_dotenv(env_file_path)
         log_level = os.environ.get("TRACARBON_LOG_LEVEL", log_level)
@@ -54,5 +72,5 @@ class TracarbonConfiguration(BaseModel):
             co2signal_api_key=os.environ.get(
                 "TRACARBON_CO2SIGNAL_API_KEY", co2signal_api_key
             ),
-            **data
+            **data,
         )
