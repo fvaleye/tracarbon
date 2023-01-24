@@ -28,6 +28,10 @@ Run Tracarbon CLI with the Datadog exporter:
 
 >>> TRACARBON_CO2SIGNAL_API_KEY=API_KEY DATADOG_API_KEY=DATADOG_API_KEY DATADOG_APP_KEY=DATADOG_APP_KEY tracarbon run --exporter-name Datadog
 
+Run Tracarbon CLI on LinuxHardware with Kubernetes send send the metrics to Prometheus:
+
+>>> tracarbon run --exporter-name Prometheus --containers
+
 Run the code
 ============
 >>> from tracarbon import TracarbonBuilder, TracarbonConfiguration
@@ -44,13 +48,13 @@ Run the code
 Run the code with a custom configuration
 =========================================
 >>> from tracarbon import TracarbonBuilder, TracarbonConfiguration
->>> from tracarbon.exporters import StdoutExporter, Metric
+>>> from tracarbon.exporters import StdoutExporter, MetricGenerator, Metric, Tag
 >>> from tracarbon.emissions import CarbonEmission
 >>> from tracarbon.locations import Country
 >>>
 >>> configuration = TracarbonConfiguration(co2signal_api_key="API_KEY")  # Your configuration
->>> metrics = [Metric(name="custom_metric", value=CustomClass().run, tags=[Tag(key="key", value="value")])]  # Your custom metrics
->>> exporter = StdoutExporter(metrics=metrics) # Your exporter
+>>> metric_generators = [MetricGenerator(metrics=[Metric(name="custom_metric", value=CustomClass().run, tags=[Tag(key="key", value="value")])])]  # Your custom metrics
+>>> exporter = StdoutExporter(metric_generators=metric_generators) # Your exporter
 >>> tracarbon = TracarbonBuilder(configuration=configuration).build(exporter=exporter)
 >>> tracarbon.start()
 >>> # Your code
