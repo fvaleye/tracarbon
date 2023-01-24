@@ -23,22 +23,21 @@ pip install tracarbon
 
 ```sh
 # Install one or more exporters from the list
-pip install 'tracarbon[datadog,prometheus]'
+pip install 'tracarbon[datadog,prometheus,kubernetes]'
 ```
 
 ### 🔌 Devices: energy consumption
-| **Devices** |                                                          **Description**                                                          |
-|-------------|:---------------------------------------------------------------------------------------------------------------------------------:|
-| Mac         |                          ✅ Global energy consumption of your Mac (must be plugged into a wall adapter).                           |
-| Linux       | ⚠️ Only with [RAPL](https://web.eece.maine.edu/~vweaver/projects/rapl/). See [#1](https://github.com/fvaleye/tracarbon/issues/1). |
-| Windows     |                       ❌ Not yet implemented. See [#184](https://github.com/hubblo-org/scaphandre/pull/184).                       |
+| **Devices** |                                                                                                                                              **Description**                                                                                                                                              |
+|-------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| Mac         |                                                                                                              ✅ Global energy consumption of your Mac (must be plugged into a wall adapter).                                                                                                               |
+| Linux       | ⚠️ Only with [RAPL](https://web.eece.maine.edu/~vweaver/projects/rapl/). See [#1](https://github.com/fvaleye/tracarbon/issues/1). It works with containers on [Kubernetes](https://kubernetes.io/) using the [Metric API](https://kubernetes.io/docs/tasks/debug/debug-cluster/resource-metrics-pipeline/#metrics-api) if available. |
+| Windows     |                                                                                                           ❌ Not yet implemented. See [#184](https://github.com/hubblo-org/scaphandre/pull/184).                                                                                                           |
 
 | **Cloud Provider** |                                                                                                  **Description**                                                                                                  |
 |--------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
 | AWS                | ✅ Use the hardware's usage with the EC2 instances carbon emissions datasets of [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/cloud-carbon-coefficients/blob/main/data/aws-instances.csv). |
 | GCP                |                                                                                              ❌ Not yet implemented.                                                                                               |
 | Azure              |                                                                                              ❌ Not yet implemented.                                                                                               |
-
 
 ## 📡 Exporters
 | **Exporter** |          **Description**          |

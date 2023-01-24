@@ -50,15 +50,15 @@ if DATADOG_INSTALLED:
             :param metric_generator: the metric generators
             :return:
             """
-            for metric in metric_generator.generate():
+            async for metric in metric_generator.generate():
                 metric_value = await metric.value()
                 metric_name = metric.format_name(
                     metric_prefix_name=self.metric_prefix_name
                 )
                 logger.debug(
-                    f"Sending metric[{metric_name}] with value [{metric_value}] to Datadog."
+                    f"Sending metric[{metric_name}] with value [{metric_value}] and tags{metric.format_tags()} to Datadog."
                 )
-                self.stats.gauge(metric_name, metric_value, tags=metric.format_tags())  # type: ignore
+                self.stats.gauge(metric_name, metric_value, tags=metric.format_tags())
 
         @classmethod
         def get_name(cls) -> str:

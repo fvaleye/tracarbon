@@ -28,6 +28,10 @@ Run Tracarbon CLI with the Datadog exporter:
 
 >>> TRACARBON_CO2SIGNAL_API_KEY=API_KEY DATADOG_API_KEY=DATADOG_API_KEY DATADOG_APP_KEY=DATADOG_APP_KEY tracarbon run --exporter-name Datadog
 
+Run Tracarbon CLI on LinuxHardware with Kubernetes send send the metrics to Prometheus:
+
+>>> tracarbon run --exporter-name Prometheus --containers
+
 Run the code
 ============
 >>> from tracarbon import TracarbonBuilder, TracarbonConfiguration

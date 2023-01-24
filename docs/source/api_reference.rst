@@ -26,6 +26,18 @@ Hardware
 .. automodule:: tracarbon.hardwares.hardware
     :members:
 
+.. automodule:: tracarbon.hardwares.containers
+    :members:
+
+.. automodule:: tracarbon.hardwares.energy
+    :members:
+
+.. automodule:: tracarbon.hardwares.gpu
+    :members:
+
+.. automodule:: tracarbon.hardwares.rapl
+    :members:
+
 .. automodule:: tracarbon.hardwares.sensors
     :members:
 
@@ -42,6 +54,9 @@ Exporters
     :members:
 
 .. automodule:: tracarbon.exporters.json_exporter
+    :members:
+
+.. automodule:: tracarbon.exporters.prometheus_exporter
     :members:
 
 Emissions

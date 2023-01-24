@@ -26,20 +26,15 @@ if PROMOTHEUS_INSTALLED:
         port: Optional[int] = None
 
         def __init__(self, **data: Any) -> None:
-            """
-            Initialize the Prometheus Exporter with basic configuration.
-
-            Use
-            """
             super().__init__(**data)
             prometheus_client.REGISTRY.unregister(prometheus_client.GC_COLLECTOR)
             addr = (
                 self.address
                 if self.address
-                else os.environ.get("PROMOTHEUS_ADDRESS", "localhost")
+                else os.environ.get("PROMETHEUS_ADDRESS", "localhost")
             )
             port = (
-                self.port if self.port else int(os.environ.get("PROMOTHEUS_PORT", 8080))
+                self.port if self.port else int(os.environ.get("PROMETHEUS_PORT", 8081))
             )
             start_http_server(
                 addr=addr,
@@ -51,9 +46,8 @@ if PROMOTHEUS_INSTALLED:
             Launch the Prometheus exporter with the metrics.
 
             :param metric_generator: the metric generator
-            :return:
             """
-            for metric in metric_generator.generate():
+            async for metric in metric_generator.generate():
                 metric_name = metric.format_name(
                     metric_prefix_name=self.metric_prefix_name, separator="_"
                 )
@@ -65,7 +59,7 @@ if PROMOTHEUS_INSTALLED:
                     )
                 metric_value = await metric.value()
                 logger.info(
-                    f"Sending metric[{metric_name}] with value [{metric_value}] to Promoteus."
+                    f"Sending metric[{metric_name}] with value [{metric_value}] and labels{metric.format_tags()} to Prometeus."
                 )
                 self.prometheus_metrics[metric_name].labels(
                     *[tag.value for tag in metric.tags]

@@ -32,7 +32,7 @@ def get_release_version() -> str:
 # -- Project information -----------------------------------------------------
 
 project = "tracarbon"
-copyright = "2022 Tracarbon contributors"
+copyright = "2023 Tracarbon contributors"
 author = "Florian Valeye"
 version = get_release_version()
 
@@ -48,6 +48,8 @@ nitpick_ignore = [
     ("py:class", "datetime.datetime"),
     ("py:class", "datadog.threadstats.base.ThreadStats"),
     ("py:class", "threading.Event"),
+    ("py:class", "prometheus_client.metrics.Gauge"),
+    ("py:class", "kubernetes.client.api.custom_objects_api.CustomObjectsApi"),
 ]
 
 # Add any paths that contain templates here, relative to this directory.

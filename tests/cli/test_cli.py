@@ -1,8 +1,10 @@
 import pytest
+from kubernetes import config
 
-from tracarbon import Country, MacEnergyConsumption
+from tracarbon import Country, EnergyUsage, Kubernetes, MacEnergyConsumption
 from tracarbon.cli import get_exporter, run_metrics
 from tracarbon.exporters import DatadogExporter, StdoutExporter
+from tracarbon.hardwares import Container, Pod
 
 
 def test_get_exporter_by_name():
@@ -29,14 +31,40 @@ def test_run_metrics_should_be_ok(mocker, caplog):
         "get_location",
         return_value=Country(name="fr", co2g_kwh=50.0),
     )
-    mocker.patch.object(MacEnergyConsumption, "run", return_value=60.0)
+    energy_usage = EnergyUsage(host_energy_usage=60.0)
+    mocker.patch.object(config, "load_kube_config", return_value=None)
+    mocker.patch.object(
+        MacEnergyConsumption, "get_energy_usage", return_value=energy_usage
+    )
 
     run_metrics(exporter_name=exporter, running=False)
 
     assert "Metric name[test.carbon_emission]" in caplog.text
-    assert "Metric name[test.hardware_memory_used]" in caplog.text
-    assert "Metric name[test.hardware_cpu_used]" in caplog.text
     assert "Metric name[test.energy_consumption]" in caplog.text
     assert "units:co2g/kwh" in caplog.text
     assert "units:watts" in caplog.text
-    assert "units:%" in caplog.text
+
+    energy_usage = EnergyUsage(cpu_energy_usage=15.0, memory_energy_usage=12.0)
+    mocker.patch.object(
+        MacEnergyConsumption, "get_energy_usage", return_value=energy_usage
+    )
+    mocker.patch.object(
+        Kubernetes,
+        "get_pods_usage",
+        return_value=[
+            Pod(
+                name="pod_name",
+                namespace="default",
+                containers=[
+                    Container(name="container_name", cpu_usage="1", memory_usage=2)
+                ],
+            )
+        ],
+    )
+
+    run_metrics(exporter_name=exporter, running=False, containers=True)
+
+    assert "Metric name[test.carbon_emission_kubernetes]" in caplog.text
+    assert "Metric name[test.energy_consumption_kubernetes]" in caplog.text
+    assert "units:co2mg/kwh" in caplog.text
+    assert "units:milliwatts" in caplog.text

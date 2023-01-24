@@ -8,7 +8,7 @@ from tracarbon import (
     LinuxEnergyConsumption,
     TracarbonException,
 )
-from tracarbon.hardwares import HardwareInfo, WindowsEnergyConsumption
+from tracarbon.hardwares import EnergyUsage, HardwareInfo, WindowsEnergyConsumption
 from tracarbon.hardwares.cloud_providers import AWS
 
 
@@ -61,9 +61,9 @@ async def test_aws_sensor_with_gpu_should_return_energy_consumption(mocker):
         + gpu_power_usage
     )
 
-    value = await aws_ec2_sensor.run()
+    energy_usage = await aws_ec2_sensor.get_energy_usage()
 
-    assert value == value_expected
+    assert energy_usage.host_energy_usage == value_expected
 
 
 @pytest.mark.asyncio
@@ -89,9 +89,9 @@ async def test_aws_sensor_without_gpu_should_return_energy_consumption(mocker):
         + aws_ec2_sensor.delta_full_machine
     )
 
-    value = await aws_ec2_sensor.run()
+    energy_usage = await aws_ec2_sensor.get_energy_usage()
 
-    assert value == value_expected
+    assert energy_usage.host_energy_usage == value_expected
 
 
 def test_aws_sensor_should_return_error_when_instance_type_is_missing():
@@ -118,24 +118,27 @@ async def test_get_platform_should_return_the_platform_energy_consumption_linux_
     mocker.patch.object(RAPL, "is_rapl_compatible", return_value=False)
 
     with pytest.raises(TracarbonException) as exception:
-        await LinuxEnergyConsumption().run()
+        await LinuxEnergyConsumption().get_energy_usage()
     assert exception.value.args[0] == "This Linux hardware is not yet supported."
 
 
 @pytest.mark.asyncio
 async def test_get_platform_should_return_the_platform_energy_consumption_linux(mocker):
-    power_usage = 1800000
+    energy_usage = EnergyUsage(host_energy_usage_watts=1.8)
     mocker.patch.object(RAPL, "is_rapl_compatible", return_value=True)
-    mocker.patch.object(RAPL, "get_total_uj", return_value=power_usage)
-    expected = 1.8
+    mocker.patch.object(
+        RAPL,
+        "get_energy_report",
+        return_value=energy_usage,
+    )
 
-    results = await LinuxEnergyConsumption().run()
+    results = await LinuxEnergyConsumption().get_energy_usage()
 
-    assert results == expected
+    assert results == energy_usage
 
 
 @pytest.mark.asyncio
 async def test_get_platform_should_return_the_platform_energy_consumption_windows_error():
     with pytest.raises(TracarbonException) as exception:
-        await WindowsEnergyConsumption().run()
+        await WindowsEnergyConsumption().get_energy_usage()
         assert exception.value.args[0] == "This Windows hardware is not yet supported."

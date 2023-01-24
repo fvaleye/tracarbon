@@ -13,11 +13,13 @@ def test_json_exporter_should_write_well_formatted_metrics_in_json_file(mocker, 
     mock.utcnow.return_value = fixed_timestamp
     test_json_file = tmpdir.mkdir("data").join("test.json")
     interval_in_seconds = 1
-    cpu_value = "5.0"
     memory_value = "70"
     mock_memory_value = ["0", "0", memory_value]
-    mocker.patch.object(psutil, "cpu_percent", return_value=cpu_value)
     mocker.patch.object(psutil, "virtual_memory", return_value=mock_memory_value)
+
+    async def get_memory_usage() -> float:
+        return psutil.virtual_memory()[2]
+
     expected = [
         {
             "timestamp": str(fixed_timestamp),
@@ -27,20 +29,8 @@ def test_json_exporter_should_write_well_formatted_metrics_in_json_file(mocker, 
         },
         {
             "timestamp": str(fixed_timestamp),
-            "metric_name": "test_metric_2",
-            "metric_value": "5.0",
-            "metric_tags": ["test:tags"],
-        },
-        {
-            "timestamp": str(fixed_timestamp),
             "metric_name": "test_metric_1",
             "metric_value": "70",
-            "metric_tags": ["test:tags"],
-        },
-        {
-            "timestamp": str(fixed_timestamp),
-            "metric_name": "test_metric_2",
-            "metric_value": "5.0",
             "metric_tags": ["test:tags"],
         },
     ]
@@ -52,16 +42,11 @@ def test_json_exporter_should_write_well_formatted_metrics_in_json_file(mocker, 
     )
     memory_metric = Metric(
         name="test_metric_1",
-        value=HardwareInfo.get_memory_usage,
-        tags=[Tag(key="test", value="tags")],
-    )
-    cpu_metric = Metric(
-        name="test_metric_2",
-        value=HardwareInfo.get_cpu_usage,
+        value=get_memory_usage,
         tags=[Tag(key="test", value="tags")],
     )
 
-    metric_generators = [MetricGenerator(metrics=[memory_metric, cpu_metric])]
+    metric_generators = [MetricGenerator(metrics=[memory_metric])]
     exporter = JSONExporter(
         quit=True, metric_generators=metric_generators, path=str(test_json_file)
     )
