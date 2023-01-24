@@ -321,6 +321,26 @@
 <section id="module-tracarbon.cli">
 <span id="cli"></span><h2>CLI<a class="headerlink" href="#module-tracarbon.cli" title="Permalink to this heading">#</a></h2>
 <dl class="py function">
+<dt class="sig sig-object py" id="tracarbon.cli.add_containers_generator">
+<span class="sig-prename descclassname"><span class="pre">tracarbon.cli.</span></span><span class="sig-name descname"><span class="pre">add_containers_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">location</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.cli.add_containers_generator" title="Permalink to this definition">#</a></dt>
+<dd><p>Add metric generators for containers if available</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param<span class="colon">:</span></dt>
+<dd class="field-odd"><p>country for the metric generators of containers</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the list of metric generators for containers</p>
+</dd>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>location</strong> (<a class="reference internal" href="#tracarbon.locations.country.Country" title="tracarbon.locations.country.Country"><em>Country</em></a>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>List</em>[<a class="reference internal" href="#tracarbon.exporters.exporter.MetricGenerator" title="tracarbon.exporters.exporter.MetricGenerator"><em>MetricGenerator</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="tracarbon.cli.get_exporter">
 <span class="sig-prename descclassname"><span class="pre">tracarbon.cli.</span></span><span class="sig-name descname"><span class="pre">get_exporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exporter_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_generators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tracarbon_builder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">TracarbonBuilder(configuration=TracarbonConfiguration(metric_prefix_name='test',</span> <span class="pre">log_level='INFO',</span> <span class="pre">interval_in_seconds=1,</span> <span class="pre">co2signal_api_key=''))</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.cli.get_exporter" title="Permalink to this definition">#</a></dt>
 <dd><p>Get the exporter based on the name with its metrics.</p>
@@ -2040,6 +2060,15 @@ In this case, max_energy_range_uj contanst must be returned.</p>
    CLI
   </a>
   <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tracarbon.cli.add_containers_generator">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       add_containers_generator()
+      </span>
+     </code>
+    </a>
+   </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#tracarbon.cli.get_exporter">
      <code class="docutils literal notranslate">
