@@ -16,7 +16,6 @@ def test_get_exporter_by_name():
 
 
 def test_get_exporter_by_name_should_raise_error():
-
     with pytest.raises(ValueError) as exception:
         get_exporter(exporter_name="unknown", metric_generators=[])
 

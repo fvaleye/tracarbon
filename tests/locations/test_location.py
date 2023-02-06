@@ -50,7 +50,6 @@ def test_unknown_location(mocker):
 
 
 def test_world_emission_should_get_country():
-
     country_code_alpha_iso_2 = "fr"
     co2g_kwh_expected = 51.1
     country_expected = Country(
@@ -64,7 +63,6 @@ def test_world_emission_should_get_country():
 
 
 def test_world_emission_should_raise_error_when_country_is_missing():
-
     country_code_alpha_iso_2 = "zf"
 
     with pytest.raises(CountryIsMissing) as exception:
