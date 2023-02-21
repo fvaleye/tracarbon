@@ -28,7 +28,7 @@ ec2-metadata = "^2.10.0"
 python-dotenv = "^0.21.0"
 datadog = {version = "^0.44.0", optional = true}
 prometheus-client = {version = ">=0.15,<0.17", optional = true}
-kubernetes = {version = "^25.3.0", optional = true}
+kubernetes = {version = ">=25.3,<27.0", optional = true}
 
 [tool.poetry.dev-dependencies]
 mypy = "^1.0"
@@ -50,7 +50,7 @@ types-requests = "^2.28.11"
 bandit = "^1.7.4"
 radon = "^5.1.0"
 types-aiofiles = "^22.1.0"
-kubernetes = "^25.3.0"
+kubernetes = ">=25.3,<27.0"
 
 [tool.poetry.extras]
 datadog = ["datadog"]
