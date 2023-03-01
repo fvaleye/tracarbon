@@ -1,0 +1,66 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ template "tracarbon.name" . }}
+  labels:
+    {{- include "labels.common" . | nindent 4 }}
+subjects:
+- kind: ServiceAccount
+  name: {{ template "tracarbon.name" . }}
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ template "tracarbon.name" . }}
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ template "tracarbon.name" . }}
+  labels:
+    {{- include "labels.common" . | nindent 4 }}
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+    rbac.authorization.k8s.io/aggregate-to-view: "true"
+rules:
+- apiGroups:
+      - metrics.k8s.io
+  resources:
+      - pods
+      - nodes
+  verbs:
+      - get
+      - list
+      - watch
+- apiGroups:
+    - ""
+  resources:
+    - nodes/metrics
+  verbs:
+    - get
+- apiGroups:
+  - ""
+  resources:
+     - pods
+     - nodes
+     - namespaces
+     - configmaps
+  verbs:
+     - get
+     - list
+     - watch
+- apiGroups:
+      - extensions
+  resources:
+      - podsecuritypolicies
+  resourceNames:
+      - {{ .Chart.Name }}
+  verbs:
+      - "use"
+- apiGroups:
+      - ""
+  resources:
+      - pods
+  verbs:
+      - list
+      - watch

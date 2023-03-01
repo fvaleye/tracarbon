@@ -25,7 +25,7 @@ if PROMETHEUS_INSTALLED:
             addr = (
                 self.address
                 if self.address
-                else os.environ.get("PROMETHEUS_ADDRESS", "localhost")
+                else os.environ.get("PROMETHEUS_ADDRESS", "::")
             )
             port = (
                 self.port if self.port else int(os.environ.get("PROMETHEUS_PORT", 8081))
