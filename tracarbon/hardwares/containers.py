@@ -80,7 +80,11 @@ if KUBERNETES_INSTALLED:
             arbitrary_types_allowed = True
 
         def __init__(self, **data: Any) -> None:
-            config.load_kube_config()
+            try:
+                config.load_incluster_config()
+            except Exception:
+                config.load_kube_config()
+
             if "api" not in data:
                 data["api"] = CustomObjectsApi()
             super().__init__(**data)

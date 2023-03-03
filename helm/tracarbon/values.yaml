@@ -1,0 +1,23 @@
+image:
+    name: florianvaleye/tracarbon
+    tag: latest
+
+port: 8081
+
+resources:
+    limits:
+       memory: 150Mi
+    requests:
+       cpu: 150m
+       memory: 100Mi
+
+tracarbon:
+    args:
+        - --exporter-name=Prometheus
+        - --containers
+    co2_signal_api_key: ""
+    interval_in_seconds: 60
+    log_level: "INFO"
+
+userID: 0
+groupID: 0

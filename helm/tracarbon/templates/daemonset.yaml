@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ template "tracarbon.name" . }}
+  labels:
+    {{- include "labels.common" . | nindent 4 }}
+spec:
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ template "tracarbon.name" . }}
+  template:
+    metadata:
+      name: {{ template "tracarbon.name" . }}
+      labels:
+        {{- include "labels.common" . | nindent 8 }}
+    spec:
+      containers:
+      - name:  {{ template "tracarbon.name" . }}
+        image: "{{ .Values.image.name }}:{{ .Values.image.tag }}"
+        args:
+        {{  range .Values.tracarbon.args }}
+           - {{ . }}
+        {{ end }}
+        env:
+        {{- if .Values.tracarbon.co2_signal_api_key }}
+        - name: TRACARBON_CO2SIGNAL_API_KEY
+          value: '{{ .Values.tracarbon.co2_signal_api_key }}'
+        {{- end }}
+        - name: TRACARBON_INTERVAL_IN_SECONDS
+          value: '{{ .Values.tracarbon.interval_in_seconds }}'
+        {{- if .Values.tracarbon.log_level }}
+        - name: TRACARBON_LOG_LEVEL
+          value: '{{ .Values.tracarbon.log_level }}'
+        {{- end }}
+        ports:
+        - name: metrics
+          containerPort: {{ .Values.port }}
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        volumeMounts:
+        - mountPath: /proc
+          name: proc
+          readOnly: false
+        - mountPath: /sys/class/powercap
+          name: powercap
+          readOnly: false
+      securityContext:
+        runAsUser: {{ .Values.userID }}
+        runAsGroup: {{ .Values.userGroup }}
+      serviceAccountName: {{ template "tracarbon.name" . }}
+      tolerations:
+      - operator: "Exists"
+      volumes:
+      - hostPath:
+          path: /proc
+          type: "Directory"
+        name: proc
+      - hostPath:
+          path: /sys/class/powercap
+          type: "Directory"
+        name: powercap

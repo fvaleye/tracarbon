@@ -64,20 +64,57 @@ jobs:
           echo "Generate the new documentation"
           make build-documentation
           mv docs/build ~/build
-          
+
           echo "Configure git"
           git config --global user.name 'Github Action'
           git config --global user.email 'fvaleye@users.noreply.github.com'
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
-          
+
           echo "Commit the new changes in the gh-pages"
           git reset --hard HEAD
           git clean -d -fx .
           git fetch
           git checkout gh-pages
           cp -avr ~/build/html/.  ./documentation
-          
+
           git status
           git add ./documentation
           git commit -m "Publish the new documentation for ${GITHUB_REF_NAME}"
           git push origin gh-pages
+
+  release-docker:
+    needs: release-pypi-ubuntu
+    runs-on: ubuntu-latest
+    steps:
+       - name: Checkout
+         uses: actions/checkout@v3
+
+       - name: Set up QEMU
+         uses: docker/setup-qemu-action@v2
+
+       - name: Set up Docker Buildx
+         uses: docker/setup-buildx-action@v2
+
+       - name: Docker meta
+         id: meta
+         uses: docker/metadata-action@v4
+         with:
+            images: |
+               florianvaleye/tracarbon
+            tags: |
+               type=ref,event=branch
+               type=semver,pattern={{version}}
+
+       - name: Login to DockerHub
+         uses: docker/login-action@v2
+         with:
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+       - name: Build and push
+         uses: docker/build-push-action@v4
+         with:
+            context: .
+            push: true
+            tags: ${{ steps.meta.outputs.tags }}
+            labels: ${{ steps.meta.outputs.labels }}
