@@ -73,6 +73,7 @@ html_favicon = "../../logo.png"
 html_theme_options = {
     "external_links": [],
     "github_url": "https://github.com/fvaleye/tracarbon",
+    "icon_links": [],
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
