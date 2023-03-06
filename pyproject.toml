@@ -14,21 +14,21 @@ classifiers = [
 include = ["tracarbon/py.typed"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.8"
 loguru = "^0.6.0"
 aiohttp = "^3.8.1"
-aiocache = ">=0.11.1,<0.13.0"
-aiofiles = ">=22.1,<24.0"
-psutil = "^5.9.1"
-ujson = "^5.3.0"
+aiocache = "^0.12.0"
+aiofiles = "^23.1.0"
+psutil = "^5.9.4"
+ujson = "^5.7.0"
 msgpack = "^1.0.4"
 pydantic = "^1.9.1"
-typer = ">=0.4.1,<0.8.0"
-ec2-metadata = "^2.10.0"
+typer = "^0.7.0"
+ec2-metadata = "^2.11.0"
 python-dotenv = "^0.21.0"
 datadog = {version = "^0.44.0", optional = true}
-prometheus-client = {version = ">=0.15,<0.17", optional = true}
-kubernetes = {version = ">=25.3,<27.0", optional = true}
+prometheus-client = {version = "^0.16", optional = true}
+kubernetes = {version = "^26.1.0", optional = true}
 
 [tool.poetry.dev-dependencies]
 mypy = "^1.0"
@@ -40,17 +40,17 @@ pytest-asyncio = "^0.20.3"
 pytest-cov = "^4.0.0"
 pytest-xdist = "^3.1.0"
 pytest-clarity = "^1.0.1"
-sphinx = "^5.3.0"
-pydata-sphinx-theme = "^0.12.0"
+sphinx = "^6.1.3"
+pydata-sphinx-theme = "^0.13.0"
 toml = "^0.10.2"
 types-ujson = "^5.7.0"
 datadog = "^0.44.0"
-prometheus-client = ">=0.15,<0.17"
+prometheus-client = "^0.16"
 types-requests = "^2.28.11"
 bandit = "^1.7.4"
 radon = "^5.1.0"
 types-aiofiles = "^22.1.0"
-kubernetes = ">=25.3,<27.0"
+kubernetes = "^26.1.0"
 
 [tool.poetry.extras]
 datadog = ["datadog"]
