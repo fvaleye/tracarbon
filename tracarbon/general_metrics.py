@@ -12,7 +12,6 @@ class EnergyConsumptionGenerator(MetricGenerator):
     Energy consumption generator for energy consumption.
     """
 
-    location: Location
     energy_consumption: EnergyConsumption
 
     def __init__(self, location: Location, **data: Any) -> None:
@@ -50,7 +49,6 @@ class CarbonEmissionGenerator(MetricGenerator):
     Carbon emission generator to generate carbon emissions.
     """
 
-    location: Location
     carbon_emission: CarbonEmission
     co2signal_api_key: Optional[str] = None
 
@@ -98,7 +96,6 @@ if KUBERNETES_INSTALLED:
         Energy consumption generator for energy consumption of the containers.
         """
 
-        location: Location
         energy_consumption: EnergyConsumption
         kubernetes: Kubernetes
 
@@ -148,7 +145,6 @@ if KUBERNETES_INSTALLED:
         Carbon emission generator to generate carbon emissions of the containers.
         """
 
-        location: Location
         carbon_emission: CarbonEmission
         kubernetes: Kubernetes
         co2signal_api_key: Optional[str] = None

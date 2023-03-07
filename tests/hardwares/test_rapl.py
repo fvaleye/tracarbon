@@ -47,19 +47,28 @@ async def test_get_rapl_power_usage():
 @pytest.mark.asyncio
 @pytest.mark.linux
 @pytest.mark.darwin
-async def test_get_rapl_power_usage_max_when_0():
+async def test_get_rapl_power_wrap_around_when_0():
     path = f"{pathlib.Path(__file__).parent.resolve()}/data/intel-rapl2"
+    two_seconds_ago = datetime.datetime.now() - datetime.timedelta(seconds=2)
     rapl_separator_for_windows = "T"
+    rapl_results = dict()
+    rapl_results["package-0"] = RAPLResult(
+        name="package", energy_uj=2, max_energy_uj=70000, timestamp=two_seconds_ago
+    )
+    rapl_results["core"] = RAPLResult(
+        name="core", energy_uj=1, max_energy_uj=70000, timestamp=two_seconds_ago
+    )
+    rapl = RAPL(
+        path=path, rapl_separator=rapl_separator_for_windows, rapl_results=rapl_results
+    )
+    host_energy_usage_expected = 35
+    cpu_energy_usage_expected = 35
 
-    rapl_results = await RAPL(
-        path=path, rapl_separator=rapl_separator_for_windows
-    ).get_rapl_power_usage()
-    assert rapl_results[0].name == "package-0"
-    assert rapl_results[0].energy_uj == 70000.0
-    assert rapl_results[0].timestamp is not None
-    assert rapl_results[1].name == "core"
-    assert rapl_results[1].energy_uj == 50000.0
-    assert rapl_results[1].timestamp is not None
+    energy_report = await rapl.get_energy_report()
+    energy_report.convert_unit(EnergyUsageUnit.MILLIWATT)
+    assert round(energy_report.host_energy_usage, 0) == host_energy_usage_expected
+    assert round(energy_report.cpu_energy_usage, 0) == cpu_energy_usage_expected
+    assert energy_report.memory_energy_usage is None
 
 
 @pytest.mark.asyncio
@@ -71,19 +80,19 @@ async def test_get_total_uj_one_call():
     one_minute_ago = datetime.datetime.now() - datetime.timedelta(seconds=60)
     rapl_results = dict()
     rapl_results["package-0"] = RAPLResult(
-        name="package", energy_uj=50000, timestamp=one_minute_ago
+        name="package", energy_uj=50000, max_energy_uj=70000, timestamp=one_minute_ago
     )
     rapl_results["core"] = RAPLResult(
-        name="core", energy_uj=40000, timestamp=one_minute_ago
+        name="core", energy_uj=40000, max_energy_uj=70000, timestamp=one_minute_ago
     )
     rapl = RAPL(
         path=path, rapl_separator=rapl_separator_for_windows, rapl_results=rapl_results
     )
-    host_energy_usage_expected = 0.333
-    cpu_energy_usage_expected = 0.167
+    host_energy_usage_expected = 0.33
+    cpu_energy_usage_expected = 0.5
 
     energy_report = await rapl.get_energy_report()
     energy_report.convert_unit(EnergyUsageUnit.MILLIWATT)
-    assert round(energy_report.host_energy_usage, 3) == host_energy_usage_expected
-    assert round(energy_report.cpu_energy_usage, 3) == cpu_energy_usage_expected
+    assert round(energy_report.host_energy_usage, 2) == host_energy_usage_expected
+    assert round(energy_report.cpu_energy_usage, 2) == cpu_energy_usage_expected
     assert energy_report.memory_energy_usage is None

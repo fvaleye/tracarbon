@@ -7,6 +7,7 @@ from loguru import logger
 from pydantic import BaseModel
 
 from tracarbon.hardwares.hardware import HardwareInfo
+from tracarbon.locations import Location
 
 
 class Exporter(BaseModel, metaclass=ABCMeta):
@@ -126,6 +127,7 @@ class MetricGenerator(BaseModel):
 
     metrics: List[Metric]
     platform: str = HardwareInfo.get_platform()
+    location: Optional[Location] = None
 
     async def generate(self) -> AsyncGenerator[Metric, None]:
         """
