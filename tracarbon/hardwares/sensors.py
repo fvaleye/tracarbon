@@ -153,17 +153,19 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
 
                     for row in reader:
                         if row[0] == instance_type:
+                            data["cpu_idle"] = float(row[14].replace(",", "."))
+                            data["cpu_at_10"] = float(row[15].replace(",", "."))
+                            data["cpu_at_50"] = float(row[16].replace(",", "."))
+                            data["cpu_at_100"] = float(row[17].replace(",", "."))
+                            data["memory_idle"] = float(row[18].replace(",", "."))
+                            data["memory_at_10"] = float(row[19].replace(",", "."))
+                            data["memory_at_50"] = float(row[20].replace(",", "."))
+                            data["memory_at_100"] = float(row[21].replace(",", "."))
+                            data["has_gpu"] = float(row[22].replace(",", ".")) > 0
+                            data["delta_full_machine"] = float(
+                                row[26].replace(",", ".")
+                            )
                             super().__init__(
-                                cpu_idle=float(row[14].replace(",", ".")),
-                                cpu_at_10=float(row[15].replace(",", ".")),
-                                cpu_at_50=float(row[16].replace(",", ".")),
-                                cpu_at_100=float(row[17].replace(",", ".")),
-                                memory_idle=float(row[18].replace(",", ".")),
-                                memory_at_10=float(row[19].replace(",", ".")),
-                                memory_at_50=float(row[20].replace(",", ".")),
-                                memory_at_100=float(row[21].replace(",", ".")),
-                                has_gpu=float(row[22].replace(",", ".")) > 0,
-                                delta_full_machine=float(row[26].replace(",", ".")),
                                 **data,
                             )
                             return

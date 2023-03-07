@@ -18,6 +18,7 @@ class RAPLResult(BaseModel):
 
     name: str
     energy_uj: float
+    max_energy_uj: float
     timestamp: datetime
 
 
@@ -82,15 +83,16 @@ class RAPL(BaseModel):
                         f"{file_path}/energy_uj", "r"
                     ) as rapl_energy:
                         energy_uj = float(await rapl_energy.read())
-                        max_energy_uj_value_reached = energy_uj < 1
-                        if max_energy_uj_value_reached:
-                            async with aiofiles.open(
-                                f"{file_path}/max_energy_range_uj", "r"
-                            ) as max_energy_rapl_file:
-                                energy_uj = float(await max_energy_rapl_file.read())
+                    async with aiofiles.open(
+                        f"{file_path}/max_energy_range_uj", "r"
+                    ) as rapl_max_energy:
+                        max_energy_uj = float(await rapl_max_energy.read())
                     rapl_results.append(
                         RAPLResult(
-                            name=name, energy_uj=energy_uj, timestamp=datetime.now()
+                            name=name,
+                            energy_uj=energy_uj,
+                            max_energy_uj=max_energy_uj,
+                            timestamp=datetime.now(),
                         )
                     )
         except Exception as exception:
@@ -115,6 +117,13 @@ class RAPL(BaseModel):
             time_difference = (
                 rapl_result.timestamp - previous_rapl_result.timestamp
             ).total_seconds()
+            if previous_rapl_result.energy_uj > rapl_result.energy_uj:
+                logger.debug(
+                    f"Wrap-around detected in RAPL {rapl_result.name}. The current RAPL energy value ({rapl_result.energy_uj}) is lower than previous value ({previous_rapl_result.energy_uj})."
+                )
+                rapl_result.energy_uj = (
+                    rapl_result.energy_uj + rapl_result.max_energy_uj
+                )
             watts = Power.watts_from_microjoules(
                 (
                     (rapl_result.energy_uj - previous_rapl_result.energy_uj)
