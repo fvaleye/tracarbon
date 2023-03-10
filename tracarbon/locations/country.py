@@ -42,15 +42,19 @@ class Country(Location):
         )
 
     @classmethod
-    def get_current_country(cls, url: str = "http://ipinfo.io/json") -> str:
+    def get_current_country(
+        cls, url: str = "http://ipinfo.io/json", timeout: int = 300
+    ) -> str:
         """
         Get the client's country using an internet access.
 
+        :param url: the url to fetch the country from IP
+        :param timeout: the timeout for the request
         :return: the client's country alpha_iso_2 name.
         """
         try:
-            logger.debug(f"Send request to this url: {url}")
-            text = requests.get(url).text
+            logger.debug(f"Send request to this url: {url}, timeout {timeout}s")
+            text = requests.get(url, timeout=timeout).text
             content_json = ujson.loads(text)
             return content_json["country"].lower()
         except Exception as exception:

@@ -117,17 +117,15 @@ class RAPL(BaseModel):
             time_difference = (
                 rapl_result.timestamp - previous_rapl_result.timestamp
             ).total_seconds()
+            energy_uj = rapl_result.energy_uj
             if previous_rapl_result.energy_uj > rapl_result.energy_uj:
                 logger.debug(
                     f"Wrap-around detected in RAPL {rapl_result.name}. The current RAPL energy value ({rapl_result.energy_uj}) is lower than previous value ({previous_rapl_result.energy_uj})."
                 )
-                rapl_result.energy_uj = (
-                    rapl_result.energy_uj + rapl_result.max_energy_uj
-                )
+                energy_uj = energy_uj + rapl_result.max_energy_uj
             watts = Power.watts_from_microjoules(
                 (
-                    (rapl_result.energy_uj - previous_rapl_result.energy_uj)
-                    / time_difference
+                    (energy_uj - previous_rapl_result.energy_uj) / time_difference
                     if time_difference > 0
                     else 1
                 )
