@@ -34,6 +34,10 @@ spec:
         - name: TRACARBON_LOG_LEVEL
           value: '{{ .Values.tracarbon.log_level }}'
         {{- end }}
+        {{- if .Values.tracarbon.log_level }}
+        - name: TRACARBON_METRIC_PREFIX_NAME
+          value: '{{ .Values.tracarbon.metric_prefix_name }}'
+        {{- end }}
         ports:
         - name: metrics
           containerPort: {{ .Values.port }}

@@ -18,6 +18,7 @@ tracarbon:
     co2_signal_api_key: ""
     interval_in_seconds: 60
     log_level: "INFO"
+    metric_prefix_name: "tracarbon"
 
 userID: 0
 groupID: 0

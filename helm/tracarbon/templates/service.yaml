@@ -13,5 +13,5 @@ spec:
   - port: {{ .Values.port }}
     name: metrics
     targetPort: metrics
-    selector:
+  selector:
       app.kubernetes.io/name: {{ template "tracarbon.name" . }}
