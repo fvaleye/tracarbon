@@ -22,6 +22,7 @@ class Location(ABC, BaseModel):
     name: str
     co2g_kwh_source: CarbonIntensitySource = CarbonIntensitySource.FILE
     co2signal_api_key: Optional[str] = None
+    co2signal_url: Optional[str] = None
     co2g_kwh: float = 0.0
 
     @classmethod

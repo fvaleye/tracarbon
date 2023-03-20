@@ -48,26 +48,28 @@ pip install 'tracarbon[datadog,prometheus,kubernetes]'
 | Datadog      |   Send the metrics to Datadog.    |
 
 ### 🗺️ Locations
-| **Location** |                                                                     **Description**                                                                     | **Source**                                                                                                                                                    |
-|--------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Worldwide    | Get the latest co2g/kwh in near real-time using the CO2 Signal API. See [here](http://api.electricitymap.org/v3/zones) for the list of available zones. | [CO2Signal API](https://www.co2signal.com)                                                                                                                    |
-| Europe       |                        Static file created from the European Environment Agency Emission for the co2g/kwh in European countries.                        | [EEA website](https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-9#tab-googlechartid_googlechartid_googlechartid_googlechartid_chart_11111) |
-| AWS          |                                                     Static file of the AWS Grid emissions factors.                                                      | [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/cloud-carbon-coefficients/blob/main/data/grid-emissions-factors-aws.csv)                |
+| **Location** |                                                                              **Description**                                                                               | **Source**                                                                                                                                                    |
+|--------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Worldwide    | Get the latest co2g/kwh in near real-time using the CO2Signal or ElectricityMaps APIs. See [here](http://api.electricitymap.org/v3/zones) for the list of available zones. | [CO2Signal API](https://www.co2signal.com) or [ElectricityMaps](https://static.electricitymaps.com/api/docs/index.html)                                       |
+| Europe       |                                 Static file created from the European Environment Agency Emission for the co2g/kwh in European countries.                                  | [EEA website](https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-9#tab-googlechartid_googlechartid_googlechartid_googlechartid_chart_11111) |
+| AWS          |                                                               Static file of the AWS Grid emissions factors.                                                               | [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/cloud-carbon-coefficients/blob/main/data/grid-emissions-factors-aws.csv)                |
 
 ### ⚙️ Configuration
 The environment variables can be set from an environment file `.env`.
 
-| **Parameter**                 | **Description**                                                                |
-|-------------------------------|:-------------------------------------------------------------------------------|
-| TRACARBON_CO2SIGNAL_API_KEY   | The api key received from [CO2 Signal](https://www.co2signal.com).             |
-| TRACARBON_METRIC_PREFIX_NAME  | The prefix to use in all the metrics name.                                     |
-| TRACARBON_INTERVAL_IN_SECONDS | The interval in seconds to wait between the metrics evaluation.                |
-| TRACARBON_LOG_LEVEL           | The level to use for displaying the logs.                                      |
+| **Parameter**                 | **Description**                                                                                                                                                                                                                                                                  |
+|-------------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| TRACARBON_CO2SIGNAL_API_KEY   | The api key received from [CO2Signal](https://www.co2signal.com) or [ElectricityMaps](https://static.electricitymaps.com/api/docs/index.html).                                                                                                                                   |
+| TRACARBON_CO2SIGNAL_URL       | The url of [CO2Signal](https://docs.co2signal.com/#get-latest-by-country-code) is the default endpoint to retrieve the last known state of the zone, but it could be changed to [ElectricityMaps](https://static.electricitymaps.com/api/docs/index.html#live-carbon-intensity). |
+| TRACARBON_METRIC_PREFIX_NAME  | The prefix to use in all the metrics name.                                                                                                                                                                                                                                       |
+| TRACARBON_INTERVAL_IN_SECONDS | The interval in seconds to wait between the metrics evaluation.                                                                                                                                                                                                                  |
+| TRACARBON_LOG_LEVEL           | The level to use for displaying the logs.                                                                                                                                                                                                                                        |
 
 ## 🔎 Usage
 
 **Request your API key**
-- Go to https://www.co2signal.com/ and get your free API key (for non-commercial use only) for getting the latest carbon intensity from your location in near-real time.
+- Go to [CO2Signal](https://www.co2signal.com/) and get your free API key for non-commercial use, or go to [ElectricityMaps](https://static.electricitymaps.com/api/docs/index.html) for commercial use.
+- This API is used to retrieve the last known carbon intensity (in gCO2eq/kWh) of electricity consumed in your location.
 - Set your API key in the environment variables, in the `.env` file or directly in the configuration.
 - If you would like to start without an API key, it's possible, the carbon intensity will be loaded statistically from a file.
 - Launch Tracarbon 🚀

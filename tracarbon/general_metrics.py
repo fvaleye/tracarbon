@@ -58,6 +58,9 @@ class CarbonEmissionGenerator(MetricGenerator):
                 co2signal_api_key=data["co2signal_api_key"]
                 if "co2signal_api_key" in data
                 else location.co2signal_api_key,
+                co2signal_url=data["co2signal_url"]
+                if "co2signal_url" in data
+                else location.co2signal_url,
                 location=location,
             )
         super().__init__(location=location, metrics=[], **data)
@@ -155,6 +158,9 @@ if KUBERNETES_INSTALLED:
                     co2signal_api_key=data["co2signal_api_key"]
                     if "co2signal_api_key" in data
                     else location.co2signal_api_key,
+                    co2signal_url=data["co2signal_url"]
+                    if "co2signal_url" in data
+                    else location.co2signal_url,
                     location=location,
                 )
             if "kubernetes" not in data:
