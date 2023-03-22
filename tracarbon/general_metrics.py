@@ -27,21 +27,23 @@ class EnergyConsumptionGenerator(MetricGenerator):
         """
         energy_usage = await self.energy_consumption.get_energy_usage()
 
-        async def energy_usage_host() -> float:
-            """
-            Get the energy usage of the host.
-            """
-            return energy_usage.get_energy_usage_on_type(usage_type=UsageType.HOST)
+        for usage_type in UsageType:
 
-        yield Metric(
-            name="energy_consumption",
-            value=energy_usage_host,
-            tags=[
-                Tag(key="platform", value=self.platform),
-                Tag(key="location", value=self.location.name),
-                Tag(key="units", value=energy_usage.unit.value),
-            ],
-        )
+            async def energy_consumption_by_usage_type() -> float:
+                """
+                Get the energy usage.
+                """
+                return energy_usage.get_energy_usage_on_type(usage_type=usage_type)
+
+            yield Metric(
+                name=f"energy_consumption_{usage_type.value}",
+                value=energy_consumption_by_usage_type,
+                tags=[
+                    Tag(key="platform", value=self.platform),
+                    Tag(key="location", value=self.location.name),
+                    Tag(key="units", value=energy_usage.unit.value),
+                ],
+            )
 
 
 class CarbonEmissionGenerator(MetricGenerator):
@@ -73,22 +75,24 @@ class CarbonEmissionGenerator(MetricGenerator):
         """
         carbon_usage = await self.carbon_emission.get_co2_usage()
 
-        async def get_host_carbon_emission() -> float:
-            """
-            Return the host carbon usage.
-            """
-            return carbon_usage.host_carbon_usage
+        for usage_type in UsageType:
 
-        yield Metric(
-            name="carbon_emission",
-            value=get_host_carbon_emission,
-            tags=[
-                Tag(key="platform", value=self.platform),
-                Tag(key="location", value=self.location.name),
-                Tag(key="source", value=self.location.co2g_kwh_source.value),
-                Tag(key="units", value=carbon_usage.unit.value),
-            ],
-        )
+            async def get_carbon_emission_by_usage_type() -> float:
+                """
+                Get the carbon usage.
+                """
+                return carbon_usage.get_carbon_usage_on_type(usage_type=usage_type)
+
+            yield Metric(
+                name=f"carbon_emission_{usage_type.value}",
+                value=get_carbon_emission_by_usage_type,
+                tags=[
+                    Tag(key="platform", value=self.platform),
+                    Tag(key="location", value=self.location.name),
+                    Tag(key="source", value=self.location.co2g_kwh_source.value),
+                    Tag(key="units", value=carbon_usage.unit.value),
+                ],
+            )
 
 
 if KUBERNETES_INSTALLED:
@@ -120,27 +124,52 @@ if KUBERNETES_INSTALLED:
             for pod in self.kubernetes.get_pods_usage():
                 for container in pod.containers:
 
-                    async def get_container_energy_consumption() -> Optional[float]:
-                        cpu_energy_usage = (
-                            container.memory_usage * energy_usage.memory_energy_usage
+                    async def get_pod_memory_energy_consumption() -> Optional[float]:
+                        """
+                        Get the memory energy consumption of the pod.
+                        """
+                        return container.memory_usage * energy_usage.memory_energy_usage
+
+                    async def get_pod_cpu_energy_consumption() -> Optional[float]:
+                        """
+                        Get the CPU energy consumption of the pod.
+                        """
+                        return container.cpu_usage * energy_usage.cpu_energy_usage
+
+                    async def get_pod_total_energy_consumption() -> Optional[float]:
+                        """
+                        Get the total energy consumption of the pod.
+                        """
+                        total = (
+                            await get_pod_memory_energy_consumption()
+                            + await get_pod_cpu_energy_consumption()
                         )
-                        memory_energy_usage = (
-                            container.cpu_usage * energy_usage.cpu_energy_usage
-                        )
-                        return cpu_energy_usage + memory_energy_usage
+                        return total
+
+                    tags = [
+                        Tag(key="pod_name", value=pod.name),
+                        Tag(key="pod_namespace", value=pod.namespace),
+                        Tag(key="container_name", value=container.name),
+                        Tag(key="platform", value=self.platform),
+                        Tag(key="containers", value="kubernetes"),
+                        Tag(key="location", value=self.location.name),
+                        Tag(key="units", value=energy_usage.unit.value),
+                    ]
 
                     yield Metric(
-                        name="energy_consumption_kubernetes",
-                        value=get_container_energy_consumption,
-                        tags=[
-                            Tag(key="pod_name", value=pod.name),
-                            Tag(key="pod_namespace", value=pod.namespace),
-                            Tag(key="container_name", value=container.name),
-                            Tag(key="platform", value=self.platform),
-                            Tag(key="containers", value="kubernetes"),
-                            Tag(key="location", value=self.location.name),
-                            Tag(key="units", value=energy_usage.unit.value),
-                        ],
+                        name="energy_consumption_kubernetes_total",
+                        value=get_pod_total_energy_consumption,
+                        tags=tags,
+                    )
+                    yield Metric(
+                        name="energy_consumption_kubernetes_cpu",
+                        value=get_pod_cpu_energy_consumption,
+                        tags=tags,
+                    )
+                    yield Metric(
+                        name="energy_consumption_kubernetes_memory",
+                        value=get_pod_memory_energy_consumption,
+                        tags=tags,
                     )
 
     class CarbonEmissionKubernetesGenerator(MetricGenerator):
@@ -179,26 +208,50 @@ if KUBERNETES_INSTALLED:
             for pod in self.kubernetes.get_pods_usage():
                 for container in pod.containers:
 
-                    async def get_container_carbon_emission() -> Optional[float]:
-                        memory_co2 = (
-                            container.memory_usage * carbon_usage.memory_carbon_usage
-                        )
-                        cpu_co2 = container.cpu_usage * carbon_usage.cpu_carbon_usage
-                        return cpu_co2 + memory_co2
+                    async def get_cpu_pod_carbon_emission() -> Optional[float]:
+                        """
+                        Get the CPU carbon emission of the pod.
+                        """
+                        return container.cpu_usage * carbon_usage.cpu_carbon_usage
 
+                    async def get_memory_pod_carbon_emission() -> Optional[float]:
+                        """
+                        Get the memory carbon emission of the pod.
+                        """
+                        return container.memory_usage * carbon_usage.memory_carbon_usage
+
+                    async def get_total_pod_carbon_emission() -> Optional[float]:
+                        """
+                        Get the total carbon emission of the pod.
+                        """
+                        total = (
+                            await get_cpu_pod_carbon_emission()
+                            + await get_memory_pod_carbon_emission()
+                        )
+                        return total
+
+                    tags = [
+                        Tag(key="pod_name", value=pod.name),
+                        Tag(key="pod_namespace", value=pod.namespace),
+                        Tag(key="container_name", value=container.name),
+                        Tag(key="platform", value=self.platform),
+                        Tag(key="containers", value="kubernetes"),
+                        Tag(key="location", value=self.location.name),
+                        Tag(key="source", value=self.location.co2g_kwh_source.value),
+                        Tag(key="units", value=carbon_usage.unit.value),
+                    ]
                     yield Metric(
-                        name="carbon_emission_kubernetes",
-                        value=get_container_carbon_emission,
-                        tags=[
-                            Tag(key="pod_name", value=pod.name),
-                            Tag(key="pod_namespace", value=pod.namespace),
-                            Tag(key="container_name", value=container.name),
-                            Tag(key="platform", value=self.platform),
-                            Tag(key="containers", value="kubernetes"),
-                            Tag(key="location", value=self.location.name),
-                            Tag(
-                                key="source", value=self.location.co2g_kwh_source.value
-                            ),
-                            Tag(key="units", value=carbon_usage.unit.value),
-                        ],
+                        name="carbon_emission_kubernetes_total",
+                        value=get_total_pod_carbon_emission,
+                        tags=tags,
+                    )
+                    yield Metric(
+                        name="carbon_emission_kubernetes_cpu",
+                        value=get_cpu_pod_carbon_emission,
+                        tags=tags,
+                    )
+                    yield Metric(
+                        name="carbon_emission_kubernetes_memory",
+                        value=get_memory_pod_carbon_emission,
+                        tags=tags,
                     )
