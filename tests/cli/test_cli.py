@@ -38,8 +38,8 @@ def test_run_metrics_should_be_ok(mocker, caplog):
 
     run_metrics(exporter_name=exporter, running=False)
 
-    assert "Metric name[test.carbon_emission]" in caplog.text
-    assert "Metric name[test.energy_consumption]" in caplog.text
+    assert "Metric name[test.carbon_emission_host]" in caplog.text
+    assert "Metric name[test.energy_consumption_host]" in caplog.text
     assert "units:co2g/kwh" in caplog.text
     assert "units:watts" in caplog.text
 
@@ -63,7 +63,7 @@ def test_run_metrics_should_be_ok(mocker, caplog):
 
     run_metrics(exporter_name=exporter, running=False, containers=True)
 
-    assert "Metric name[test.carbon_emission_kubernetes]" in caplog.text
-    assert "Metric name[test.energy_consumption_kubernetes]" in caplog.text
+    assert "Metric name[test.carbon_emission_kubernetes_total]" in caplog.text
+    assert "Metric name[test.energy_consumption_kubernetes_total]" in caplog.text
     assert "units:co2mg/kwh" in caplog.text
     assert "units:milliwatts" in caplog.text

@@ -29,9 +29,34 @@ async def test_carbon_emission_metric(mocker):
     mocker.patch.object(CarbonEmission, "get_energy_usage", return_value=energy_usage)
     location = Country(name=location_name, co2g_kwh=51.1)
     carbon_emission_generator = CarbonEmissionGenerator(location=location)
-    carbon_emission_metric = await carbon_emission_generator.generate().__anext__()
+    generator = carbon_emission_generator.generate()
+    carbon_emission_metric = await generator.__anext__()
 
-    assert carbon_emission_metric.name == "carbon_emission"
+    assert carbon_emission_metric.name == "carbon_emission_host"
+    assert carbon_emission_metric.tags[1] == Tag(key="location", value=location_name)
+    assert carbon_emission_metric.tags[2] == Tag(
+        key="source", value=location.co2g_kwh_source.value
+    )
+    assert carbon_emission_metric.tags[3] == Tag(key="units", value="co2g/kwh")
+
+    carbon_emission_metric = await generator.__anext__()
+    assert carbon_emission_metric.name == "carbon_emission_cpu"
+    assert carbon_emission_metric.tags[1] == Tag(key="location", value=location_name)
+    assert carbon_emission_metric.tags[2] == Tag(
+        key="source", value=location.co2g_kwh_source.value
+    )
+    assert carbon_emission_metric.tags[3] == Tag(key="units", value="co2g/kwh")
+
+    carbon_emission_metric = await generator.__anext__()
+    assert carbon_emission_metric.name == "carbon_emission_memory"
+    assert carbon_emission_metric.tags[1] == Tag(key="location", value=location_name)
+    assert carbon_emission_metric.tags[2] == Tag(
+        key="source", value=location.co2g_kwh_source.value
+    )
+    assert carbon_emission_metric.tags[3] == Tag(key="units", value="co2g/kwh")
+
+    carbon_emission_metric = await generator.__anext__()
+    assert carbon_emission_metric.name == "carbon_emission_gpu"
     assert carbon_emission_metric.tags[1] == Tag(key="location", value=location_name)
     assert carbon_emission_metric.tags[2] == Tag(
         key="source", value=location.co2g_kwh_source.value
@@ -52,11 +77,25 @@ async def test_energy_consumption_metric(mocker):
     )
     location = Country(name=location_name, co2g_kwh=51.1)
     energy_consumption_generator = EnergyConsumptionGenerator(location=location)
-    energy_consumption_metric = (
-        await energy_consumption_generator.generate().__anext__()
-    )
+    generator = energy_consumption_generator.generate()
+    energy_consumption_metric = await generator.__anext__()
 
-    assert energy_consumption_metric.name == "energy_consumption"
+    assert energy_consumption_metric.name == "energy_consumption_host"
+    assert energy_consumption_metric.tags[1] == Tag(key="location", value=location_name)
+    assert energy_consumption_metric.tags[2] == Tag(key="units", value="watts")
+
+    energy_consumption_metric = await generator.__anext__()
+    assert energy_consumption_metric.name == "energy_consumption_cpu"
+    assert energy_consumption_metric.tags[1] == Tag(key="location", value=location_name)
+    assert energy_consumption_metric.tags[2] == Tag(key="units", value="watts")
+
+    energy_consumption_metric = await generator.__anext__()
+    assert energy_consumption_metric.name == "energy_consumption_memory"
+    assert energy_consumption_metric.tags[1] == Tag(key="location", value=location_name)
+    assert energy_consumption_metric.tags[2] == Tag(key="units", value="watts")
+
+    energy_consumption_metric = await generator.__anext__()
+    assert energy_consumption_metric.name == "energy_consumption_gpu"
     assert energy_consumption_metric.tags[1] == Tag(key="location", value=location_name)
     assert energy_consumption_metric.tags[2] == Tag(key="units", value="watts")
 
@@ -104,7 +143,35 @@ async def test_energy_consumption_kubernetes_generator(mocker):
     async_generator = energy_consumption_kubernertes_generator.generate()
     metric = await async_generator.__anext__()
     assert round(await metric.value(), 4) == milliwatts_expected
-    assert "energy_consumption_kubernetes" == metric.name
+    assert "energy_consumption_kubernetes_total" == metric.name
+    assert [
+        f"pod_name:{pod_name}",
+        f"pod_namespace:{namespace}",
+        f"container_name:{container_name}",
+        "platform:Darwin",
+        "containers:kubernetes",
+        f"location:{location_name}",
+        "units:milliwatts",
+    ] == metric.format_tags()
+
+    milliwatts_expected = 4.9548
+    metric = await async_generator.__anext__()
+    assert round(await metric.value(), 4) == milliwatts_expected
+    assert "energy_consumption_kubernetes_cpu" == metric.name
+    assert [
+        f"pod_name:{pod_name}",
+        f"pod_namespace:{namespace}",
+        f"container_name:{container_name}",
+        "platform:Darwin",
+        "containers:kubernetes",
+        f"location:{location_name}",
+        "units:milliwatts",
+    ] == metric.format_tags()
+
+    milliwatts_expected = 1.8368
+    metric = await async_generator.__anext__()
+    assert round(await metric.value(), 4) == milliwatts_expected
+    assert "energy_consumption_kubernetes_memory" == metric.name
     assert [
         f"pod_name:{pod_name}",
         f"pod_namespace:{namespace}",
@@ -157,7 +224,39 @@ async def test_carbon_emission_kubernetes_generator(mocker):
     async_generator = carbon_emission_kubernertes_generator.generate()
     metric = await async_generator.__anext__()
     assert round(await metric.value(), 4) == carbon_usage_expected
-    assert "carbon_emission_kubernetes" == metric.name
+    assert "carbon_emission_kubernetes_total" == metric.name
+    assert [
+        f"pod_name:{pod_name}",
+        f"pod_namespace:{namespace}",
+        f"container_name:{container_name}",
+        "platform:Darwin",
+        "containers:kubernetes",
+        f"location:{location_name}",
+        "source:file",
+        "units:co2mg/kwh",
+    ] == metric.format_tags()
+
+    carbon_usage_expected = 200.00
+
+    metric = await async_generator.__anext__()
+    assert round(await metric.value(), 4) == carbon_usage_expected
+    assert "carbon_emission_kubernetes_cpu" == metric.name
+    assert [
+        f"pod_name:{pod_name}",
+        f"pod_namespace:{namespace}",
+        f"container_name:{container_name}",
+        "platform:Darwin",
+        "containers:kubernetes",
+        f"location:{location_name}",
+        "source:file",
+        "units:co2mg/kwh",
+    ] == metric.format_tags()
+
+    carbon_usage_expected = 100.00
+
+    metric = await async_generator.__anext__()
+    assert round(await metric.value(), 4) == carbon_usage_expected
+    assert "carbon_emission_kubernetes_memory" == metric.name
     assert [
         f"pod_name:{pod_name}",
         f"pod_namespace:{namespace}",
