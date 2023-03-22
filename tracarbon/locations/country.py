@@ -56,7 +56,7 @@ class Country(Location):
             logger.debug(f"Send request to this url: {url}, timeout {timeout}s")
             text = requests.get(url, timeout=timeout).text
             content_json = ujson.loads(text)
-            return content_json["country"]
+            return content_json["country"].lower()
         except Exception as exception:
             logger.error(f"Failed to request this url: {url}")
             raise exception
