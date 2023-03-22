@@ -36,25 +36,27 @@ class JSONExporter(Exporter):
         :param metric_generator: the metric generator
         """
         async for metric in metric_generator.generate():
-            file_exists = os.path.isfile(self.path)
-            async with aiofiles.open(self.path, "a+") as file:
-                if file_exists:
-                    await file.write(f",{os.linesep}")
-                else:
-                    await file.write(f"[{os.linesep}")
-                await file.write(
-                    ujson.dumps(
-                        {
-                            "timestamp": str(datetime.utcnow()),
-                            "metric_name": metric.format_name(
-                                metric_prefix_name=self.metric_prefix_name
-                            ),
-                            "metric_value": await metric.value(),
-                            "metric_tags": metric.format_tags(),
-                        },
-                        indent=self.indent,
+            metric_value = await metric.value()
+            if metric_value:
+                file_exists = os.path.isfile(self.path)
+                async with aiofiles.open(self.path, "a+") as file:
+                    if file_exists:
+                        await file.write(f",{os.linesep}")
+                    else:
+                        await file.write(f"[{os.linesep}")
+                    await file.write(
+                        ujson.dumps(
+                            {
+                                "timestamp": str(datetime.utcnow()),
+                                "metric_name": metric.format_name(
+                                    metric_prefix_name=self.metric_prefix_name
+                                ),
+                                "metric_value": metric_value,
+                                "metric_tags": metric.format_tags(),
+                            },
+                            indent=self.indent,
+                        )
                     )
-                )
 
     @classmethod
     def get_name(cls) -> str:
