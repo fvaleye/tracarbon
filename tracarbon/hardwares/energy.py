@@ -19,10 +19,10 @@ class UsageType(Enum):
     Usage type.
     """
 
-    HOST = 0
-    CPU = 1
-    MEMORY = 2
-    GPU = 3
+    HOST = "host"
+    CPU = "cpu"
+    MEMORY = "memory"
+    GPU = "gpu"
 
 
 class EnergyUsage(BaseModel):
