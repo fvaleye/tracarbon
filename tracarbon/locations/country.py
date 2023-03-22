@@ -35,7 +35,7 @@ class Country(Location):
             with open(str(resource)) as json_file:
                 countries_values = ujson.load(json_file)["countries"]
                 for country in countries_values:
-                    if country_code_alpha_iso_2 == country["name"]:
+                    if country_code_alpha_iso_2.lower() == country["name"]:
                         return cls.parse_obj(country)
         raise CountryIsMissing(
             f"The country [{country_code_alpha_iso_2}] is not in the co2 emission file."
@@ -56,7 +56,7 @@ class Country(Location):
             logger.debug(f"Send request to this url: {url}, timeout {timeout}s")
             text = requests.get(url, timeout=timeout).text
             content_json = ujson.loads(text)
-            return content_json["country"].lower()
+            return content_json["country"]
         except Exception as exception:
             logger.error(f"Failed to request this url: {url}")
             raise exception
