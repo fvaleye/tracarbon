@@ -52,12 +52,13 @@ if PROMETHEUS_INSTALLED:
                         [tag.key for tag in metric.tags],
                     )
                 metric_value = await metric.value()
-                logger.info(
-                    f"Sending metric[{metric_name}] with value [{metric_value}] and labels{metric.format_tags()} to Prometheus."
-                )
-                self.prometheus_metrics[metric_name].labels(
-                    *[tag.value for tag in metric.tags]
-                ).set(metric_value)
+                if metric_value:
+                    logger.info(
+                        f"Sending metric[{metric_name}] with value [{metric_value}] and labels{metric.format_tags()} to Prometheus."
+                    )
+                    self.prometheus_metrics[metric_name].labels(
+                        *[tag.value for tag in metric.tags]
+                    ).set(metric_value)
 
         @classmethod
         def get_name(cls) -> str:
