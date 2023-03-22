@@ -29,6 +29,7 @@ class Tracarbon:
         else:
             self.location = Country.get_location(
                 co2signal_api_key=self.configuration.co2signal_api_key,
+                co2signal_url=self.configuration.co2signal_url,
             )
         if exporter:
             self.exporter = exporter

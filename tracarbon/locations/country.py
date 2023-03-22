@@ -56,7 +56,7 @@ class Country(Location):
             logger.debug(f"Send request to this url: {url}, timeout {timeout}s")
             text = requests.get(url, timeout=timeout).text
             content_json = ujson.loads(text)
-            return content_json["country"].lower()
+            return content_json["country"]
         except Exception as exception:
             logger.error(f"Failed to request this url: {url}")
             raise exception
@@ -65,6 +65,7 @@ class Country(Location):
     def get_location(
         cls,
         co2signal_api_key: Optional[str] = None,
+        co2signal_url: Optional[str] = None,
         country_code_alpha_iso_2: Optional[str] = None,
     ) -> "Country":
         """
@@ -72,6 +73,7 @@ class Country(Location):
 
         :param country_code_alpha_iso_2: the alpha iso 2 country name.
         :param co2signal_api_key: api key for fetching CO2 Signal API.
+        :param co2signal_url: api url for fetching CO2 Signal API endpoint.
         :return: the country
         """
         # Cloud Providers
@@ -85,6 +87,7 @@ class Country(Location):
         if co2signal_api_key:
             return cls(
                 co2signal_api_key=co2signal_api_key,
+                co2signal_url=co2signal_url,
                 name=country_code_alpha_iso_2,
                 co2g_kwh_source=CarbonIntensitySource.CO2SignalAPI,
             )
@@ -107,12 +110,16 @@ class Country(Location):
         )
         if not self.co2signal_api_key:
             raise CO2SignalAPIKeyIsMissing()
+        url = f"{self.co2signal_url}{self.name}"
         response = await self.request(
-            url=f"https://api.co2signal.com/v1/latest?countryCode={self.name}",
+            url=url,
             headers={"auth-token": self.co2signal_api_key},
         )
         try:
-            self.co2g_kwh = float(response["data"]["carbonIntensity"])
+            logger.debug(f"Response from the {url}: {response}.")
+            if "data" in response:
+                response = response["data"]
+            self.co2g_kwh = float(response["carbonIntensity"])
             logger.info(
                 f"The latest carbon intensity of your country {self.name} is: {self.co2g_kwh} CO2g/kwh."
             )

@@ -15,7 +15,7 @@ tracarbon:
     args:
         - --exporter-name=Prometheus
         - --containers
-    co2_signal_api_key: ""
+    co2signal_api_key: ""
     interval_in_seconds: 60
     log_level: "INFO"
     metric_prefix_name: "tracarbon"

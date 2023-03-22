@@ -24,9 +24,13 @@ spec:
            - {{ . }}
         {{ end }}
         env:
-        {{- if .Values.tracarbon.co2_signal_api_key }}
+        {{- if .Values.tracarbon.co2signal_api_key }}
         - name: TRACARBON_CO2SIGNAL_API_KEY
-          value: '{{ .Values.tracarbon.co2_signal_api_key }}'
+          value: '{{ .Values.tracarbon.co2signal_api_key }}'
+        {{- end }}
+        {{- if .Values.tracarbon.co2signal_url }}
+        - name: TRACARBON_CO2SIGNAL_URL
+          value: '{{ .Values.tracarbon.co2signal_url }}'
         {{- end }}
         - name: TRACARBON_INTERVAL_IN_SECONDS
           value: '{{ .Values.tracarbon.interval_in_seconds }}'

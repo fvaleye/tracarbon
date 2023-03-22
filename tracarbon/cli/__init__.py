@@ -93,6 +93,7 @@ def run_metrics(
     tracarbon_builder = TracarbonBuilder()
     location = Country.get_location(
         co2signal_api_key=tracarbon_builder.configuration.co2signal_api_key,
+        co2signal_url=tracarbon_builder.configuration.co2signal_url,
         country_code_alpha_iso_2=country_code_alpha_iso_2,
     )
     metric_generators: List[MetricGenerator] = [

@@ -48,6 +48,7 @@ class TracarbonConfiguration(BaseModel):
     log_level: str
     interval_in_seconds: int
     co2signal_api_key: str
+    co2signal_url: str
 
     def __init__(
         self,
@@ -55,6 +56,7 @@ class TracarbonConfiguration(BaseModel):
         interval_in_seconds: int = 60,
         log_level: str = "INFO",
         co2signal_api_key: str = "",
+        co2signal_url: str = "https://api.co2signal.com/v1/latest?countryCode=",
         env_file_path: Optional[str] = None,
         **data: Any,
     ) -> None:
@@ -72,5 +74,6 @@ class TracarbonConfiguration(BaseModel):
             co2signal_api_key=os.environ.get(
                 "TRACARBON_CO2SIGNAL_API_KEY", co2signal_api_key
             ),
+            co2signal_url=os.environ.get("TRACARBON_CO2SIGNAL_URL", co2signal_url),
             **data,
         )
