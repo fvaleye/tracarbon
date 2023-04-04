@@ -106,16 +106,17 @@ class Country(Location):
             return self.co2g_kwh
 
         logger.info(
-            f"Request the latest carbon intensity in CO2g/kwh for your country {self.name}."
+            f"Request the latest carbon intensity in Co2g/kwh for your country {self.name}."
         )
         if not self.co2signal_api_key:
             raise CO2SignalAPIKeyIsMissing()
         url = f"{self.co2signal_url}{self.name}"
-        response = await self.request(
-            url=url,
-            headers={"auth-token": self.co2signal_api_key},
-        )
+        response = {}
         try:
+            response = await self.request(
+                url=url,
+                headers={"auth-token": self.co2signal_api_key},
+            )
             logger.debug(f"Response from the {url}: {response}.")
             if "data" in response:
                 response = response["data"]
@@ -125,7 +126,9 @@ class Country(Location):
             )
         except Exception:
             logger.error(
-                f"Failed to get the latest carbon intensity of your country {self.name}, response: {response}"
+                f'Failed to get the latest carbon intensity of your country {self.name} {response if response else ""}.'
+                f"Please check your API configuration."
+                f"Fallback to use the last known CO2g/kWh of your location {self.co2g_kwh}"
             )
         return self.co2g_kwh
 
