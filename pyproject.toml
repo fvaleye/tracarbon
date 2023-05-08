@@ -23,7 +23,7 @@ psutil = "^5.9.4"
 ujson = "^5.7.0"
 msgpack = "^1.0.4"
 pydantic = "^1.10.7"
-typer = "^0.7.0"
+typer = ">=0.7,<0.10"
 ec2-metadata = "^2.11.0"
 python-dotenv = ">=0.21,<1.1"
 datadog = {version = ">=0.44,<0.46", optional = true}
