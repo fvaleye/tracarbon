@@ -27,7 +27,7 @@ typer = ">=0.7,<0.10"
 ec2-metadata = "^2.11.0"
 python-dotenv = ">=0.21,<1.1"
 datadog = {version = ">=0.44,<0.46", optional = true}
-prometheus-client = {version = "^0.16", optional = true}
+prometheus-client = {version = ">=0.16,<0.18", optional = true}
 kubernetes = {version = "^26.1.0", optional = true}
 
 [tool.poetry.dev-dependencies]
@@ -45,7 +45,7 @@ pydata-sphinx-theme = "^0.13.3"
 toml = "^0.10.2"
 types-ujson = "^5.7.0"
 datadog = ">=0.44,<0.46"
-prometheus-client = "^0.16"
+prometheus-client = ">=0.16,<0.18"
 types-requests = "^2.30.0"
 bandit = "^1.7.4"
 radon = "^6.0.1"
