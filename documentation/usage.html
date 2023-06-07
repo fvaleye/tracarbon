@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 
 
@@ -7,7 +6,7 @@
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Usage &#8212; tracarbon  documentation</title>
   
@@ -403,13 +402,13 @@ document.write(`
 <section id="run-the-code">
 <h2>Run the code<a class="headerlink" href="#run-the-code" title="Permalink to this heading">#</a></h2>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tracarbon</span> <span class="kn">import</span> <span class="n">TracarbonBuilder</span><span class="p">,</span> <span class="n">TracarbonConfiguration</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">configuration</span> <span class="o">=</span> <span class="n">TracarbonConfiguration</span><span class="p">(</span><span class="n">co2signal_api_key</span><span class="o">=</span><span class="s2">&quot;API_KEY&quot;</span><span class="p">)</span>  <span class="c1"># Your configuration</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tracarbon</span> <span class="o">=</span> <span class="n">TracarbonBuilder</span><span class="p">(</span><span class="n">configuration</span><span class="o">=</span><span class="n">configuration</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tracarbon</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Your code</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tracarbon</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">tracarbon</span><span class="p">:</span>
 <span class="gp">&gt;&gt;&gt; </span>   <span class="c1"># Your code</span>
 </pre></div>
@@ -421,7 +420,7 @@ document.write(`
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tracarbon.exporters</span> <span class="kn">import</span> <span class="n">StdoutExporter</span><span class="p">,</span> <span class="n">MetricGenerator</span><span class="p">,</span> <span class="n">Metric</span><span class="p">,</span> <span class="n">Tag</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tracarbon.emissions</span> <span class="kn">import</span> <span class="n">CarbonEmission</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tracarbon.locations</span> <span class="kn">import</span> <span class="n">Country</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">configuration</span> <span class="o">=</span> <span class="n">TracarbonConfiguration</span><span class="p">(</span><span class="n">co2signal_api_key</span><span class="o">=</span><span class="s2">&quot;API_KEY&quot;</span><span class="p">)</span>  <span class="c1"># Your configuration</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">metric_generators</span> <span class="o">=</span> <span class="p">[</span><span class="n">MetricGenerator</span><span class="p">(</span><span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="n">Metric</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;custom_metric&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">CustomClass</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="n">Tag</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;key&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">)])])]</span>  <span class="c1"># Your custom metrics</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">exporter</span> <span class="o">=</span> <span class="n">StdoutExporter</span><span class="p">(</span><span class="n">metric_generators</span><span class="o">=</span><span class="n">metric_generators</span><span class="p">)</span> <span class="c1"># Your exporter</span>
@@ -429,7 +428,7 @@ document.write(`
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tracarbon</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Your code</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tracarbon</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">tracarbon</span><span class="p">:</span>
 <span class="gp">&gt;&gt;&gt; </span>   <span class="c1"># Your code</span>
 </pre></div>
@@ -531,7 +530,7 @@ document.write(`
       
         <div class="footer-item">
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.1.3.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
     <br/>
   </p>
 </div>
