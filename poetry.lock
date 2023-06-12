@@ -1971,13 +1971,13 @@ types-urllib3 = "*"
 
 [[package]]
 name = "types-ujson"
-version = "5.7.0.5"
+version = "5.8.0.0"
 description = "Typing stubs for ujson"
 optional = false
 python-versions = "*"
 files = [
-    {file = "types-ujson-5.7.0.5.tar.gz", hash = "sha256:7ff2a6776048e6ad6abc7ebedfd42ae1b6c005512affbae44caf3fb1e96b5d12"},
-    {file = "types_ujson-5.7.0.5-py3-none-any.whl", hash = "sha256:be07904f1ba1ba0a8b36315ec42393599fca0eb13892900f7ae322d11ce2c7ad"},
+    {file = "types-ujson-5.8.0.0.tar.gz", hash = "sha256:2856a8d0883475bec80c1ac772c006ea691215cc55ded21647b5c87c86249cbb"},
+    {file = "types_ujson-5.8.0.0-py3-none-any.whl", hash = "sha256:481c27a7bc758fc94de330dcd885ba2fbf5879dd3dfd1c7b6b46f5b98d41ca85"},
 ]
 
 [[package]]
@@ -2229,4 +2229,4 @@ prometheus = ["prometheus-client"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "5c6319d44a2644af7b17768dfefdb7e48ebbbef0543af50b1f7d1f80d08e09d4"
+content-hash = "b180dab1238f15be810fb99ec62f41c8ed206f93b638612f48c121f865a2680a"
