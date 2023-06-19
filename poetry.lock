@@ -540,13 +540,13 @@ files = [
 
 [[package]]
 name = "ec2-metadata"
-version = "2.11.0"
+version = "2.12.0"
 description = "An easy interface to query the EC2 metadata API, with caching."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "ec2-metadata-2.11.0.tar.gz", hash = "sha256:753ccc6c35b9e54b79e26ac6ad8b77613305a433af2076492551d74cbf17fb16"},
-    {file = "ec2_metadata-2.11.0-py3-none-any.whl", hash = "sha256:cacda29c1d14344bc42cc88f2c9a7d29ccdbb9d4906ff5b1e0cea8934084fc08"},
+    {file = "ec2_metadata-2.12.0-py3-none-any.whl", hash = "sha256:5cbd226bbcf8b802b5bb836987dc36617a8feecdf07280e344d41d583ec6d1fd"},
+    {file = "ec2_metadata-2.12.0.tar.gz", hash = "sha256:6574c90c6ce8c024c13d000987bb8888b333b8044a5aa7ecb319148aa3d407b3"},
 ]
 
 [package.dependencies]
