@@ -15,11 +15,11 @@ if __name__ == "__main__":
             "content_length": "106078",
         },
         {
-            "url": "https://raw.githubusercontent.com/cloud-carbon-footprint/cloud-carbon-coefficients/main/data/aws-instances.csv",
+            "url": "https://raw.githubusercontent.com/cloud-carbon-footprint/ccf-coefficients/main/data/aws-instances.csv",
             "content_length": "160141",
         },
         {
-            "url": "https://raw.githubusercontent.com/cloud-carbon-footprint/cloud-carbon-coefficients/main/data/grid-emissions-factors-aws.csv",
+            "url": "https://raw.githubusercontent.com/cloud-carbon-footprint/ccf-coefficients/main/data/grid-emissions-factors-aws.csv",
             "content_length": "1204",
         },
     ]
