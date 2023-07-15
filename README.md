@@ -9,7 +9,7 @@
 ## 📌 Overview
 Tracarbon is a Python library that tracks your device's energy consumption and calculates your carbon emissions.
 
-It detects your location and your device automatically before starting to export measurements to an exporter. 
+It detects your location and your device automatically before starting to export measurements to an exporter.
 It could be used as a CLI with already defined metrics or programmatically with the API by defining the metrics that you want to have.
 
 Read more in this [article](https://medium.com/@florian.valeye/tracarbon-track-your-devices-carbon-footprint-fb051fcc9009).

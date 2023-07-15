@@ -16,6 +16,7 @@ tracarbon:
         - --exporter-name=Prometheus
         - --containers
     co2signal_api_key: ""
+    rapl_available: true
     interval_in_seconds: 60
     log_level: "INFO"
     metric_prefix_name: "tracarbon"
