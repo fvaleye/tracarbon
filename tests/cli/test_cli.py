@@ -67,3 +67,6 @@ def test_run_metrics_should_be_ok(mocker, caplog):
     assert "Metric name[test.energy_consumption_kubernetes_total]" in caplog.text
     assert "units:co2mg/kwh" in caplog.text
     assert "units:milliwatts" in caplog.text
+    assert "start_time" in caplog.text
+    assert "end_time" in caplog.text
+    assert "Report" in caplog.text

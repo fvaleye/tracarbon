@@ -1,3 +1,5 @@
+import sys
+
 import psutil
 
 from tracarbon import Country, MetricGenerator
@@ -6,7 +8,7 @@ from tracarbon.exporters import Metric, PrometheusExporter, Tag
 
 def test_prometheus_exporter(mocker):
     interval_in_seconds = 1
-    memory_value = "70"
+    memory_value = 70
     mock_memory_value = ["0", "0", memory_value]
     mocker.patch.object(psutil, "virtual_memory", return_value=mock_memory_value)
     expected_metric_1 = "gauge:tracarbon_test_metric_1"
@@ -34,3 +36,13 @@ def test_prometheus_exporter(mocker):
     assert (
         str(exporter.prometheus_metrics["tracarbon_test_metric_1"]) == expected_metric_1
     )
+    assert (
+        exporter.metric_report["test_metric_1"].exporter_name
+        == PrometheusExporter.get_name()
+    )
+    assert exporter.metric_report["test_metric_1"].metric == memory_metric
+    assert exporter.metric_report["test_metric_1"].total > 0
+    assert exporter.metric_report["test_metric_1"].average > 0
+    assert exporter.metric_report["test_metric_1"].minimum < sys.float_info.max
+    assert exporter.metric_report["test_metric_1"].maximum > 0
+    assert exporter.metric_report["test_metric_1"].call_count == 1

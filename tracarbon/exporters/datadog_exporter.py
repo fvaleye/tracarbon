@@ -55,6 +55,7 @@ if DATADOG_INSTALLED:
                     self.stats.gauge(
                         metric_name, metric_value, tags=metric.format_tags()
                     )
+                    self.add_metric_to_report(metric=metric, value=metric_value)
 
         @classmethod
         def get_name(cls) -> str:

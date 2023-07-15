@@ -59,6 +59,7 @@ if PROMETHEUS_INSTALLED:
                     self.prometheus_metrics[metric_name].labels(
                         *[tag.value for tag in metric.tags]
                     ).set(metric_value)
+                    self.add_metric_to_report(metric=metric, value=metric_value)
 
         @classmethod
         def get_name(cls) -> str:

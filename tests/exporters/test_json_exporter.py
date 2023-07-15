@@ -1,9 +1,10 @@
+import sys
 from datetime import datetime
 
 import psutil
 import ujson
 
-from tracarbon import Country, HardwareInfo, MetricGenerator
+from tracarbon import Country, MetricGenerator
 from tracarbon.exporters import JSONExporter, Metric, Tag
 
 
@@ -13,7 +14,7 @@ def test_json_exporter_should_write_well_formatted_metrics_in_json_file(mocker, 
     mock.utcnow.return_value = fixed_timestamp
     test_json_file = tmpdir.mkdir("data").join("test.json")
     interval_in_seconds = 1
-    memory_value = "70"
+    memory_value = 70
     mock_memory_value = ["0", "0", memory_value]
     mocker.patch.object(psutil, "virtual_memory", return_value=mock_memory_value)
 
@@ -24,13 +25,13 @@ def test_json_exporter_should_write_well_formatted_metrics_in_json_file(mocker, 
         {
             "timestamp": str(fixed_timestamp),
             "metric_name": "test_metric_1",
-            "metric_value": "70",
+            "metric_value": 70,
             "metric_tags": ["test:tags"],
         },
         {
             "timestamp": str(fixed_timestamp),
             "metric_name": "test_metric_1",
-            "metric_value": "70",
+            "metric_value": 70,
             "metric_tags": ["test:tags"],
         },
     ]
@@ -59,3 +60,13 @@ def test_json_exporter_should_write_well_formatted_metrics_in_json_file(mocker, 
 
     with open(test_json_file, "r") as file:
         assert ujson.load(file) == expected
+
+    assert (
+        exporter.metric_report["test_metric_1"].exporter_name == JSONExporter.get_name()
+    )
+    assert exporter.metric_report["test_metric_1"].metric == memory_metric
+    assert exporter.metric_report["test_metric_1"].total > 0
+    assert exporter.metric_report["test_metric_1"].average > 0
+    assert exporter.metric_report["test_metric_1"].minimum < sys.float_info.max
+    assert exporter.metric_report["test_metric_1"].maximum > 0
+    assert exporter.metric_report["test_metric_1"].call_count == 1

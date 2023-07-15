@@ -1,6 +1,6 @@
 import pytest
 
-from tracarbon.builder import TracarbonBuilder, TracarbonConfiguration
+from tracarbon.builder import TracarbonBuilder, TracarbonConfiguration, TracarbonReport
 from tracarbon.exporters import StdoutExporter
 from tracarbon.general_metrics import CarbonEmissionGenerator
 from tracarbon.locations import Country
@@ -36,8 +36,13 @@ def test_builder_with_configuration():
     )
     builder = TracarbonBuilder(configuration=configuration)
 
-    tracarbon = builder.build(exporter=expected_exporter, location=expected_location)
+    tracarbon = (
+        builder.with_exporter(exporter=expected_exporter)
+        .with_location(location=expected_location)
+        .build()
+    )
 
     assert tracarbon.configuration == configuration
     assert tracarbon.location == expected_location
     assert tracarbon.exporter == expected_exporter
+    assert tracarbon.report == TracarbonReport()

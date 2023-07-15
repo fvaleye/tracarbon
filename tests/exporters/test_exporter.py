@@ -1,3 +1,5 @@
+import sys
+
 import psutil
 import pytest
 
@@ -30,6 +32,16 @@ def test_exporters_should_run_and_print_the_metrics(mocker, caplog):
     assert memory_metric.name in caplog.text
     assert str(memory_metric.value) in caplog.text
     assert str(memory_metric.tags) in caplog.text
+    assert (
+        exporter.metric_report["test_metric_1"].exporter_name
+        == StdoutExporter.get_name()
+    )
+    assert exporter.metric_report["test_metric_1"].metric == memory_metric
+    assert exporter.metric_report["test_metric_1"].total > 0
+    assert exporter.metric_report["test_metric_1"].average > 0
+    assert exporter.metric_report["test_metric_1"].minimum < sys.float_info.max
+    assert exporter.metric_report["test_metric_1"].maximum > 0
+    assert exporter.metric_report["test_metric_1"].call_count == 1
 
 
 def test_metric_name_and_tags_format():

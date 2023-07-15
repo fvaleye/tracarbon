@@ -110,9 +110,10 @@ def run_metrics(
             metric_generators=metric_generators,
             tracarbon_builder=tracarbon_builder,
         )
-        tracarbon = tracarbon_builder.build(
-            location=location,
-            exporter=exporter,
+        tracarbon = (
+            tracarbon_builder.with_location(location=location)
+            .with_exporter(exporter=exporter)
+            .build()
         )
         from loguru import logger
 
@@ -121,7 +122,8 @@ def run_metrics(
             while running:
                 time.sleep(tracarbon_builder.configuration.interval_in_seconds)
     except KeyboardInterrupt:
-        logger.info("Tracarbon CLI exited.")
+        pass
+    logger.info(f"Tracarbon CLI exited. Tracarbon report: {tracarbon.report}")
 
 
 @app.command()
