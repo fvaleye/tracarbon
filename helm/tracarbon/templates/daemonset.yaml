@@ -51,9 +51,11 @@ spec:
         - mountPath: /proc
           name: proc
           readOnly: false
+        {{- if eq .Values.tracarbon.rapl_available true }}
         - mountPath: /sys/class/powercap
           name: powercap
           readOnly: false
+        {{- end }}
       securityContext:
         runAsUser: {{ .Values.userID }}
         runAsGroup: {{ .Values.userGroup }}
@@ -65,7 +67,9 @@ spec:
           path: /proc
           type: "Directory"
         name: proc
+      {{- if eq .Values.tracarbon.rapl_available true }}
       - hostPath:
           path: /sys/class/powercap
           type: "Directory"
         name: powercap
+      {{- end }}

@@ -62,4 +62,3 @@ Run the code with a custom configuration
 >>>
 >>> with tracarbon:
 >>>    # Your code
-

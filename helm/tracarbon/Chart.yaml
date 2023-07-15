@@ -1,7 +1,7 @@
 apiVersion: v2
 name: tracarbon
 description: A Helm chart for Tracarbon
-maintainers: 
+maintainers:
     - name: fvaleye
       url: https://fvaleye.github.io/
 icon: https://github.com/fvaleye/tracarbon/blob/main/logo.png
