@@ -44,21 +44,43 @@ Run the code
 >>>
 >>> with tracarbon:
 >>>    # Your code
+>>>
+>>> report = tracarbon.report # Get the report
 
-Run the code with a custom configuration
-=========================================
+Run the code with general metrics
+=================================
 >>> from tracarbon import TracarbonBuilder, TracarbonConfiguration
->>> from tracarbon.exporters import StdoutExporter, MetricGenerator, Metric, Tag
->>> from tracarbon.emissions import CarbonEmission
->>> from tracarbon.locations import Country
+>>> from tracarbon.exporters import StdoutExporter
+>>> from tracarbon.general_metrics import CarbonEmissionGenerator, EnergyConsumptionGenerator
 >>>
 >>> configuration = TracarbonConfiguration(co2signal_api_key="API_KEY")  # Your configuration
->>> metric_generators = [MetricGenerator(metrics=[Metric(name="custom_metric", value=CustomClass().run, tags=[Tag(key="key", value="value")])])]  # Your custom metrics
+>>> metric_generators = [EnergyConsumptionGenerator(), CarbonEmissionGenerator()]
 >>> exporter = StdoutExporter(metric_generators=metric_generators) # Your exporter
->>> tracarbon = TracarbonBuilder(configuration=configuration).build(exporter=exporter)
+>>> tracarbon = TracarbonBuilder(configuration=configuration).with_exporter(exporter=exporter).build()
 >>> tracarbon.start()
 >>> # Your code
 >>> tracarbon.stop()
 >>>
 >>> with tracarbon:
 >>>    # Your code
+>>>
+>>> report = tracarbon.report # Get the report
+
+Run the code with a custom configuration
+=========================================
+>>> from tracarbon import TracarbonBuilder, TracarbonConfiguration
+>>> from tracarbon.exporters import StdoutExporter, MetricGenerator, Metric, Tag
+>>> from tracarbon.emissions import CarbonEmission
+>>>
+>>> configuration = TracarbonConfiguration(co2signal_api_key="API_KEY")  # Your configuration
+>>> metric_generators = [MetricGenerator(metrics=[Metric(name="custom_metric", value=CustomClass().run, tags=[Tag(key="key", value="value")])])]  # Your custom metrics
+>>> exporter = StdoutExporter(metric_generators=metric_generators) # Your exporter
+>>> tracarbon = TracarbonBuilder(configuration=configuration).with_exporter(exporter=exporter).build()
+>>> tracarbon.start()
+>>> # Your code
+>>> tracarbon.stop()
+>>>
+>>> with tracarbon:
+>>>    # Your code
+>>>
+>>> report = tracarbon.report # Get the report

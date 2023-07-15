@@ -57,6 +57,7 @@ class JSONExporter(Exporter):
                             indent=self.indent,
                         )
                     )
+                self.add_metric_to_report(metric=metric, value=metric_value)
 
     @classmethod
     def get_name(cls) -> str:

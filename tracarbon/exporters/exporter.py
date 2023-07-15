@@ -1,83 +1,14 @@
 import asyncio
+import sys
 from abc import ABCMeta, abstractmethod
 from threading import Event, Timer
-from typing import AsyncGenerator, Awaitable, Callable, List, Optional
+from typing import AsyncGenerator, Awaitable, Callable, Dict, List, Optional
 
 from loguru import logger
 from pydantic import BaseModel
 
 from tracarbon.hardwares.hardware import HardwareInfo
 from tracarbon.locations import Location
-
-
-class Exporter(BaseModel, metaclass=ABCMeta):
-    """The Exporter interface."""
-
-    metric_generators: List["MetricGenerator"]
-    event: Optional[Event] = None
-    stopped: bool = False
-    metric_prefix_name: Optional[str] = None
-
-    class Config:
-        """Pydantic configuration."""
-
-        arbitrary_types_allowed = True
-
-    @abstractmethod
-    async def launch(self, metric_generator: "MetricGenerator") -> None:
-        """
-        Launch the exporter.
-
-        :param metric_generator: the metric generator
-        """
-        pass
-
-    def start(self, interval_in_seconds: int) -> None:
-        """
-        Start the exporter and a dedicated timer configured with the configured timeout.
-
-        :param: interval_in_seconds: the interval for the timer
-        """
-        self.stopped = False
-        if not self.event:
-            self.event = Event()
-
-        def _run() -> None:
-            asyncio.run(self._launch_all())
-            if self.event and not self.stopped and not self.event.is_set():
-                timer = Timer(interval_in_seconds, _run, [])
-                timer.daemon = True
-                timer.start()
-
-        _run()
-
-    def stop(self) -> None:
-        """
-        Stop the explorer and the associated timer.
-
-        :return:
-        """
-        self.stopped = True
-        if self.event:
-            self.event.set()
-
-    async def _launch_all(self) -> None:
-        """
-        Launch the exporter with all the metric generators.
-        """
-        for metric_generator in self.metric_generators:
-            logger.debug(f"Running MetricGenerator[{metric_generator}].")
-            await self.launch(metric_generator=metric_generator)
-
-    @classmethod
-    @abstractmethod
-    def get_name(cls) -> str:
-        """
-        Get the name of the exporter.
-
-        :return: the Exporter's name
-        """
-        pass
 
 
 class Tag(BaseModel):
@@ -120,6 +51,25 @@ class Metric(BaseModel):
         return [f"{tag.key}{separator}{tag.value}" for tag in self.tags]
 
 
+class MetricReport(BaseModel):
+    """
+    MetricReport is a report of the generated metrics.
+    """
+
+    exporter_name: str
+    metric: "Metric"
+    total: float = 0.0
+    average: float = 0.0
+    minimum: float = sys.float_info.max
+    maximum: float = 0.0
+    call_count: int = 0
+
+    class Config:
+        """Pydantic configuration."""
+
+        arbitrary_types_allowed = True
+
+
 class MetricGenerator(BaseModel):
     """
     MetricGenerator generates metrics for the Exporter.
@@ -135,3 +85,97 @@ class MetricGenerator(BaseModel):
         """
         for metric in self.metrics:
             yield metric
+
+
+class Exporter(BaseModel, metaclass=ABCMeta):
+    """The Exporter interface."""
+
+    metric_generators: List[MetricGenerator]
+    event: Optional[Event] = None
+    stopped: bool = False
+    metric_prefix_name: Optional[str] = None
+    metric_report: Dict[str, MetricReport] = dict()
+
+    class Config:
+        """Pydantic configuration."""
+
+        arbitrary_types_allowed = True
+
+    @abstractmethod
+    async def launch(self, metric_generator: "MetricGenerator") -> None:
+        """
+        Launch the exporter.
+        Add the metric generator to the metric reporter.
+
+        :param metric_generator: the metric generator
+        """
+        pass
+
+    def start(self, interval_in_seconds: int) -> None:
+        """
+        Start the exporter and a dedicated timer configured with the configured timeout.
+
+        :param: interval_in_seconds: the interval for the timer
+        """
+        self.stopped = False
+        if not self.event:
+            self.event = Event()
+
+        def _run() -> None:
+            asyncio.run(self._launch_all())
+            if self.event and not self.stopped and not self.event.is_set():
+                timer = Timer(interval_in_seconds, _run, [])
+                timer.daemon = True
+                timer.start()
+
+        self.metric_report = dict()
+        _run()
+
+    def stop(self) -> None:
+        """
+        Stop the explorer and the associated timer.
+
+        :return:
+        """
+        self.stopped = True
+        if self.event:
+            self.event.set()
+
+    async def _launch_all(self) -> None:
+        """
+        Launch the exporter with all the metric generators.
+        """
+        for metric_generator in self.metric_generators:
+            logger.debug(f"Running MetricGenerator[{metric_generator}].")
+            await self.launch(metric_generator=metric_generator)
+
+    def add_metric_to_report(self, metric: "Metric", value: float) -> "MetricReport":
+        """
+        Add the generated metric to the report.
+
+        :param metric: the metric to add
+        :param value: the metric value to add
+        """
+        if metric.name not in self.metric_report:
+            self.metric_report[metric.name] = MetricReport(
+                exporter_name=self.get_name(), metric=metric
+            )
+        metric_report = self.metric_report[metric.name]
+        metric_report.total += value
+        metric_report.call_count += 1
+        metric_report.average = metric_report.total / metric_report.call_count
+        if value < metric_report.minimum:
+            metric_report.minimum = value
+        if value > metric_report.maximum:
+            metric_report.maximum = value
+        return metric_report
+
+    @classmethod
+    @abstractmethod
+    def get_name(cls) -> str:
+        """
+        Get the name of the exporter.
+
+        :return: the Exporter's name
+        """
+        pass

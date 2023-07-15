@@ -4,7 +4,7 @@ from tracarbon.conf import KUBERNETES_INSTALLED
 from tracarbon.emissions import CarbonEmission, CarbonUsageUnit
 from tracarbon.exporters import Metric, MetricGenerator, Tag
 from tracarbon.hardwares import EnergyConsumption, EnergyUsageUnit, UsageType
-from tracarbon.locations import Location
+from tracarbon.locations import Country, Location
 
 
 class EnergyConsumptionGenerator(MetricGenerator):
@@ -14,9 +14,11 @@ class EnergyConsumptionGenerator(MetricGenerator):
 
     energy_consumption: EnergyConsumption
 
-    def __init__(self, location: Location, **data: Any) -> None:
+    def __init__(self, location: Optional[Location] = None, **data: Any) -> None:
         if "energy_consumption" not in data:
             data["energy_consumption"] = EnergyConsumption.from_platform()
+        if not location:
+            location = Country.get_location()
         super().__init__(location=location, metrics=[], **data)
 
     async def generate(self) -> AsyncGenerator[Metric, None]:
@@ -54,7 +56,9 @@ class CarbonEmissionGenerator(MetricGenerator):
     carbon_emission: CarbonEmission
     co2signal_api_key: Optional[str] = None
 
-    def __init__(self, location: Location, **data: Any) -> None:
+    def __init__(self, location: Optional[Location] = None, **data: Any) -> None:
+        if not location:
+            location = Country.get_location()
         if "carbon_emission" not in data:
             data["carbon_emission"] = CarbonEmission(
                 co2signal_api_key=data["co2signal_api_key"]

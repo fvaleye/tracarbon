@@ -91,6 +91,8 @@ tracarbon.stop()
 
 with tracarbon:
     # Your code
+
+report = tracarbon.report() # Get the report
 ```
 
 ## 💻 Development
