@@ -392,7 +392,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tracarbon.cli.get_exporter">
-<span class="sig-prename descclassname"><span class="pre">tracarbon.cli.</span></span><span class="sig-name descname"><span class="pre">get_exporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exporter_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_generators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tracarbon_builder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">TracarbonBuilder(configuration=TracarbonConfiguration(metric_prefix_name='test',</span> <span class="pre">log_level='INFO',</span> <span class="pre">interval_in_seconds=1,</span> <span class="pre">co2signal_api_key='',</span> <span class="pre">co2signal_url='https://api.co2signal.com/v1/latest?countryCode='))</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.cli.get_exporter" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">tracarbon.cli.</span></span><span class="sig-name descname"><span class="pre">get_exporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exporter_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_generators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tracarbon_builder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">TracarbonBuilder(exporter=None,</span> <span class="pre">location=None,</span> <span class="pre">configuration=TracarbonConfiguration(metric_prefix_name='test',</span> <span class="pre">log_level='INFO',</span> <span class="pre">interval_in_seconds=1,</span> <span class="pre">co2signal_api_key='',</span> <span class="pre">co2signal_url='https://api.co2signal.com/v1/latest?countryCode='))</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.cli.get_exporter" title="Permalink to this definition">#</a></dt>
 <dd><p>Get the exporter based on the name with its metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -542,28 +542,79 @@ document.write(`
 
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.builder.TracarbonBuilder">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.builder.</span></span><span class="sig-name descname"><span class="pre">TracarbonBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configuration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">TracarbonConfiguration(metric_prefix_name='test',</span> <span class="pre">log_level='INFO',</span> <span class="pre">interval_in_seconds=1,</span> <span class="pre">co2signal_api_key='',</span> <span class="pre">co2signal_url='https://api.co2signal.com/v1/latest?countryCode=')</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.builder.TracarbonBuilder" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.builder.</span></span><span class="sig-name descname"><span class="pre">TracarbonBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exporter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configuration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">TracarbonConfiguration(metric_prefix_name='test',</span> <span class="pre">log_level='INFO',</span> <span class="pre">interval_in_seconds=1,</span> <span class="pre">co2signal_api_key='',</span> <span class="pre">co2signal_url='https://api.co2signal.com/v1/latest?countryCode=')</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.builder.TracarbonBuilder" title="Permalink to this definition">#</a></dt>
 <dd><p>Tracarbon builder for building Tracarbon.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>configuration</strong> (<a class="reference internal" href="#tracarbon.conf.TracarbonConfiguration" title="tracarbon.conf.TracarbonConfiguration"><em>TracarbonConfiguration</em></a>) – </p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>exporter</strong> (<a class="reference internal" href="#tracarbon.exporters.exporter.Exporter" title="tracarbon.exporters.exporter.Exporter"><em>Exporter</em></a><em> | </em><em>None</em>) – </p></li>
+<li><p><strong>location</strong> (<a class="reference internal" href="#tracarbon.locations.location.Location" title="tracarbon.locations.location.Location"><em>Location</em></a><em> | </em><em>None</em>) – </p></li>
+<li><p><strong>configuration</strong> (<a class="reference internal" href="#tracarbon.conf.TracarbonConfiguration" title="tracarbon.conf.TracarbonConfiguration"><em>TracarbonConfiguration</em></a>) – </p></li>
+</ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="tracarbon.builder.TracarbonBuilder.build">
-<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exporter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.builder.TracarbonBuilder.build" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.builder.TracarbonBuilder.build" title="Permalink to this definition">#</a></dt>
 <dd><p>Build Tracarbon with its configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#tracarbon.builder.Tracarbon" title="tracarbon.builder.Tracarbon"><em>Tracarbon</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.builder.TracarbonBuilder.with_exporter">
+<span class="sig-name descname"><span class="pre">with_exporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exporter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.builder.TracarbonBuilder.with_exporter" title="Permalink to this definition">#</a></dt>
+<dd><p>Add an exporter to the builder.
+:param exporter: the exporter
+:return:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>exporter</strong> (<a class="reference internal" href="#tracarbon.exporters.exporter.Exporter" title="tracarbon.exporters.exporter.Exporter"><em>Exporter</em></a>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#tracarbon.builder.TracarbonBuilder" title="tracarbon.builder.TracarbonBuilder"><em>TracarbonBuilder</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.builder.TracarbonBuilder.with_location">
+<span class="sig-name descname"><span class="pre">with_location</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">location</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.builder.TracarbonBuilder.with_location" title="Permalink to this definition">#</a></dt>
+<dd><p>Add a location to the builder.
+:param location: the location
+:return:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>location</strong> (<a class="reference internal" href="#tracarbon.locations.location.Location" title="tracarbon.locations.location.Location"><em>Location</em></a>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#tracarbon.builder.TracarbonBuilder" title="tracarbon.builder.TracarbonBuilder"><em>TracarbonBuilder</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.builder.TracarbonReport">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.builder.</span></span><span class="sig-name descname"><span class="pre">TracarbonReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_report</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.builder.TracarbonReport" title="Permalink to this definition">#</a></dt>
+<dd><p>Tracarbon report to store running statistics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>exporter</strong> (<a class="reference internal" href="#tracarbon.exporters.exporter.Exporter" title="tracarbon.exporters.exporter.Exporter"><em>Exporter</em></a><em> | </em><em>None</em>) – the exporter to use</p></li>
-<li><p><strong>location</strong> (<a class="reference internal" href="#tracarbon.locations.location.Location" title="tracarbon.locations.location.Location"><em>Location</em></a><em> | </em><em>None</em>) – the location to use</p></li>
+<li><p><strong>start_time</strong> (<em>datetime</em><em> | </em><em>None</em>) – </p></li>
+<li><p><strong>end_time</strong> (<em>datetime</em><em> | </em><em>None</em>) – </p></li>
+<li><p><strong>metric_report</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="#tracarbon.exporters.exporter.MetricReport" title="tracarbon.exporters.exporter.MetricReport"><em>MetricReport</em></a><em>]</em>) – </p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="#tracarbon.builder.Tracarbon" title="tracarbon.builder.Tracarbon"><em>Tracarbon</em></a></p>
-</dd>
 </dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.builder.TracarbonReport.Config">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Config</span></span><a class="headerlink" href="#tracarbon.builder.TracarbonReport.Config" title="Permalink to this definition">#</a></dt>
+<dd><p>Pydantic configuration.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1230,7 +1281,7 @@ In this case, max_energy_range_uj contanst must be returned.</p>
 <span id="exporters"></span><h2>Exporters<a class="headerlink" href="#module-tracarbon.exporters.exporter" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.exporters.exporter.Exporter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.exporter.</span></span><span class="sig-name descname"><span class="pre">Exporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_generators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stopped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_prefix_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.Exporter" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.exporter.</span></span><span class="sig-name descname"><span class="pre">Exporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_generators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stopped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_prefix_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_report</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.Exporter" title="Permalink to this definition">#</a></dt>
 <dd><p>The Exporter interface.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1239,6 +1290,7 @@ In this case, max_energy_range_uj contanst must be returned.</p>
 <li><p><strong>event</strong> (<em>Event</em><em> | </em><em>None</em>) – </p></li>
 <li><p><strong>stopped</strong> (<em>bool</em>) – </p></li>
 <li><p><strong>metric_prefix_name</strong> (<em>str</em><em> | </em><em>None</em>) – </p></li>
+<li><p><strong>metric_report</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="#tracarbon.exporters.exporter.MetricReport" title="tracarbon.exporters.exporter.MetricReport"><em>MetricReport</em></a><em>]</em>) – </p></li>
 </ul>
 </dd>
 </dl>
@@ -1246,6 +1298,23 @@ In this case, max_energy_range_uj contanst must be returned.</p>
 <dt class="sig sig-object py" id="tracarbon.exporters.exporter.Exporter.Config">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Config</span></span><a class="headerlink" href="#tracarbon.exporters.exporter.Exporter.Config" title="Permalink to this definition">#</a></dt>
 <dd><p>Pydantic configuration.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.exporters.exporter.Exporter.add_metric_to_report">
+<span class="sig-name descname"><span class="pre">add_metric_to_report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.Exporter.add_metric_to_report" title="Permalink to this definition">#</a></dt>
+<dd><p>Add the generated metric to the report.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>metric</strong> (<a class="reference internal" href="#tracarbon.exporters.exporter.Metric" title="tracarbon.exporters.exporter.Metric"><em>Metric</em></a>) – the metric to add</p></li>
+<li><p><strong>value</strong> (<em>float</em>) – the metric value to add</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#tracarbon.exporters.exporter.MetricReport" title="tracarbon.exporters.exporter.MetricReport"><em>MetricReport</em></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1265,7 +1334,8 @@ In this case, max_energy_range_uj contanst must be returned.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="tracarbon.exporters.exporter.Exporter.launch">
 <em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">launch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric_generator</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.Exporter.launch" title="Permalink to this definition">#</a></dt>
-<dd><p>Launch the exporter.</p>
+<dd><p>Launch the exporter.
+Add the metric generator to the metric reporter.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>metric_generator</strong> (<a class="reference internal" href="#tracarbon.exporters.exporter.MetricGenerator" title="tracarbon.exporters.exporter.MetricGenerator"><em>MetricGenerator</em></a>) – the metric generator</p>
@@ -1382,6 +1452,31 @@ In this case, max_energy_range_uj contanst must be returned.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.exporters.exporter.MetricReport">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.exporter.</span></span><span class="sig-name descname"><span class="pre">MetricReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exporter_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.7976931348623157e+308</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">call_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.MetricReport" title="Permalink to this definition">#</a></dt>
+<dd><p>MetricReport is a report of the generated metrics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>exporter_name</strong> (<em>str</em>) – </p></li>
+<li><p><strong>metric</strong> (<a class="reference internal" href="#tracarbon.exporters.exporter.Metric" title="tracarbon.exporters.exporter.Metric"><em>Metric</em></a>) – </p></li>
+<li><p><strong>total</strong> (<em>float</em>) – </p></li>
+<li><p><strong>average</strong> (<em>float</em>) – </p></li>
+<li><p><strong>minimum</strong> (<em>float</em>) – </p></li>
+<li><p><strong>maximum</strong> (<em>float</em>) – </p></li>
+<li><p><strong>call_count</strong> (<em>int</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.exporters.exporter.MetricReport.Config">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Config</span></span><a class="headerlink" href="#tracarbon.exporters.exporter.MetricReport.Config" title="Permalink to this definition">#</a></dt>
+<dd><p>Pydantic configuration.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.exporters.exporter.Tag">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.exporter.</span></span><span class="sig-name descname"><span class="pre">Tag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.Tag" title="Permalink to this definition">#</a></dt>
 <dd><p>Tag for a metric.</p>
@@ -1397,7 +1492,7 @@ In this case, max_energy_range_uj contanst must be returned.</p>
 
 <span class="target" id="module-tracarbon.exporters.stdout"></span><dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.exporters.stdout.StdoutExporter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.stdout.</span></span><span class="sig-name descname"><span class="pre">StdoutExporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_generators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stopped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_prefix_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.stdout.StdoutExporter" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.stdout.</span></span><span class="sig-name descname"><span class="pre">StdoutExporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_generators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stopped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_prefix_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_report</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.stdout.StdoutExporter" title="Permalink to this definition">#</a></dt>
 <dd><p>Print the metrics to Stdout.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1406,6 +1501,7 @@ In this case, max_energy_range_uj contanst must be returned.</p>
 <li><p><strong>event</strong> (<em>Event</em><em> | </em><em>None</em>) – </p></li>
 <li><p><strong>stopped</strong> (<em>bool</em>) – </p></li>
 <li><p><strong>metric_prefix_name</strong> (<em>str</em><em> | </em><em>None</em>) – </p></li>
+<li><p><strong>metric_report</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="#tracarbon.exporters.exporter.MetricReport" title="tracarbon.exporters.exporter.MetricReport"><em>MetricReport</em></a><em>]</em>) – </p></li>
 </ul>
 </dd>
 </dl>
@@ -1441,7 +1537,7 @@ In this case, max_energy_range_uj contanst must be returned.</p>
 
 <span class="target" id="module-tracarbon.exporters.datadog_exporter"></span><dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.exporters.datadog_exporter.DatadogExporter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.datadog_exporter.</span></span><span class="sig-name descname"><span class="pre">DatadogExporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_generators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stopped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_prefix_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disable_buffering</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datadog_flush_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.datadog_exporter.DatadogExporter" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.datadog_exporter.</span></span><span class="sig-name descname"><span class="pre">DatadogExporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_generators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stopped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_prefix_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_report</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disable_buffering</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datadog_flush_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.datadog_exporter.DatadogExporter" title="Permalink to this definition">#</a></dt>
 <dd><p>Datadog exporter for the metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1450,6 +1546,7 @@ In this case, max_energy_range_uj contanst must be returned.</p>
 <li><p><strong>event</strong> (<em>Event</em><em> | </em><em>None</em>) – </p></li>
 <li><p><strong>stopped</strong> (<em>bool</em>) – </p></li>
 <li><p><strong>metric_prefix_name</strong> (<em>str</em><em> | </em><em>None</em>) – </p></li>
+<li><p><strong>metric_report</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="#tracarbon.exporters.exporter.MetricReport" title="tracarbon.exporters.exporter.MetricReport"><em>MetricReport</em></a><em>]</em>) – </p></li>
 <li><p><strong>api_key</strong> (<em>str</em><em> | </em><em>None</em>) – </p></li>
 <li><p><strong>app_key</strong> (<em>str</em><em> | </em><em>None</em>) – </p></li>
 <li><p><strong>stats</strong> (<em>ThreadStats</em><em> | </em><em>None</em>) – </p></li>
@@ -1493,7 +1590,7 @@ In this case, max_energy_range_uj contanst must be returned.</p>
 
 <span class="target" id="module-tracarbon.exporters.json_exporter"></span><dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.exporters.json_exporter.JSONExporter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.json_exporter.</span></span><span class="sig-name descname"><span class="pre">JSONExporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_generators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stopped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_prefix_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tracarbon_export_07_06_2023.json'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.json_exporter.JSONExporter" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.json_exporter.</span></span><span class="sig-name descname"><span class="pre">JSONExporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_generators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stopped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_prefix_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_report</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tracarbon_export_15_07_2023.json'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.json_exporter.JSONExporter" title="Permalink to this definition">#</a></dt>
 <dd><p>Write the metrics to a local JSON file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1502,6 +1599,7 @@ In this case, max_energy_range_uj contanst must be returned.</p>
 <li><p><strong>event</strong> (<em>Event</em><em> | </em><em>None</em>) – </p></li>
 <li><p><strong>stopped</strong> (<em>bool</em>) – </p></li>
 <li><p><strong>metric_prefix_name</strong> (<em>str</em><em> | </em><em>None</em>) – </p></li>
+<li><p><strong>metric_report</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="#tracarbon.exporters.exporter.MetricReport" title="tracarbon.exporters.exporter.MetricReport"><em>MetricReport</em></a><em>]</em>) – </p></li>
 <li><p><strong>path</strong> (<em>str</em>) – </p></li>
 <li><p><strong>indent</strong> (<em>int</em>) – </p></li>
 </ul>
@@ -1550,7 +1648,7 @@ In this case, max_energy_range_uj contanst must be returned.</p>
 
 <span class="target" id="module-tracarbon.exporters.prometheus_exporter"></span><dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.exporters.prometheus_exporter.PrometheusExporter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.prometheus_exporter.</span></span><span class="sig-name descname"><span class="pre">PrometheusExporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_generators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stopped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_prefix_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prometheus_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.prometheus_exporter.PrometheusExporter" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.prometheus_exporter.</span></span><span class="sig-name descname"><span class="pre">PrometheusExporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_generators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stopped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_prefix_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_report</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prometheus_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.prometheus_exporter.PrometheusExporter" title="Permalink to this definition">#</a></dt>
 <dd><p>Send the metrics to Prometheus by running an HTTP server for the metrics exposure.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1559,6 +1657,7 @@ In this case, max_energy_range_uj contanst must be returned.</p>
 <li><p><strong>event</strong> (<em>Event</em><em> | </em><em>None</em>) – </p></li>
 <li><p><strong>stopped</strong> (<em>bool</em>) – </p></li>
 <li><p><strong>metric_prefix_name</strong> (<em>str</em><em> | </em><em>None</em>) – </p></li>
+<li><p><strong>metric_report</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="#tracarbon.exporters.exporter.MetricReport" title="tracarbon.exporters.exporter.MetricReport"><em>MetricReport</em></a><em>]</em>) – </p></li>
 <li><p><strong>prometheus_metrics</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Gauge</em><em>]</em>) – </p></li>
 <li><p><strong>address</strong> (<em>str</em><em> | </em><em>None</em>) – </p></li>
 <li><p><strong>port</strong> (<em>int</em><em> | </em><em>None</em>) – </p></li>
@@ -1946,7 +2045,7 @@ In this case, max_energy_range_uj contanst must be returned.</p>
 <span id="general-metrics"></span><h2>General Metrics<a class="headerlink" href="#module-tracarbon.general_metrics" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.general_metrics.CarbonEmissionGenerator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.general_metrics.</span></span><span class="sig-name descname"><span class="pre">CarbonEmissionGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">location</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">platform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Linux'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">carbon_emission</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.general_metrics.CarbonEmissionGenerator" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.general_metrics.</span></span><span class="sig-name descname"><span class="pre">CarbonEmissionGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">platform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Linux'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">carbon_emission</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.general_metrics.CarbonEmissionGenerator" title="Permalink to this definition">#</a></dt>
 <dd><p>Carbon emission generator to generate carbon emissions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -2009,7 +2108,7 @@ In this case, max_energy_range_uj contanst must be returned.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.general_metrics.EnergyConsumptionGenerator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.general_metrics.</span></span><span class="sig-name descname"><span class="pre">EnergyConsumptionGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">location</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">platform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Linux'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_consumption</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.general_metrics.EnergyConsumptionGenerator" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.general_metrics.</span></span><span class="sig-name descname"><span class="pre">EnergyConsumptionGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">platform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Linux'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_consumption</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.general_metrics.EnergyConsumptionGenerator" title="Permalink to this definition">#</a></dt>
 <dd><p>Energy consumption generator for energy consumption.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -2139,6 +2238,12 @@ In this case, max_energy_range_uj contanst must be returned.</p>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.builder.TracarbonBuilder"><code class="docutils literal notranslate"><span class="pre">TracarbonBuilder</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.builder.TracarbonBuilder.build"><code class="docutils literal notranslate"><span class="pre">TracarbonBuilder.build()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.builder.TracarbonBuilder.with_exporter"><code class="docutils literal notranslate"><span class="pre">TracarbonBuilder.with_exporter()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.builder.TracarbonBuilder.with_location"><code class="docutils literal notranslate"><span class="pre">TracarbonBuilder.with_location()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.builder.TracarbonReport"><code class="docutils literal notranslate"><span class="pre">TracarbonReport</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.builder.TracarbonReport.Config"><code class="docutils literal notranslate"><span class="pre">TracarbonReport.Config</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -2222,6 +2327,7 @@ In this case, max_energy_range_uj contanst must be returned.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-tracarbon.exporters.exporter">Exporters</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Exporter"><code class="docutils literal notranslate"><span class="pre">Exporter</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Exporter.Config"><code class="docutils literal notranslate"><span class="pre">Exporter.Config</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Exporter.add_metric_to_report"><code class="docutils literal notranslate"><span class="pre">Exporter.add_metric_to_report()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Exporter.get_name"><code class="docutils literal notranslate"><span class="pre">Exporter.get_name()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Exporter.launch"><code class="docutils literal notranslate"><span class="pre">Exporter.launch()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Exporter.start"><code class="docutils literal notranslate"><span class="pre">Exporter.start()</span></code></a></li>
@@ -2235,6 +2341,10 @@ In this case, max_energy_range_uj contanst must be returned.</p>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.MetricGenerator"><code class="docutils literal notranslate"><span class="pre">MetricGenerator</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.MetricGenerator.generate"><code class="docutils literal notranslate"><span class="pre">MetricGenerator.generate()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.MetricReport"><code class="docutils literal notranslate"><span class="pre">MetricReport</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.MetricReport.Config"><code class="docutils literal notranslate"><span class="pre">MetricReport.Config</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Tag"><code class="docutils literal notranslate"><span class="pre">Tag</span></code></a></li>
