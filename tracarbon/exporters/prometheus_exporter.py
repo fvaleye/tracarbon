@@ -53,13 +53,13 @@ if PROMETHEUS_INSTALLED:
                     )
                 metric_value = await metric.value()
                 if metric_value:
+                    await self.add_metric_to_report(metric=metric, value=metric_value)
                     logger.info(
                         f"Sending metric[{metric_name}] with value [{metric_value}] and labels{metric.format_tags()} to Prometheus."
                     )
                     self.prometheus_metrics[metric_name].labels(
                         *[tag.value for tag in metric.tags]
                     ).set(metric_value)
-                    self.add_metric_to_report(metric=metric, value=metric_value)
 
         @classmethod
         def get_name(cls) -> str:

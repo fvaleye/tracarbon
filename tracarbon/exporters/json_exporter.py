@@ -38,6 +38,7 @@ class JSONExporter(Exporter):
         async for metric in metric_generator.generate():
             metric_value = await metric.value()
             if metric_value:
+                await self.add_metric_to_report(metric=metric, value=metric_value)
                 file_exists = os.path.isfile(self.path)
                 async with aiofiles.open(self.path, "a+") as file:
                     if file_exists:
@@ -57,7 +58,6 @@ class JSONExporter(Exporter):
                             indent=self.indent,
                         )
                     )
-                self.add_metric_to_report(metric=metric, value=metric_value)
 
     @classmethod
     def get_name(cls) -> str:

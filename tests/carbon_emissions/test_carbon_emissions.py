@@ -87,9 +87,9 @@ def test_carbon_usage_with_type_and_conversion():
         carbon_usage.get_carbon_usage_on_type(UsageType.MEMORY) == memory_carbon_usage
     )
     assert carbon_usage.get_carbon_usage_on_type(UsageType.GPU) == gpu_carbon_usage
-    assert carbon_usage.unit == CarbonUsageUnit.CO2_G_KWH
+    assert carbon_usage.unit == CarbonUsageUnit.CO2_G
 
-    carbon_usage.convert_unit(CarbonUsageUnit.CO2_MG_KWH)
+    carbon_usage.convert_unit(CarbonUsageUnit.CO2_MG)
 
     assert (
         carbon_usage.get_carbon_usage_on_type(UsageType.HOST)
@@ -105,4 +105,4 @@ def test_carbon_usage_with_type_and_conversion():
     assert (
         carbon_usage.get_carbon_usage_on_type(UsageType.GPU) == gpu_carbon_usage * 1000
     )
-    assert carbon_usage.unit == CarbonUsageUnit.CO2_MG_KWH
+    assert carbon_usage.unit == CarbonUsageUnit.CO2_MG

@@ -4,7 +4,7 @@ from typing import Dict, Optional
 from pydantic import BaseModel
 
 from tracarbon.conf import TracarbonConfiguration
-from tracarbon.exporters import Exporter, MetricGenerator, MetricReport, StdoutExporter
+from tracarbon.exporters import Exporter, MetricReport, StdoutExporter
 from tracarbon.general_metrics import CarbonEmissionGenerator
 from tracarbon.locations import Country, Location
 
