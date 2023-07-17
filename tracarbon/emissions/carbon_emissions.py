@@ -15,8 +15,8 @@ class CarbonUsageUnit(Enum):
     Carbon usage unit.
     """
 
-    CO2_G_KWH = "co2g/kwh"
-    CO2_MG_KWH = "co2mg/kwh"
+    CO2_G = "co2g"
+    CO2_MG = "co2mg"
 
 
 class CarbonUsage(BaseModel):
@@ -28,7 +28,7 @@ class CarbonUsage(BaseModel):
     cpu_carbon_usage: Optional[float] = None
     memory_carbon_usage: Optional[float] = None
     gpu_carbon_usage: Optional[float] = None
-    unit: CarbonUsageUnit = CarbonUsageUnit.CO2_G_KWH
+    unit: CarbonUsageUnit = CarbonUsageUnit.CO2_G
 
     def get_carbon_usage_on_type(self, usage_type: UsageType) -> Optional[float]:
         """
@@ -54,10 +54,7 @@ class CarbonUsage(BaseModel):
         :param: unit: the carbon usage unit for the conversion
         """
         if self.unit != unit:
-            if (
-                unit == CarbonUsageUnit.CO2_G_KWH
-                and self.unit == CarbonUsageUnit.CO2_MG_KWH
-            ):
+            if unit == CarbonUsageUnit.CO2_G and self.unit == CarbonUsageUnit.CO2_MG:
                 self.host_carbon_usage = self.host_carbon_usage / 1000
                 self.cpu_carbon_usage = (
                     self.cpu_carbon_usage / 1000 if self.cpu_carbon_usage else None
@@ -70,11 +67,8 @@ class CarbonUsage(BaseModel):
                 self.gpu_carbon_usage = (
                     self.gpu_carbon_usage / 1000 if self.gpu_carbon_usage else None
                 )
-                self.unit = CarbonUsageUnit.CO2_G_KWH
-            elif (
-                unit == CarbonUsageUnit.CO2_MG_KWH
-                and self.unit == CarbonUsageUnit.CO2_G_KWH
-            ):
+                self.unit = CarbonUsageUnit.CO2_G
+            elif unit == CarbonUsageUnit.CO2_MG and self.unit == CarbonUsageUnit.CO2_G:
                 self.host_carbon_usage = self.host_carbon_usage * 1000
                 self.cpu_carbon_usage = (
                     self.cpu_carbon_usage * 1000 if self.cpu_carbon_usage else None
@@ -87,7 +81,7 @@ class CarbonUsage(BaseModel):
                 self.gpu_carbon_usage = (
                     self.gpu_carbon_usage * 1000 if self.gpu_carbon_usage else None
                 )
-                self.unit = CarbonUsageUnit.CO2_MG_KWH
+                self.unit = CarbonUsageUnit.CO2_MG
 
 
 class CarbonEmission(Sensor):
@@ -123,11 +117,11 @@ class CarbonEmission(Sensor):
         :return: the carbon usage.
         """
         energy_usage = await self.get_energy_usage()
-        logger.debug(f"Energy consumption run: {energy_usage}")
+        energy_usage.convert_unit(unit=EnergyUsageUnit.WATT)
+        logger.debug(f"Energy consumption run: {energy_usage}W")
 
         co2g_per_kwh = await self.location.get_latest_co2g_kwh()
         logger.debug(f"Carbon Emission of the location: {co2g_per_kwh}g CO2 eq/kWh")
-        energy_usage.convert_unit(unit=EnergyUsageUnit.WATT)
         host_carbon_usage = Power.co2g_from_watts_hour(
             Power.watts_to_watt_hours(
                 watts=energy_usage.host_energy_usage,
@@ -170,4 +164,5 @@ class CarbonEmission(Sensor):
             if memory_carbon_usage > 0
             else None,
             gpu_carbon_usage=gpu_carbon_usage if gpu_carbon_usage > 0 else None,
+            unit=CarbonUsageUnit.CO2_G,
         )

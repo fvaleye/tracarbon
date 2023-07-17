@@ -42,6 +42,8 @@ def test_exporters_should_run_and_print_the_metrics(mocker, caplog):
     assert exporter.metric_report["test_metric_1"].minimum < sys.float_info.max
     assert exporter.metric_report["test_metric_1"].maximum > 0
     assert exporter.metric_report["test_metric_1"].call_count == 1
+    assert exporter.metric_report["test_metric_1"].last_report_time is not None
+    assert exporter.metric_report["test_metric_1"].average_interval_in_seconds is None
 
 
 def test_metric_name_and_tags_format():

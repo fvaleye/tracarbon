@@ -17,10 +17,10 @@ class StdoutExporter(Exporter):
         async for metric in metric_generator.generate():
             metric_value = await metric.value()
             if metric_value:
+                await self.add_metric_to_report(metric=metric, value=metric_value)
                 logger.info(
                     f"Metric name[{metric.format_name(metric_prefix_name=self.metric_prefix_name)}], value[{metric_value}], tags{metric.format_tags()}"
                 )
-                self.add_metric_to_report(metric=metric, value=metric_value)
 
     @classmethod
     def get_name(cls) -> str:

@@ -1,9 +1,11 @@
 import asyncio
 import sys
 from abc import ABCMeta, abstractmethod
+from datetime import datetime
 from threading import Event, Timer
 from typing import AsyncGenerator, Awaitable, Callable, Dict, List, Optional
 
+from asyncer import asyncify
 from loguru import logger
 from pydantic import BaseModel
 
@@ -58,6 +60,8 @@ class MetricReport(BaseModel):
 
     exporter_name: str
     metric: "Metric"
+    average_interval_in_seconds: Optional[float] = None
+    last_report_time: Optional[datetime] = None
     total: float = 0.0
     average: float = 0.0
     minimum: float = sys.float_info.max
@@ -149,26 +153,48 @@ class Exporter(BaseModel, metaclass=ABCMeta):
             logger.debug(f"Running MetricGenerator[{metric_generator}].")
             await self.launch(metric_generator=metric_generator)
 
-    def add_metric_to_report(self, metric: "Metric", value: float) -> "MetricReport":
+    async def add_metric_to_report(
+        self, metric: "Metric", value: float
+    ) -> "MetricReport":
         """
-        Add the generated metric to the report.
+        Add the generated metric to the report asynchronously.
 
         :param metric: the metric to add
         :param value: the metric value to add
+        :return:
         """
-        if metric.name not in self.metric_report:
-            self.metric_report[metric.name] = MetricReport(
-                exporter_name=self.get_name(), metric=metric
-            )
-        metric_report = self.metric_report[metric.name]
-        metric_report.total += value
-        metric_report.call_count += 1
-        metric_report.average = metric_report.total / metric_report.call_count
-        if value < metric_report.minimum:
-            metric_report.minimum = value
-        if value > metric_report.maximum:
-            metric_report.maximum = value
-        return metric_report
+
+        def add_metric_to_report() -> MetricReport:
+            if metric.name not in self.metric_report:
+                self.metric_report[metric.name] = MetricReport(
+                    exporter_name=self.get_name(), metric=metric
+                )
+            metric_report = self.metric_report[metric.name]
+            now = datetime.now()
+            if metric_report.last_report_time:
+                time_difference_in_s = (
+                    now - metric_report.last_report_time
+                ).total_seconds()
+                metric_report.average_interval_in_seconds = (
+                    time_difference_in_s
+                    if not metric_report.average_interval_in_seconds
+                    else (
+                        metric_report.average_interval_in_seconds + time_difference_in_s
+                    )
+                    / 2
+                )
+
+            metric_report.last_report_time = now
+            metric_report.total += value
+            metric_report.call_count += 1
+            metric_report.average = metric_report.total / metric_report.call_count
+            if value < metric_report.minimum:
+                metric_report.minimum = value
+            if value > metric_report.maximum:
+                metric_report.maximum = value
+            return metric_report
+
+        return await asyncify(add_metric_to_report)()
 
     @classmethod
     @abstractmethod

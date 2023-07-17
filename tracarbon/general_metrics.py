@@ -207,7 +207,7 @@ if KUBERNETES_INSTALLED:
             :return: an async generator of the metrics
             """
             carbon_usage = await self.carbon_emission.get_co2_usage()
-            carbon_usage.convert_unit(unit=CarbonUsageUnit.CO2_MG_KWH)
+            carbon_usage.convert_unit(unit=CarbonUsageUnit.CO2_MG)
 
             for pod in self.kubernetes.get_pods_usage():
                 for container in pod.containers:

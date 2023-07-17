@@ -37,7 +37,7 @@ async def test_carbon_emission_metric(mocker):
     assert carbon_emission_metric.tags[2] == Tag(
         key="source", value=location.co2g_kwh_source.value
     )
-    assert carbon_emission_metric.tags[3] == Tag(key="units", value="co2g/kwh")
+    assert carbon_emission_metric.tags[3] == Tag(key="units", value="co2g")
 
     carbon_emission_metric = await generator.__anext__()
     assert carbon_emission_metric.name == "carbon_emission_cpu"
@@ -45,7 +45,7 @@ async def test_carbon_emission_metric(mocker):
     assert carbon_emission_metric.tags[2] == Tag(
         key="source", value=location.co2g_kwh_source.value
     )
-    assert carbon_emission_metric.tags[3] == Tag(key="units", value="co2g/kwh")
+    assert carbon_emission_metric.tags[3] == Tag(key="units", value="co2g")
 
     carbon_emission_metric = await generator.__anext__()
     assert carbon_emission_metric.name == "carbon_emission_memory"
@@ -53,7 +53,7 @@ async def test_carbon_emission_metric(mocker):
     assert carbon_emission_metric.tags[2] == Tag(
         key="source", value=location.co2g_kwh_source.value
     )
-    assert carbon_emission_metric.tags[3] == Tag(key="units", value="co2g/kwh")
+    assert carbon_emission_metric.tags[3] == Tag(key="units", value="co2g")
 
     carbon_emission_metric = await generator.__anext__()
     assert carbon_emission_metric.name == "carbon_emission_gpu"
@@ -61,7 +61,7 @@ async def test_carbon_emission_metric(mocker):
     assert carbon_emission_metric.tags[2] == Tag(
         key="source", value=location.co2g_kwh_source.value
     )
-    assert carbon_emission_metric.tags[3] == Tag(key="units", value="co2g/kwh")
+    assert carbon_emission_metric.tags[3] == Tag(key="units", value="co2g")
 
 
 @pytest.mark.asyncio
@@ -233,7 +233,7 @@ async def test_carbon_emission_kubernetes_generator(mocker):
         "containers:kubernetes",
         f"location:{location_name}",
         "source:file",
-        "units:co2mg/kwh",
+        "units:co2mg",
     ] == metric.format_tags()
 
     carbon_usage_expected = 200.00
@@ -249,7 +249,7 @@ async def test_carbon_emission_kubernetes_generator(mocker):
         "containers:kubernetes",
         f"location:{location_name}",
         "source:file",
-        "units:co2mg/kwh",
+        "units:co2mg",
     ] == metric.format_tags()
 
     carbon_usage_expected = 100.00
@@ -265,5 +265,5 @@ async def test_carbon_emission_kubernetes_generator(mocker):
         "containers:kubernetes",
         f"location:{location_name}",
         "source:file",
-        "units:co2mg/kwh",
+        "units:co2mg",
     ] == metric.format_tags()
