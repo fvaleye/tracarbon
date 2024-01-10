@@ -32,7 +32,7 @@ prometheus-client = {version = ">=0.16,<0.20", optional = true}
 kubernetes = {version = ">=26.1,<29.0", optional = true}
 
 [tool.poetry.dev-dependencies]
-mypy = "^1.7"
+mypy = "^1.8"
 black = "^23.12.1"
 isort = "^5.13.2"
 pytest = "^7.4.4"
