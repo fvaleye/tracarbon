@@ -29,7 +29,7 @@ python-dotenv = ">=0.21,<1.1"
 asyncer = "^0.0.2"
 datadog = {version = ">=0.44,<0.48", optional = true}
 prometheus-client = {version = ">=0.16,<0.20", optional = true}
-kubernetes = {version = ">=26.1,<29.0", optional = true}
+kubernetes = {version = ">=26.1,<30.0", optional = true}
 
 [tool.poetry.dev-dependencies]
 mypy = "^1.8"
@@ -51,7 +51,7 @@ types-requests = "^2.31.0"
 bandit = "^1.7.6"
 radon = "^6.0.1"
 types-aiofiles = "^23.2.0"
-kubernetes = ">=26.1,<29.0"
+kubernetes = ">=26.1,<30.0"
 autodoc_pydantic = "1.9.0"
 
 [tool.poetry.extras]
