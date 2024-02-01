@@ -196,17 +196,18 @@ files = [
 
 [[package]]
 name = "asyncer"
-version = "0.0.2"
+version = "0.0.4"
 description = "Asyncer, async and await, focused on developer experience."
 optional = false
-python-versions = ">=3.6.2,<4.0.0"
+python-versions = ">=3.8,<4.0"
 files = [
-    {file = "asyncer-0.0.2-py3-none-any.whl", hash = "sha256:46e0e1423ce21588350ad425875e81795280b9e1f517e8a389de940b86c348bd"},
-    {file = "asyncer-0.0.2.tar.gz", hash = "sha256:d546c85f3626ebbaf06bb4395db49761c902a61a6ac802b1a74133cab4f7f433"},
+    {file = "asyncer-0.0.4-py3-none-any.whl", hash = "sha256:bc27f6bcea231a78c6fb730dff5977c74b0ee5a6f2ea080e273a03fac17ca3d1"},
+    {file = "asyncer-0.0.4.tar.gz", hash = "sha256:d9400418d4b508e5f3e819809bd3e7b9cd43d99a65c0a5eada14d41583164ca6"},
 ]
 
 [package.dependencies]
-anyio = ">=3.4.0,<4.0.0"
+anyio = ">=3.4.0,<5.0"
+typing_extensions = {version = ">=4.8.0,<5.0.0", markers = "python_version < \"3.10\""}
 
 [[package]]
 name = "attrs"
@@ -1970,13 +1971,13 @@ files = [
 
 [[package]]
 name = "typing-extensions"
-version = "4.7.1"
-description = "Backported and Experimental Type Hints for Python 3.7+"
+version = "4.9.0"
+description = "Backported and Experimental Type Hints for Python 3.8+"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "typing_extensions-4.7.1-py3-none-any.whl", hash = "sha256:440d5dd3af93b060174bf433bccd69b0babc3b15b1a8dca43789fd7f61514b36"},
-    {file = "typing_extensions-4.7.1.tar.gz", hash = "sha256:b75ddc264f0ba5615db7ba217daeb99701ad295353c45f9e95963337ceeeffb2"},
+    {file = "typing_extensions-4.9.0-py3-none-any.whl", hash = "sha256:af72aea155e91adfc61c3ae9e0e342dbc0cba726d6cba4b6c72c1f34e47291cd"},
+    {file = "typing_extensions-4.9.0.tar.gz", hash = "sha256:23478f88c37f27d76ac8aee6c905017a143b0b1b886c3c9f66bc2fd94f9f5783"},
 ]
 
 [[package]]
@@ -2209,4 +2210,4 @@ prometheus = ["prometheus-client"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "59bdf80e740e94ff400778fdf3bd32a4e1ec34a00de40fbefbd52b964bca9ded"
+content-hash = "8b317c140605589bed7be156be1db0eab3aa11ba50b64eebde60338bc7ad84a5"
