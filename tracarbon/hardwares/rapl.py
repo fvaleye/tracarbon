@@ -141,15 +141,15 @@ class RAPL(BaseModel):
                 gpu_energy_usage_watts += watts
         energy_usage_report = EnergyUsage(
             host_energy_usage=host_energy_usage_watts,
-            cpu_energy_usage=cpu_energy_usage_watts
-            if cpu_energy_usage_watts > 0
-            else None,
-            memory_energy_usage=memory_energy_usage_watts
-            if memory_energy_usage_watts > 0
-            else None,
-            gpu_energy_usage=gpu_energy_usage_watts
-            if gpu_energy_usage_watts > 0
-            else None,
+            cpu_energy_usage=(
+                cpu_energy_usage_watts if cpu_energy_usage_watts > 0 else None
+            ),
+            memory_energy_usage=(
+                memory_energy_usage_watts if memory_energy_usage_watts > 0 else None
+            ),
+            gpu_energy_usage=(
+                gpu_energy_usage_watts if gpu_energy_usage_watts > 0 else None
+            ),
         )
         logger.debug(
             f"The usage energy report measured with RAPL is {energy_usage_report}."

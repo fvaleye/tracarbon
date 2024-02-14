@@ -79,7 +79,9 @@ class MacEnergyConsumption(EnergyConsumption):
     Energy Consumption of the Mac, working only if it's plugged into plugged-in wall adapter, in watts.
     """
 
-    shell_command: str = """/usr/sbin/ioreg -rw0 -c AppleSmartBattery | grep BatteryData | grep -o '"AdapterPower"=[0-9]*' | cut -c 16- | xargs -I %  lldb --batch -o "print/f %" | grep -o '$0 = [0-9.]*' | cut -c 6-"""
+    shell_command: str = (
+        """/usr/sbin/ioreg -rw0 -c AppleSmartBattery | grep BatteryData | grep -o '"AdapterPower"=[0-9]*' | cut -c 16- | xargs -I %  lldb --batch -o "print/f %" | grep -o '$0 = [0-9.]*' | cut -c 6-"""
+    )
 
     async def get_energy_usage(self) -> EnergyUsage:
         """

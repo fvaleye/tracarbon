@@ -61,12 +61,16 @@ class CarbonEmissionGenerator(MetricGenerator):
             location = Country.get_location()
         if "carbon_emission" not in data:
             data["carbon_emission"] = CarbonEmission(
-                co2signal_api_key=data["co2signal_api_key"]
-                if "co2signal_api_key" in data
-                else location.co2signal_api_key,
-                co2signal_url=data["co2signal_url"]
-                if "co2signal_url" in data
-                else location.co2signal_url,
+                co2signal_api_key=(
+                    data["co2signal_api_key"]
+                    if "co2signal_api_key" in data
+                    else location.co2signal_api_key
+                ),
+                co2signal_url=(
+                    data["co2signal_url"]
+                    if "co2signal_url" in data
+                    else location.co2signal_url
+                ),
                 location=location,
             )
         super().__init__(location=location, metrics=[], **data)
@@ -188,12 +192,16 @@ if KUBERNETES_INSTALLED:
         def __init__(self, location: Location, **data: Any) -> None:
             if "carbon_emission" not in data:
                 data["carbon_emission"] = CarbonEmission(
-                    co2signal_api_key=data["co2signal_api_key"]
-                    if "co2signal_api_key" in data
-                    else location.co2signal_api_key,
-                    co2signal_url=data["co2signal_url"]
-                    if "co2signal_url" in data
-                    else location.co2signal_url,
+                    co2signal_api_key=(
+                        data["co2signal_api_key"]
+                        if "co2signal_api_key" in data
+                        else location.co2signal_api_key
+                    ),
+                    co2signal_url=(
+                        data["co2signal_url"]
+                        if "co2signal_url" in data
+                        else location.co2signal_url
+                    ),
                     location=location,
                 )
             if "kubernetes" not in data:

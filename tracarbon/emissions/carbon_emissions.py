@@ -160,9 +160,9 @@ class CarbonEmission(Sensor):
         return CarbonUsage(
             host_carbon_usage=host_carbon_usage,
             cpu_carbon_usage=cpu_carbon_usage if cpu_carbon_usage > 0 else None,
-            memory_carbon_usage=memory_carbon_usage
-            if memory_carbon_usage > 0
-            else None,
+            memory_carbon_usage=(
+                memory_carbon_usage if memory_carbon_usage > 0 else None
+            ),
             gpu_carbon_usage=gpu_carbon_usage if gpu_carbon_usage > 0 else None,
             unit=CarbonUsageUnit.CO2_G,
         )

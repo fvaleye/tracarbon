@@ -33,7 +33,7 @@ kubernetes = {version = ">=26.1,<30.0", optional = true}
 
 [tool.poetry.dev-dependencies]
 mypy = "^1.8"
-black = "^23.12.1"
+black = "^24.1.1"
 isort = "^5.13.2"
 pytest = "^7.4.4"
 pytest-mock = "^3.12.0"
