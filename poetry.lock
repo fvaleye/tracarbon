@@ -197,13 +197,13 @@ files = [
 
 [[package]]
 name = "asyncer"
-version = "0.0.4"
+version = "0.0.5"
 description = "Asyncer, async and await, focused on developer experience."
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "asyncer-0.0.4-py3-none-any.whl", hash = "sha256:bc27f6bcea231a78c6fb730dff5977c74b0ee5a6f2ea080e273a03fac17ca3d1"},
-    {file = "asyncer-0.0.4.tar.gz", hash = "sha256:d9400418d4b508e5f3e819809bd3e7b9cd43d99a65c0a5eada14d41583164ca6"},
+    {file = "asyncer-0.0.5-py3-none-any.whl", hash = "sha256:ba06d6de3c750763868dffacf89b18d40b667605b0241d31c2ee43f188e2ab74"},
+    {file = "asyncer-0.0.5.tar.gz", hash = "sha256:2979f3e04cbedfe5cfeb79027dcf7d004fcc4430a0ca0066ae20490f218ec06e"},
 ]
 
 [package.dependencies]
@@ -2285,4 +2285,4 @@ prometheus = ["prometheus-client"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "2f81e2aba1686c1d97cc3c8cbf6003dae0d89a12f34758716340e0166536b63d"
+content-hash = "00786d64f112e8b64743e68a74ce0e899c73b2151707671e4baf5b375b568d26"
