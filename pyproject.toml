@@ -35,7 +35,7 @@ kubernetes = {version = ">=26.1,<30.0", optional = true}
 mypy = "^1.8"
 black = "^24.1.1"
 isort = "^5.13.2"
-pytest = "^7.4.4"
+pytest = "^8.1.0"
 pytest-mock = "^3.12.0"
 pytest-asyncio = "^0.23.5"
 pytest-cov = "^4.1.0"
