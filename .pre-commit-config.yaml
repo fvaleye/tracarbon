@@ -11,15 +11,9 @@ repos:
     hooks:
       - id: poetry-check
       - id: poetry-lock
-  - repo: https://github.com/timothycrosley/isort
-    rev: '5.12.0'
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.0.290
     hooks:
-      - id: isort
-        args: [ --check-only, --diff ]
-        types: [ python ]
-  - repo: https://github.com/psf/black
-    rev: '24.1.1'
-    hooks:
-      - id: black
-        args: [ --check, --diff ]
-        types: [ python ]
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format

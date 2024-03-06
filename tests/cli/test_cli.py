@@ -1,10 +1,16 @@
 import pytest
 from kubernetes import config
 
-from tracarbon import Country, EnergyUsage, Kubernetes, MacEnergyConsumption
-from tracarbon.cli import get_exporter, run_metrics
-from tracarbon.exporters import DatadogExporter, StdoutExporter
-from tracarbon.hardwares import Container, Pod
+from tracarbon import Country
+from tracarbon import EnergyUsage
+from tracarbon import Kubernetes
+from tracarbon import MacEnergyConsumption
+from tracarbon.cli import get_exporter
+from tracarbon.cli import run_metrics
+from tracarbon.exporters import DatadogExporter
+from tracarbon.exporters import StdoutExporter
+from tracarbon.hardwares import Container
+from tracarbon.hardwares import Pod
 
 
 def test_get_exporter_by_name():
@@ -32,9 +38,7 @@ def test_run_metrics_should_be_ok(mocker, caplog):
     )
     energy_usage = EnergyUsage(host_energy_usage=60.0)
     mocker.patch.object(config, "load_kube_config", return_value=None)
-    mocker.patch.object(
-        MacEnergyConsumption, "get_energy_usage", return_value=energy_usage
-    )
+    mocker.patch.object(MacEnergyConsumption, "get_energy_usage", return_value=energy_usage)
 
     run_metrics(exporter_name=exporter, running=False)
 
@@ -44,9 +48,7 @@ def test_run_metrics_should_be_ok(mocker, caplog):
     assert "units:watts" in caplog.text
 
     energy_usage = EnergyUsage(cpu_energy_usage=15.0, memory_energy_usage=12.0)
-    mocker.patch.object(
-        MacEnergyConsumption, "get_energy_usage", return_value=energy_usage
-    )
+    mocker.patch.object(MacEnergyConsumption, "get_energy_usage", return_value=energy_usage)
     mocker.patch.object(
         Kubernetes,
         "get_pods_usage",
@@ -54,9 +56,7 @@ def test_run_metrics_should_be_ok(mocker, caplog):
             Pod(
                 name="pod_name",
                 namespace="default",
-                containers=[
-                    Container(name="container_name", cpu_usage="1", memory_usage=2)
-                ],
+                containers=[Container(name="container_name", cpu_usage="1", memory_usage=2)],
             )
         ],
     )

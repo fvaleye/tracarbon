@@ -1,23 +1,20 @@
 import pytest
 from kubernetes import config
 
-from tracarbon import (
-    CarbonEmission,
-    CarbonUsage,
-    EnergyConsumption,
-    EnergyUsage,
-    HardwareInfo,
-    Kubernetes,
-    MacEnergyConsumption,
-)
+from tracarbon import CarbonEmission
+from tracarbon import CarbonUsage
+from tracarbon import EnergyConsumption
+from tracarbon import EnergyUsage
+from tracarbon import HardwareInfo
+from tracarbon import Kubernetes
+from tracarbon import MacEnergyConsumption
 from tracarbon.exporters import Tag
-from tracarbon.general_metrics import (
-    CarbonEmissionGenerator,
-    CarbonEmissionKubernetesGenerator,
-    EnergyConsumptionGenerator,
-    EnergyConsumptionKubernetesGenerator,
-)
-from tracarbon.hardwares import Container, Pod
+from tracarbon.general_metrics import CarbonEmissionGenerator
+from tracarbon.general_metrics import CarbonEmissionKubernetesGenerator
+from tracarbon.general_metrics import EnergyConsumptionGenerator
+from tracarbon.general_metrics import EnergyConsumptionKubernetesGenerator
+from tracarbon.hardwares import Container
+from tracarbon.hardwares import Pod
 from tracarbon.locations.country import Country
 
 
@@ -34,33 +31,25 @@ async def test_carbon_emission_metric(mocker):
 
     assert carbon_emission_metric.name == "carbon_emission_host"
     assert carbon_emission_metric.tags[1] == Tag(key="location", value=location_name)
-    assert carbon_emission_metric.tags[2] == Tag(
-        key="source", value=location.co2g_kwh_source.value
-    )
+    assert carbon_emission_metric.tags[2] == Tag(key="source", value=location.co2g_kwh_source.value)
     assert carbon_emission_metric.tags[3] == Tag(key="units", value="co2g")
 
     carbon_emission_metric = await generator.__anext__()
     assert carbon_emission_metric.name == "carbon_emission_cpu"
     assert carbon_emission_metric.tags[1] == Tag(key="location", value=location_name)
-    assert carbon_emission_metric.tags[2] == Tag(
-        key="source", value=location.co2g_kwh_source.value
-    )
+    assert carbon_emission_metric.tags[2] == Tag(key="source", value=location.co2g_kwh_source.value)
     assert carbon_emission_metric.tags[3] == Tag(key="units", value="co2g")
 
     carbon_emission_metric = await generator.__anext__()
     assert carbon_emission_metric.name == "carbon_emission_memory"
     assert carbon_emission_metric.tags[1] == Tag(key="location", value=location_name)
-    assert carbon_emission_metric.tags[2] == Tag(
-        key="source", value=location.co2g_kwh_source.value
-    )
+    assert carbon_emission_metric.tags[2] == Tag(key="source", value=location.co2g_kwh_source.value)
     assert carbon_emission_metric.tags[3] == Tag(key="units", value="co2g")
 
     carbon_emission_metric = await generator.__anext__()
     assert carbon_emission_metric.name == "carbon_emission_gpu"
     assert carbon_emission_metric.tags[1] == Tag(key="location", value=location_name)
-    assert carbon_emission_metric.tags[2] == Tag(
-        key="source", value=location.co2g_kwh_source.value
-    )
+    assert carbon_emission_metric.tags[2] == Tag(key="source", value=location.co2g_kwh_source.value)
     assert carbon_emission_metric.tags[3] == Tag(key="units", value="co2g")
 
 
@@ -68,13 +57,9 @@ async def test_carbon_emission_metric(mocker):
 async def test_energy_consumption_metric(mocker):
     location_name = "fr"
     energy_usage = EnergyUsage(cpu_energy_usage=12.0, memory_energy_usage=4.0)
-    mocker.patch.object(
-        EnergyConsumption, "from_platform", return_value=MacEnergyConsumption()
-    )
+    mocker.patch.object(EnergyConsumption, "from_platform", return_value=MacEnergyConsumption())
     mocker.patch.object(Country, "get_current_country", return_value=location_name)
-    mocker.patch.object(
-        MacEnergyConsumption, "get_energy_usage", return_value=energy_usage
-    )
+    mocker.patch.object(MacEnergyConsumption, "get_energy_usage", return_value=energy_usage)
     location = Country(name=location_name, co2g_kwh=51.1)
     energy_consumption_generator = EnergyConsumptionGenerator(location=location)
     generator = energy_consumption_generator.generate()
@@ -105,17 +90,13 @@ async def test_energy_consumption_kubernetes_generator(mocker):
     location_name = "fr"
     memory_total = 101200121856
     energy_usage = EnergyUsage(cpu_energy_usage=12.0, memory_energy_usage=4.0)
-    mocker.patch.object(
-        EnergyConsumption, "from_platform", return_value=MacEnergyConsumption()
-    )
+    mocker.patch.object(EnergyConsumption, "from_platform", return_value=MacEnergyConsumption())
     mocker.patch.object(config, "load_kube_config", return_value=None)
     mocker.patch.object(Country, "get_current_country", return_value=location_name)
     mocker.patch.object(HardwareInfo, "get_memory_total", return_value=memory_total)
     cores_number = 2
     mocker.patch.object(HardwareInfo, "get_number_of_cores", return_value=cores_number)
-    mocker.patch.object(
-        MacEnergyConsumption, "get_energy_usage", return_value=energy_usage
-    )
+    mocker.patch.object(MacEnergyConsumption, "get_energy_usage", return_value=energy_usage)
     container_name = "grafana"
     pod_name = "grafana-5745b58656-8q4q8"
     namespace = "default"
@@ -188,9 +169,7 @@ async def test_carbon_emission_kubernetes_generator(mocker):
     location_name = "fr"
     memory_total = 1000000000
     carbon_usage = CarbonUsage(cpu_carbon_usage=0.2, memory_carbon_usage=0.1)
-    mocker.patch.object(
-        EnergyConsumption, "from_platform", return_value=MacEnergyConsumption()
-    )
+    mocker.patch.object(EnergyConsumption, "from_platform", return_value=MacEnergyConsumption())
     mocker.patch.object(config, "load_kube_config", return_value=None)
     mocker.patch.object(Country, "get_current_country", return_value=location_name)
     mocker.patch.object(HardwareInfo, "get_memory_total", return_value=memory_total)
@@ -217,9 +196,7 @@ async def test_carbon_emission_kubernetes_generator(mocker):
     mocker.patch.object(Kubernetes, "get_pods_usage", return_value=pods_usage)
 
     location = Country(name=location_name, co2g_kwh=55)
-    carbon_emission_kubernertes_generator = CarbonEmissionKubernetesGenerator(
-        location=location, platform="Darwin"
-    )
+    carbon_emission_kubernertes_generator = CarbonEmissionKubernetesGenerator(location=location, platform="Darwin")
 
     async_generator = carbon_emission_kubernertes_generator.generate()
     metric = await async_generator.__anext__()

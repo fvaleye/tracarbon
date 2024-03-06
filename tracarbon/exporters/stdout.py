@@ -1,6 +1,7 @@
 from loguru import logger
 
-from tracarbon.exporters.exporter import Exporter, MetricGenerator
+from tracarbon.exporters.exporter import Exporter
+from tracarbon.exporters.exporter import MetricGenerator
 
 
 class StdoutExporter(Exporter):

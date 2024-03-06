@@ -1,14 +1,18 @@
 import os
-from typing import Any, Dict, Optional
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 from loguru import logger
 
 from tracarbon.conf import PROMETHEUS_INSTALLED
-from tracarbon.exporters.exporter import Exporter, MetricGenerator
+from tracarbon.exporters.exporter import Exporter
+from tracarbon.exporters.exporter import MetricGenerator
 
 if PROMETHEUS_INSTALLED:
     import prometheus_client
-    from prometheus_client import Gauge, start_http_server
+    from prometheus_client import Gauge
+    from prometheus_client import start_http_server
 
     class PrometheusExporter(Exporter):
         """
@@ -22,14 +26,8 @@ if PROMETHEUS_INSTALLED:
         def __init__(self, **data: Any) -> None:
             super().__init__(**data)
             prometheus_client.REGISTRY.unregister(prometheus_client.GC_COLLECTOR)
-            addr = (
-                self.address
-                if self.address
-                else os.environ.get("PROMETHEUS_ADDRESS", "::")
-            )
-            port = (
-                self.port if self.port else int(os.environ.get("PROMETHEUS_PORT", 8081))
-            )
+            addr = self.address if self.address else os.environ.get("PROMETHEUS_ADDRESS", "::")
+            port = self.port if self.port else int(os.environ.get("PROMETHEUS_PORT", 8081))
             start_http_server(
                 addr=addr,
                 port=port,
@@ -42,9 +40,7 @@ if PROMETHEUS_INSTALLED:
             :param metric_generator: the metric generator
             """
             async for metric in metric_generator.generate():
-                metric_name = metric.format_name(
-                    metric_prefix_name=self.metric_prefix_name, separator="_"
-                )
+                metric_name = metric.format_name(metric_prefix_name=self.metric_prefix_name, separator="_")
                 if metric_name not in self.prometheus_metrics:
                     self.prometheus_metrics[metric_name] = Gauge(
                         metric_name,
@@ -57,9 +53,7 @@ if PROMETHEUS_INSTALLED:
                     logger.info(
                         f"Sending metric[{metric_name}] with value [{metric_value}] and labels{metric.format_tags()} to Prometheus."
                     )
-                    self.prometheus_metrics[metric_name].labels(
-                        *[tag.value for tag in metric.tags]
-                    ).set(metric_value)
+                    self.prometheus_metrics[metric_name].labels(*[tag.value for tag in metric.tags]).set(metric_value)
 
         @classmethod
         def get_name(cls) -> str:

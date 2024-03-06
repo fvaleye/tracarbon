@@ -1,6 +1,7 @@
 import pytest
 
-from tracarbon.locations import CarbonIntensitySource, Country
+from tracarbon.locations import CarbonIntensitySource
+from tracarbon.locations import Country
 
 
 @pytest.mark.asyncio

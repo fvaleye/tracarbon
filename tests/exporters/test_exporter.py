@@ -3,8 +3,11 @@ import sys
 import psutil
 import pytest
 
-from tracarbon import Country, MetricGenerator
-from tracarbon.exporters import Metric, StdoutExporter, Tag
+from tracarbon import Country
+from tracarbon import MetricGenerator
+from tracarbon.exporters import Metric
+from tracarbon.exporters import StdoutExporter
+from tracarbon.exporters import Tag
 
 
 def test_exporters_should_run_and_print_the_metrics(mocker, caplog):
@@ -32,10 +35,7 @@ def test_exporters_should_run_and_print_the_metrics(mocker, caplog):
     assert memory_metric.name in caplog.text
     assert str(memory_metric.value) in caplog.text
     assert str(memory_metric.tags) in caplog.text
-    assert (
-        exporter.metric_report["test_metric_1"].exporter_name
-        == StdoutExporter.get_name()
-    )
+    assert exporter.metric_report["test_metric_1"].exporter_name == StdoutExporter.get_name()
     assert exporter.metric_report["test_metric_1"].metric == memory_metric
     assert exporter.metric_report["test_metric_1"].total > 0
     assert exporter.metric_report["test_metric_1"].average > 0

@@ -1,6 +1,8 @@
 import datetime
 
-from tracarbon import EnergyUsage, EnergyUsageUnit, UsageType
+from tracarbon import EnergyUsage
+from tracarbon import EnergyUsageUnit
+from tracarbon import UsageType
 from tracarbon.hardwares import Power
 
 
@@ -53,26 +55,14 @@ def test_energy_usage_with_type_and_conversion():
 
     assert energy_usage.get_energy_usage_on_type(UsageType.HOST) == host_energy_usage
     assert energy_usage.get_energy_usage_on_type(UsageType.CPU) == cpu_energy_usage
-    assert (
-        energy_usage.get_energy_usage_on_type(UsageType.MEMORY) == memory_energy_usage
-    )
+    assert energy_usage.get_energy_usage_on_type(UsageType.MEMORY) == memory_energy_usage
     assert energy_usage.get_energy_usage_on_type(UsageType.GPU) == gpu_energy_usage
     assert energy_usage.unit == EnergyUsageUnit.WATT
 
     energy_usage.convert_unit(EnergyUsageUnit.MILLIWATT)
 
-    assert (
-        energy_usage.get_energy_usage_on_type(UsageType.HOST)
-        == host_energy_usage * 1000
-    )
-    assert (
-        energy_usage.get_energy_usage_on_type(UsageType.CPU) == cpu_energy_usage * 1000
-    )
-    assert (
-        energy_usage.get_energy_usage_on_type(UsageType.MEMORY)
-        == memory_energy_usage * 1000
-    )
-    assert (
-        energy_usage.get_energy_usage_on_type(UsageType.GPU) == gpu_energy_usage * 1000
-    )
+    assert energy_usage.get_energy_usage_on_type(UsageType.HOST) == host_energy_usage * 1000
+    assert energy_usage.get_energy_usage_on_type(UsageType.CPU) == cpu_energy_usage * 1000
+    assert energy_usage.get_energy_usage_on_type(UsageType.MEMORY) == memory_energy_usage * 1000
+    assert energy_usage.get_energy_usage_on_type(UsageType.GPU) == gpu_energy_usage * 1000
     assert energy_usage.unit == EnergyUsageUnit.MILLIWATT

@@ -1,16 +1,16 @@
 import time
-from typing import List, Optional
+from typing import List
+from typing import Optional
 
 import typer
 from loguru import logger
 
 from tracarbon.builder import TracarbonBuilder
 from tracarbon.conf import KUBERNETES_INSTALLED
-from tracarbon.exporters import Exporter, MetricGenerator
-from tracarbon.general_metrics import (
-    CarbonEmissionGenerator,
-    EnergyConsumptionGenerator,
-)
+from tracarbon.exporters import Exporter
+from tracarbon.exporters import MetricGenerator
+from tracarbon.general_metrics import CarbonEmissionGenerator
+from tracarbon.general_metrics import EnergyConsumptionGenerator
 from tracarbon.locations import Country
 
 app = typer.Typer()
@@ -30,7 +30,7 @@ def list_exporters(displayed: bool = True) -> List[str]:
 def get_exporter(
     exporter_name: str,
     metric_generators: List[MetricGenerator],
-    tracarbon_builder: TracarbonBuilder = TracarbonBuilder(),
+    tracarbon_builder: Optional[TracarbonBuilder] = None,
 ) -> Exporter:
     """
     Get the exporter based on the name with its metrics.
@@ -40,18 +40,20 @@ def get_exporter(
     :param tracarbon_builder: the configuration of Tracarbon
     :return: the configured exporter
     """
+    if not tracarbon_builder:
+        tracarbon_builder = TracarbonBuilder()
     exporters = list_exporters(displayed=False)
     if exporter_name not in exporters:
         raise ValueError(f"This exporter is not available in the list: {exporters}")
 
     try:
-        selected_exporter = next(
-            cls for cls in Exporter.__subclasses__() if cls.get_name() == exporter_name
-        )
+        selected_exporter = next(cls for cls in Exporter.__subclasses__() if cls.get_name() == exporter_name)
     except Exception as exception:
         logger.exception("This exporter initiation failed.")
         raise exception
-    return selected_exporter(metric_generators=metric_generators, metric_prefix_name=tracarbon_builder.configuration.metric_prefix_name)  # type: ignore
+    return selected_exporter(
+        metric_generators=metric_generators, metric_prefix_name=tracarbon_builder.configuration.metric_prefix_name
+    )  # type: ignore
 
 
 def add_containers_generator(location: Country) -> List[MetricGenerator]:
@@ -62,10 +64,8 @@ def add_containers_generator(location: Country) -> List[MetricGenerator]:
     :return: the list of metric generators for containers
     """
     if KUBERNETES_INSTALLED:
-        from tracarbon.general_metrics import (
-            CarbonEmissionKubernetesGenerator,
-            EnergyConsumptionKubernetesGenerator,
-        )
+        from tracarbon.general_metrics import CarbonEmissionKubernetesGenerator
+        from tracarbon.general_metrics import EnergyConsumptionKubernetesGenerator
 
         return [
             EnergyConsumptionKubernetesGenerator(location=location),
@@ -110,11 +110,7 @@ def run_metrics(
             metric_generators=metric_generators,
             tracarbon_builder=tracarbon_builder,
         )
-        tracarbon = (
-            tracarbon_builder.with_location(location=location)
-            .with_exporter(exporter=exporter)
-            .build()
-        )
+        tracarbon = tracarbon_builder.with_location(location=location).with_exporter(exporter=exporter).build()
         from loguru import logger
 
         logger.info("Tracarbon CLI started.")

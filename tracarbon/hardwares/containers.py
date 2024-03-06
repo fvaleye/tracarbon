@@ -1,4 +1,7 @@
-from typing import Any, Iterator, List, Optional
+from typing import Any
+from typing import Iterator
+from typing import List
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -8,7 +11,8 @@ from tracarbon.hardwares.hardware import HardwareInfo
 
 if KUBERNETES_INSTALLED:
     from kubernetes import config
-    from kubernetes.client import CoreV1Api, CustomObjectsApi
+    from kubernetes.client import CoreV1Api
+    from kubernetes.client import CustomObjectsApi
 
     class Container(BaseModel):
         """
@@ -27,31 +31,19 @@ if KUBERNETES_INSTALLED:
             memory_total = HardwareInfo.get_memory_total()
             if isinstance(data["cpu_usage"], str):
                 if "n" in data["cpu_usage"]:
-                    data["cpu_usage"] = (
-                        float(data["cpu_usage"].replace("n", "")) / 1000000000
-                    ) / cores
+                    data["cpu_usage"] = (float(data["cpu_usage"].replace("n", "")) / 1000000000) / cores
                 elif "u" in data["cpu_usage"]:
-                    data["cpu_usage"] = (
-                        float(data["cpu_usage"].replace("u", "")) / 1000000
-                    ) / cores
+                    data["cpu_usage"] = (float(data["cpu_usage"].replace("u", "")) / 1000000) / cores
                 elif "m" in data["cpu_usage"]:
-                    data["cpu_usage"] = (
-                        float(data["cpu_usage"].replace("m", "")) / 1000
-                    ) / cores
+                    data["cpu_usage"] = (float(data["cpu_usage"].replace("m", "")) / 1000) / cores
 
             if isinstance(data["memory_usage"], str):
                 if "Ki" in data["memory_usage"]:
-                    data["memory_usage"] = (
-                        float(data["memory_usage"].replace("Ki", "")) * 1000
-                    ) / memory_total
+                    data["memory_usage"] = (float(data["memory_usage"].replace("Ki", "")) * 1000) / memory_total
                 elif "Mi" in data["memory_usage"]:
-                    data["memory_usage"] = (
-                        float(data["memory_usage"].replace("Mi", "")) * 1000000
-                    ) / memory_total
+                    data["memory_usage"] = (float(data["memory_usage"].replace("Mi", "")) * 1000000) / memory_total
                 elif "Gi" in data["memory_usage"]:
-                    data["memory_usage"] = (
-                        float(data["memory_usage"].replace("Gi", "")) * 1000000000
-                    ) / memory_total
+                    data["memory_usage"] = (float(data["memory_usage"].replace("Gi", "")) * 1000000000) / memory_total
 
             super().__init__(**data)
 
@@ -93,9 +85,7 @@ if KUBERNETES_INSTALLED:
             """
             Refresh the names of the namespaces.
             """
-            self.namespaces = [
-                item.metadata.name for item in CoreV1Api().list_namespace().items
-            ]
+            self.namespaces = [item.metadata.name for item in CoreV1Api().list_namespace().items]
 
         def get_pods_usage(self, namespace: Optional[str] = None) -> Iterator[Pod]:
             """

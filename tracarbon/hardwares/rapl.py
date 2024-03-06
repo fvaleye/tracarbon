@@ -1,14 +1,17 @@
 import os
 import re
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict
+from typing import List
+from typing import Optional
 
 import aiofiles
 from loguru import logger
 from pydantic import BaseModel
 
 from tracarbon.exceptions import HardwareRAPLException
-from tracarbon.hardwares.energy import EnergyUsage, Power
+from tracarbon.hardwares.energy import EnergyUsage
+from tracarbon.hardwares.energy import Power
 
 
 class RAPLResult(BaseModel):
@@ -47,14 +50,10 @@ class RAPL(BaseModel):
         :return: the list of files path containing RAPL energy measurements.
         """
         if not self.is_rapl_compatible():
-            raise ValueError(
-                f"Path f{self.path} doest not exists for reading RAPL energy measurements"
-            )
+            raise ValueError(f"Path f{self.path} doest not exists for reading RAPL energy measurements")
         logger.debug(f"The hardware is RAPL compatible.")
         intel_rapl_regex = re.compile("intel-rapl")
-        for directory_path, directory_names, filenames in os.walk(
-            self.path, topdown=True
-        ):
+        for directory_path, directory_names, _filenames in os.walk(self.path, topdown=True):
             for directory in directory_names:
                 if not intel_rapl_regex.search(directory):
                     directory_names.remove(directory)
@@ -79,13 +78,9 @@ class RAPL(BaseModel):
             for file_path in self.file_list:
                 async with aiofiles.open(f"{file_path}/name", "r") as rapl_name:
                     name = await rapl_name.read()
-                    async with aiofiles.open(
-                        f"{file_path}/energy_uj", "r"
-                    ) as rapl_energy:
+                    async with aiofiles.open(f"{file_path}/energy_uj", "r") as rapl_energy:
                         energy_uj = float(await rapl_energy.read())
-                    async with aiofiles.open(
-                        f"{file_path}/max_energy_range_uj", "r"
-                    ) as rapl_max_energy:
+                    async with aiofiles.open(f"{file_path}/max_energy_range_uj", "r") as rapl_max_energy:
                         max_energy_uj = float(await rapl_max_energy.read())
                     rapl_results.append(
                         RAPLResult(
@@ -97,7 +92,7 @@ class RAPL(BaseModel):
                     )
         except Exception as exception:
             logger.exception(f"The RAPL read encountered an issue.")
-            raise HardwareRAPLException(exception)
+            raise HardwareRAPLException(exception) from exception
         logger.debug(f"The RAPL results: {rapl_results}.")
         return rapl_results
 
@@ -114,9 +109,7 @@ class RAPL(BaseModel):
         gpu_energy_usage_watts = 0.0
         for rapl_result in rapl_results:
             previous_rapl_result = self.rapl_results.get(rapl_result.name, rapl_result)
-            time_difference = (
-                rapl_result.timestamp - previous_rapl_result.timestamp
-            ).total_seconds()
+            time_difference = (rapl_result.timestamp - previous_rapl_result.timestamp).total_seconds()
             energy_uj = rapl_result.energy_uj
             if previous_rapl_result.energy_uj > rapl_result.energy_uj:
                 logger.debug(
@@ -124,11 +117,7 @@ class RAPL(BaseModel):
                 )
                 energy_uj = energy_uj + rapl_result.max_energy_uj
             watts = Power.watts_from_microjoules(
-                (
-                    (energy_uj - previous_rapl_result.energy_uj) / time_difference
-                    if time_difference > 0
-                    else 1
-                )
+                ((energy_uj - previous_rapl_result.energy_uj) / time_difference if time_difference > 0 else 1)
             )
             self.rapl_results[rapl_result.name] = rapl_result
             if "package" in rapl_result.name or "ram" in rapl_result.name:
@@ -141,17 +130,9 @@ class RAPL(BaseModel):
                 gpu_energy_usage_watts += watts
         energy_usage_report = EnergyUsage(
             host_energy_usage=host_energy_usage_watts,
-            cpu_energy_usage=(
-                cpu_energy_usage_watts if cpu_energy_usage_watts > 0 else None
-            ),
-            memory_energy_usage=(
-                memory_energy_usage_watts if memory_energy_usage_watts > 0 else None
-            ),
-            gpu_energy_usage=(
-                gpu_energy_usage_watts if gpu_energy_usage_watts > 0 else None
-            ),
+            cpu_energy_usage=(cpu_energy_usage_watts if cpu_energy_usage_watts > 0 else None),
+            memory_energy_usage=(memory_energy_usage_watts if memory_energy_usage_watts > 0 else None),
+            gpu_energy_usage=(gpu_energy_usage_watts if gpu_energy_usage_watts > 0 else None),
         )
-        logger.debug(
-            f"The usage energy report measured with RAPL is {energy_usage_report}."
-        )
+        logger.debug(f"The usage energy report measured with RAPL is {energy_usage_report}.")
         return energy_usage_report

@@ -24,7 +24,9 @@ jobs:
       - name: Check Python
         run: |
           make init
-          make style
+          pip install pre-commit
+          pre-commit install
+          make format
 
       - name: Check Data
         run:  make check-data
