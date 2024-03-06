@@ -1,6 +1,7 @@
 import os
 import sys
-from typing import Any, Optional
+from typing import Any
+from typing import Optional
 
 from dotenv import load_dotenv
 from pydantic import BaseModel
@@ -64,16 +65,10 @@ class TracarbonConfiguration(BaseModel):
         log_level = os.environ.get("TRACARBON_LOG_LEVEL", log_level)
         logger_configuration(level=log_level)
         super().__init__(
-            metric_prefix_name=os.environ.get(
-                "TRACARBON_METRIC_PREFIX_NAME", metric_prefix_name
-            ),
+            metric_prefix_name=os.environ.get("TRACARBON_METRIC_PREFIX_NAME", metric_prefix_name),
             log_level=log_level,
-            interval_in_seconds=os.environ.get(
-                "TRACARBON_INTERVAL_IN_SECONDS", interval_in_seconds
-            ),
-            co2signal_api_key=os.environ.get(
-                "TRACARBON_CO2SIGNAL_API_KEY", co2signal_api_key
-            ),
+            interval_in_seconds=os.environ.get("TRACARBON_INTERVAL_IN_SECONDS", interval_in_seconds),
+            co2signal_api_key=os.environ.get("TRACARBON_CO2SIGNAL_API_KEY", co2signal_api_key),
             co2signal_url=os.environ.get("TRACARBON_CO2SIGNAL_URL", co2signal_url),
             **data,
         )

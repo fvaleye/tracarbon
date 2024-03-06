@@ -8,15 +8,7 @@ init: ## Init the requirements
 .PHONY: format
 format: ## Format the code
 	$(info --- 🐍 Check Python format ---)
-	@poetry run black .
-	@poetry run isort .
-
-.PHONY: style
-style: ## Run style
-	$(info --- 🐍 Style Python ---)
-	@poetry run isort --diff --check-only .
-	@poetry run black --check .
-	@poetry run mypy
+	pre-commit run -a
 
 .PHONY: security
 security: ## Run security checks

@@ -1,14 +1,12 @@
 import pytest
 
-from tracarbon import (
-    CarbonEmission,
-    CarbonUsage,
-    CarbonUsageUnit,
-    EnergyUsage,
-    LinuxEnergyConsumption,
-    MacEnergyConsumption,
-    UsageType,
-)
+from tracarbon import CarbonEmission
+from tracarbon import CarbonUsage
+from tracarbon import CarbonUsageUnit
+from tracarbon import EnergyUsage
+from tracarbon import LinuxEnergyConsumption
+from tracarbon import MacEnergyConsumption
+from tracarbon import UsageType
 from tracarbon.locations import Country
 
 
@@ -32,9 +30,7 @@ async def test_carbon_emission_should_run_to_convert_watt_hours_to_co2g_on_mac(m
     )
     name_alpha_iso_2 = "fr"
     mocker.patch.object(Country, "get_latest_co2g_kwh", return_value=co2g_per_kwh)
-    mocker.patch.object(
-        MacEnergyConsumption, "get_energy_usage", return_value=energy_usage
-    )
+    mocker.patch.object(MacEnergyConsumption, "get_energy_usage", return_value=energy_usage)
     carbon_emission = CarbonEmission(
         location=Country(name=name_alpha_iso_2, co2g_kwh=co2g_per_kwh),
     )
@@ -56,9 +52,7 @@ async def test_carbon_emission_should_run_to_convert_watt_hours_to_co2g_on_linux
     name_alpha_iso_2 = "fr"
     energy_usage = EnergyUsage(host_energy_usage=60.0)
     mocker.patch.object(Country, "get_latest_co2g_kwh", return_value=co2g_per_kwh)
-    mocker.patch.object(
-        LinuxEnergyConsumption, "get_energy_usage", return_value=energy_usage
-    )
+    mocker.patch.object(LinuxEnergyConsumption, "get_energy_usage", return_value=energy_usage)
     carbon_emission = CarbonEmission(
         location=Country(name=name_alpha_iso_2, co2g_kwh=co2g_per_kwh),
     )
@@ -83,26 +77,14 @@ def test_carbon_usage_with_type_and_conversion():
 
     assert carbon_usage.get_carbon_usage_on_type(UsageType.HOST) == host_carbon_usage
     assert carbon_usage.get_carbon_usage_on_type(UsageType.CPU) == cpu_carbon_usage
-    assert (
-        carbon_usage.get_carbon_usage_on_type(UsageType.MEMORY) == memory_carbon_usage
-    )
+    assert carbon_usage.get_carbon_usage_on_type(UsageType.MEMORY) == memory_carbon_usage
     assert carbon_usage.get_carbon_usage_on_type(UsageType.GPU) == gpu_carbon_usage
     assert carbon_usage.unit == CarbonUsageUnit.CO2_G
 
     carbon_usage.convert_unit(CarbonUsageUnit.CO2_MG)
 
-    assert (
-        carbon_usage.get_carbon_usage_on_type(UsageType.HOST)
-        == host_carbon_usage * 1000
-    )
-    assert (
-        carbon_usage.get_carbon_usage_on_type(UsageType.CPU) == cpu_carbon_usage * 1000
-    )
-    assert (
-        carbon_usage.get_carbon_usage_on_type(UsageType.MEMORY)
-        == memory_carbon_usage * 1000
-    )
-    assert (
-        carbon_usage.get_carbon_usage_on_type(UsageType.GPU) == gpu_carbon_usage * 1000
-    )
+    assert carbon_usage.get_carbon_usage_on_type(UsageType.HOST) == host_carbon_usage * 1000
+    assert carbon_usage.get_carbon_usage_on_type(UsageType.CPU) == cpu_carbon_usage * 1000
+    assert carbon_usage.get_carbon_usage_on_type(UsageType.MEMORY) == memory_carbon_usage * 1000
+    assert carbon_usage.get_carbon_usage_on_type(UsageType.GPU) == gpu_carbon_usage * 1000
     assert carbon_usage.unit == CarbonUsageUnit.CO2_MG

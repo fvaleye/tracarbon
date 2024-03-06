@@ -1,19 +1,19 @@
 import csv
 import importlib.resources
-from typing import Any, Optional
+from typing import Any
+from typing import Optional
 
 import requests
 import ujson
 from aiocache import cached
 from loguru import logger
 
-from tracarbon.exceptions import (
-    CloudProviderRegionIsMissing,
-    CO2SignalAPIKeyIsMissing,
-    CountryIsMissing,
-)
+from tracarbon.exceptions import CloudProviderRegionIsMissing
+from tracarbon.exceptions import CO2SignalAPIKeyIsMissing
+from tracarbon.exceptions import CountryIsMissing
 from tracarbon.hardwares import CloudProviders
-from tracarbon.locations.location import CarbonIntensitySource, Location
+from tracarbon.locations.location import CarbonIntensitySource
+from tracarbon.locations.location import Location
 
 
 class Country(Location):
@@ -29,22 +29,16 @@ class Country(Location):
         :param country_code_alpha_iso_2: the alpha_iso_2 name of the country
         :return:
         """
-        with importlib.resources.path(
-            "tracarbon.locations.data", "co2-emission-intensity-9.exhibit.json"
-        ) as resource:
+        with importlib.resources.path("tracarbon.locations.data", "co2-emission-intensity-9.exhibit.json") as resource:
             with open(str(resource)) as json_file:
                 countries_values = ujson.load(json_file)["countries"]
                 for country in countries_values:
                     if country_code_alpha_iso_2.lower() == country["name"]:
                         return cls.parse_obj(country)
-        raise CountryIsMissing(
-            f"The country [{country_code_alpha_iso_2}] is not in the co2 emission file."
-        )
+        raise CountryIsMissing(f"The country [{country_code_alpha_iso_2}] is not in the co2 emission file.")
 
     @classmethod
-    def get_current_country(
-        cls, url: str = "http://ipinfo.io/json", timeout: int = 300
-    ) -> str:
+    def get_current_country(cls, url: str = "http://ipinfo.io/json", timeout: int = 300) -> str:
         """
         Get the client's country using an internet access.
 
@@ -105,9 +99,7 @@ class Country(Location):
         if self.co2g_kwh_source == CarbonIntensitySource.FILE:
             return self.co2g_kwh
 
-        logger.info(
-            f"Request the latest carbon intensity in Co2g/kwh for your country {self.name}."
-        )
+        logger.info(f"Request the latest carbon intensity in Co2g/kwh for your country {self.name}.")
         if not self.co2signal_api_key:
             raise CO2SignalAPIKeyIsMissing()
         url = f"{self.co2signal_url}{self.name}"
@@ -121,9 +113,7 @@ class Country(Location):
             if "data" in response:
                 response = response["data"]
             self.co2g_kwh = float(response["carbonIntensity"])
-            logger.info(
-                f"The latest carbon intensity of your country {self.name} is: {self.co2g_kwh} CO2g/kwh."
-            )
+            logger.info(f"The latest carbon intensity of your country {self.name} is: {self.co2g_kwh} CO2g/kwh.")
         except Exception:
             logger.error(
                 f'Failed to get the latest carbon intensity of your country {self.name} {response if response else ""}.'
@@ -142,18 +132,14 @@ class AWSLocation(Country):
     """
 
     def __init__(self, region_name: str, **data: Any) -> None:
-        with importlib.resources.path(
-            "tracarbon.locations.data", "grid-emissions-factors-aws.csv"
-        ) as resource:
+        with importlib.resources.path("tracarbon.locations.data", "grid-emissions-factors-aws.csv") as resource:
             co2g_kwh = None
             with open(str(resource)) as csv_file:
                 reader = csv.reader(csv_file)
                 for row in reader:
                     if row[0] == region_name:
                         co2g_kwh = float(row[3]) * 1000000
-                        super().__init__(
-                            name=f"AWS({region_name})", co2g_kwh=co2g_kwh, **data
-                        )
+                        super().__init__(name=f"AWS({region_name})", co2g_kwh=co2g_kwh, **data)
                 if not co2g_kwh:
                     raise CloudProviderRegionIsMissing(
                         f"The region [{region_name}] is not in the AWS grid emissions factors file."

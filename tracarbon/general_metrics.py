@@ -1,10 +1,18 @@
-from typing import Any, AsyncGenerator, Optional
+from typing import Any
+from typing import AsyncGenerator
+from typing import Optional
 
 from tracarbon.conf import KUBERNETES_INSTALLED
-from tracarbon.emissions import CarbonEmission, CarbonUsageUnit
-from tracarbon.exporters import Metric, MetricGenerator, Tag
-from tracarbon.hardwares import EnergyConsumption, EnergyUsageUnit, UsageType
-from tracarbon.locations import Country, Location
+from tracarbon.emissions import CarbonEmission
+from tracarbon.emissions import CarbonUsageUnit
+from tracarbon.exporters import Metric
+from tracarbon.exporters import MetricGenerator
+from tracarbon.exporters import Tag
+from tracarbon.hardwares import EnergyConsumption
+from tracarbon.hardwares import EnergyUsageUnit
+from tracarbon.hardwares import UsageType
+from tracarbon.locations import Country
+from tracarbon.locations import Location
 
 
 class EnergyConsumptionGenerator(MetricGenerator):
@@ -62,15 +70,9 @@ class CarbonEmissionGenerator(MetricGenerator):
         if "carbon_emission" not in data:
             data["carbon_emission"] = CarbonEmission(
                 co2signal_api_key=(
-                    data["co2signal_api_key"]
-                    if "co2signal_api_key" in data
-                    else location.co2signal_api_key
+                    data["co2signal_api_key"] if "co2signal_api_key" in data else location.co2signal_api_key
                 ),
-                co2signal_url=(
-                    data["co2signal_url"]
-                    if "co2signal_url" in data
-                    else location.co2signal_url
-                ),
+                co2signal_url=(data["co2signal_url"] if "co2signal_url" in data else location.co2signal_url),
                 location=location,
             )
         super().__init__(location=location, metrics=[], **data)
@@ -148,10 +150,7 @@ if KUBERNETES_INSTALLED:
                         """
                         Get the total energy consumption of the pod.
                         """
-                        total = (
-                            await get_pod_memory_energy_consumption()
-                            + await get_pod_cpu_energy_consumption()
-                        )
+                        total = await get_pod_memory_energy_consumption() + await get_pod_cpu_energy_consumption()
                         return total
 
                     tags = [
@@ -193,15 +192,9 @@ if KUBERNETES_INSTALLED:
             if "carbon_emission" not in data:
                 data["carbon_emission"] = CarbonEmission(
                     co2signal_api_key=(
-                        data["co2signal_api_key"]
-                        if "co2signal_api_key" in data
-                        else location.co2signal_api_key
+                        data["co2signal_api_key"] if "co2signal_api_key" in data else location.co2signal_api_key
                     ),
-                    co2signal_url=(
-                        data["co2signal_url"]
-                        if "co2signal_url" in data
-                        else location.co2signal_url
-                    ),
+                    co2signal_url=(data["co2signal_url"] if "co2signal_url" in data else location.co2signal_url),
                     location=location,
                 )
             if "kubernetes" not in data:
@@ -236,10 +229,7 @@ if KUBERNETES_INSTALLED:
                         """
                         Get the total carbon emission of the pod.
                         """
-                        total = (
-                            await get_cpu_pod_carbon_emission()
-                            + await get_memory_pod_carbon_emission()
-                        )
+                        total = await get_cpu_pod_carbon_emission() + await get_memory_pod_carbon_emission()
                         return total
 
                     tags = [

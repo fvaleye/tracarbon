@@ -1,9 +1,16 @@
 import asyncio
 import sys
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
+from abc import abstractmethod
 from datetime import datetime
-from threading import Event, Timer
-from typing import AsyncGenerator, Awaitable, Callable, Dict, List, Optional
+from threading import Event
+from threading import Timer
+from typing import AsyncGenerator
+from typing import Awaitable
+from typing import Callable
+from typing import Dict
+from typing import List
+from typing import Optional
 
 from asyncer import asyncify
 from loguru import logger
@@ -31,9 +38,7 @@ class Metric(BaseModel):
     value: Callable[[], Awaitable[float]]
     tags: List[Tag] = list()
 
-    def format_name(
-        self, metric_prefix_name: Optional[str] = None, separator: str = "."
-    ) -> str:
+    def format_name(self, metric_prefix_name: Optional[str] = None, separator: str = ".") -> str:
         """
         Format the name of the metric with a prefix and separator.
 
@@ -153,9 +158,7 @@ class Exporter(BaseModel, metaclass=ABCMeta):
             logger.debug(f"Running MetricGenerator[{metric_generator}].")
             await self.launch(metric_generator=metric_generator)
 
-    async def add_metric_to_report(
-        self, metric: "Metric", value: float
-    ) -> "MetricReport":
+    async def add_metric_to_report(self, metric: "Metric", value: float) -> "MetricReport":
         """
         Add the generated metric to the report asynchronously.
 
@@ -166,22 +169,15 @@ class Exporter(BaseModel, metaclass=ABCMeta):
 
         def add_metric_to_report() -> MetricReport:
             if metric.name not in self.metric_report:
-                self.metric_report[metric.name] = MetricReport(
-                    exporter_name=self.get_name(), metric=metric
-                )
+                self.metric_report[metric.name] = MetricReport(exporter_name=self.get_name(), metric=metric)
             metric_report = self.metric_report[metric.name]
             now = datetime.now()
             if metric_report.last_report_time:
-                time_difference_in_s = (
-                    now - metric_report.last_report_time
-                ).total_seconds()
+                time_difference_in_s = (now - metric_report.last_report_time).total_seconds()
                 metric_report.average_interval_in_seconds = (
                     time_difference_in_s
                     if not metric_report.average_interval_in_seconds
-                    else (
-                        metric_report.average_interval_in_seconds + time_difference_in_s
-                    )
-                    / 2
+                    else (metric_report.average_interval_in_seconds + time_difference_in_s) / 2
                 )
 
             metric_report.last_report_time = now

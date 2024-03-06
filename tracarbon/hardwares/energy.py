@@ -1,6 +1,7 @@
 from datetime import datetime
 from enum import Enum
-from typing import ClassVar, Optional
+from typing import ClassVar
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -62,42 +63,20 @@ class EnergyUsage(BaseModel):
         if self.unit != unit:
             if unit == EnergyUsageUnit.WATT and self.unit == EnergyUsageUnit.MILLIWATT:
                 self.host_energy_usage = self.host_energy_usage * 1000
-                self.cpu_energy_usage = (
-                    self.cpu_energy_usage * 1000
-                    if self.cpu_energy_usage is not None
-                    else None
-                )
+                self.cpu_energy_usage = self.cpu_energy_usage * 1000 if self.cpu_energy_usage is not None else None
                 self.memory_energy_usage = (
-                    self.memory_energy_usage * 1000
-                    if self.memory_energy_usage is not None
-                    else None
+                    self.memory_energy_usage * 1000 if self.memory_energy_usage is not None else None
                 )
-                self.gpu_energy_usage = (
-                    self.gpu_energy_usage / 1000
-                    if self.gpu_energy_usage is not None
-                    else None
-                )
+                self.gpu_energy_usage = self.gpu_energy_usage / 1000 if self.gpu_energy_usage is not None else None
                 self.unit = EnergyUsageUnit.MILLIWATT
-            elif (
-                unit == EnergyUsageUnit.MILLIWATT and self.unit == EnergyUsageUnit.WATT
-            ):
+            elif unit == EnergyUsageUnit.MILLIWATT and self.unit == EnergyUsageUnit.WATT:
                 self.host_energy_usage = self.host_energy_usage * 1000
 
-                self.cpu_energy_usage = (
-                    self.cpu_energy_usage * 1000
-                    if self.cpu_energy_usage is not None
-                    else None
-                )
+                self.cpu_energy_usage = self.cpu_energy_usage * 1000 if self.cpu_energy_usage is not None else None
                 self.memory_energy_usage = (
-                    self.memory_energy_usage * 1000
-                    if self.memory_energy_usage is not None
-                    else None
+                    self.memory_energy_usage * 1000 if self.memory_energy_usage is not None else None
                 )
-                self.gpu_energy_usage = (
-                    self.gpu_energy_usage * 1000
-                    if self.gpu_energy_usage is not None
-                    else None
-                )
+                self.gpu_energy_usage = self.gpu_energy_usage * 1000 if self.gpu_energy_usage is not None else None
                 self.unit = EnergyUsageUnit.MILLIWATT
 
 
@@ -109,9 +88,7 @@ class Power(BaseModel):
     SECONDS_TO_HOURS_FACTOR: ClassVar[int] = 3600
 
     @staticmethod
-    def watts_to_watt_hours(
-        watts: float, previous_energy_measurement_time: Optional[datetime] = None
-    ) -> float:
+    def watts_to_watt_hours(watts: float, previous_energy_measurement_time: Optional[datetime] = None) -> float:
         """
         Convert current watts to watt-hours W/h using the previous energy measurement.
 
@@ -121,9 +98,7 @@ class Power(BaseModel):
         """
         now = datetime.now()
         if previous_energy_measurement_time:
-            time_difference_in_seconds = (
-                now - previous_energy_measurement_time
-            ).total_seconds()
+            time_difference_in_seconds = (now - previous_energy_measurement_time).total_seconds()
         else:
             time_difference_in_seconds = 1
         return watts * (time_difference_in_seconds / Power.SECONDS_TO_HOURS_FACTOR)

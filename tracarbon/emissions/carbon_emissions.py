@@ -1,13 +1,19 @@
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
+from typing import Optional
 
 from loguru import logger
 from pydantic import BaseModel
 
-from tracarbon.hardwares import EnergyConsumption, Power, Sensor
-from tracarbon.hardwares.energy import EnergyUsage, EnergyUsageUnit, UsageType
-from tracarbon.locations import Country, Location
+from tracarbon.hardwares import EnergyConsumption
+from tracarbon.hardwares import Power
+from tracarbon.hardwares import Sensor
+from tracarbon.hardwares.energy import EnergyUsage
+from tracarbon.hardwares.energy import EnergyUsageUnit
+from tracarbon.hardwares.energy import UsageType
+from tracarbon.locations import Country
+from tracarbon.locations import Location
 
 
 class CarbonUsageUnit(Enum):
@@ -56,31 +62,15 @@ class CarbonUsage(BaseModel):
         if self.unit != unit:
             if unit == CarbonUsageUnit.CO2_G and self.unit == CarbonUsageUnit.CO2_MG:
                 self.host_carbon_usage = self.host_carbon_usage / 1000
-                self.cpu_carbon_usage = (
-                    self.cpu_carbon_usage / 1000 if self.cpu_carbon_usage else None
-                )
-                self.memory_carbon_usage = (
-                    self.memory_carbon_usage / 1000
-                    if self.memory_carbon_usage
-                    else None
-                )
-                self.gpu_carbon_usage = (
-                    self.gpu_carbon_usage / 1000 if self.gpu_carbon_usage else None
-                )
+                self.cpu_carbon_usage = self.cpu_carbon_usage / 1000 if self.cpu_carbon_usage else None
+                self.memory_carbon_usage = self.memory_carbon_usage / 1000 if self.memory_carbon_usage else None
+                self.gpu_carbon_usage = self.gpu_carbon_usage / 1000 if self.gpu_carbon_usage else None
                 self.unit = CarbonUsageUnit.CO2_G
             elif unit == CarbonUsageUnit.CO2_MG and self.unit == CarbonUsageUnit.CO2_G:
                 self.host_carbon_usage = self.host_carbon_usage * 1000
-                self.cpu_carbon_usage = (
-                    self.cpu_carbon_usage * 1000 if self.cpu_carbon_usage else None
-                )
-                self.memory_carbon_usage = (
-                    self.memory_carbon_usage * 1000
-                    if self.memory_carbon_usage
-                    else None
-                )
-                self.gpu_carbon_usage = (
-                    self.gpu_carbon_usage * 1000 if self.gpu_carbon_usage else None
-                )
+                self.cpu_carbon_usage = self.cpu_carbon_usage * 1000 if self.cpu_carbon_usage else None
+                self.memory_carbon_usage = self.memory_carbon_usage * 1000 if self.memory_carbon_usage else None
+                self.gpu_carbon_usage = self.gpu_carbon_usage * 1000 if self.gpu_carbon_usage else None
                 self.unit = CarbonUsageUnit.CO2_MG
 
 
@@ -160,9 +150,7 @@ class CarbonEmission(Sensor):
         return CarbonUsage(
             host_carbon_usage=host_carbon_usage,
             cpu_carbon_usage=cpu_carbon_usage if cpu_carbon_usage > 0 else None,
-            memory_carbon_usage=(
-                memory_carbon_usage if memory_carbon_usage > 0 else None
-            ),
+            memory_carbon_usage=(memory_carbon_usage if memory_carbon_usage > 0 else None),
             gpu_carbon_usage=gpu_carbon_usage if gpu_carbon_usage > 0 else None,
             unit=CarbonUsageUnit.CO2_G,
         )

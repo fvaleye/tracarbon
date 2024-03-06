@@ -1,14 +1,14 @@
 import pytest
 import requests
 
-from tracarbon import (
-    RAPL,
-    AWSEC2EnergyConsumption,
-    EnergyConsumption,
-    LinuxEnergyConsumption,
-    TracarbonException,
-)
-from tracarbon.hardwares import EnergyUsage, HardwareInfo, WindowsEnergyConsumption
+from tracarbon import RAPL
+from tracarbon import AWSEC2EnergyConsumption
+from tracarbon import EnergyConsumption
+from tracarbon import LinuxEnergyConsumption
+from tracarbon import TracarbonException
+from tracarbon.hardwares import EnergyUsage
+from tracarbon.hardwares import HardwareInfo
+from tracarbon.hardwares import WindowsEnergyConsumption
 from tracarbon.hardwares.cloud_providers import AWS
 
 
@@ -51,14 +51,9 @@ async def test_aws_sensor_with_gpu_should_return_energy_consumption(mocker):
     mocker.patch.object(HardwareInfo, "get_cpu_usage", return_value=50)
     mocker.patch.object(HardwareInfo, "get_memory_usage", return_value=50)
     gpu_power_usage = 1805.4
-    mocker.patch.object(
-        HardwareInfo, "get_gpu_power_usage", return_value=gpu_power_usage
-    )
+    mocker.patch.object(HardwareInfo, "get_gpu_power_usage", return_value=gpu_power_usage)
     value_expected = (
-        aws_ec2_sensor.cpu_at_50
-        + aws_ec2_sensor.memory_at_50
-        + aws_ec2_sensor.delta_full_machine
-        + gpu_power_usage
+        aws_ec2_sensor.cpu_at_50 + aws_ec2_sensor.memory_at_50 + aws_ec2_sensor.delta_full_machine + gpu_power_usage
     )
 
     energy_usage = await aws_ec2_sensor.get_energy_usage()
@@ -83,11 +78,7 @@ async def test_aws_sensor_without_gpu_should_return_energy_consumption(mocker):
 
     mocker.patch.object(HardwareInfo, "get_cpu_usage", return_value=50)
     mocker.patch.object(HardwareInfo, "get_memory_usage", return_value=50)
-    value_expected = (
-        aws_ec2_sensor.cpu_at_50
-        + aws_ec2_sensor.memory_at_50
-        + aws_ec2_sensor.delta_full_machine
-    )
+    value_expected = aws_ec2_sensor.cpu_at_50 + aws_ec2_sensor.memory_at_50 + aws_ec2_sensor.delta_full_machine
 
     energy_usage = await aws_ec2_sensor.get_energy_usage()
 

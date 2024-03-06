@@ -4,7 +4,8 @@ import pathlib
 import pytest
 
 from tracarbon import RAPL
-from tracarbon.hardwares import EnergyUsageUnit, RAPLResult
+from tracarbon.hardwares import EnergyUsageUnit
+from tracarbon.hardwares import RAPLResult
 
 
 @pytest.mark.linux
@@ -22,9 +23,7 @@ async def test_get_rapl_power_usage():
     path = f"{pathlib.Path(__file__).parent.resolve()}/data/intel-rapl"
     rapl_separator_for_windows = "T"
 
-    rapl_results = await RAPL(
-        path=path, rapl_separator=rapl_separator_for_windows
-    ).get_rapl_power_usage()
+    rapl_results = await RAPL(path=path, rapl_separator=rapl_separator_for_windows).get_rapl_power_usage()
 
     def by_energy_uj(rapl_result: RAPLResult) -> str:
         return rapl_result.energy_uj
@@ -52,15 +51,9 @@ async def test_get_rapl_power_wrap_around_when_0():
     two_seconds_ago = datetime.datetime.now() - datetime.timedelta(seconds=2)
     rapl_separator_for_windows = "T"
     rapl_results = dict()
-    rapl_results["package-0"] = RAPLResult(
-        name="package", energy_uj=2, max_energy_uj=70000, timestamp=two_seconds_ago
-    )
-    rapl_results["core"] = RAPLResult(
-        name="core", energy_uj=1, max_energy_uj=70000, timestamp=two_seconds_ago
-    )
-    rapl = RAPL(
-        path=path, rapl_separator=rapl_separator_for_windows, rapl_results=rapl_results
-    )
+    rapl_results["package-0"] = RAPLResult(name="package", energy_uj=2, max_energy_uj=70000, timestamp=two_seconds_ago)
+    rapl_results["core"] = RAPLResult(name="core", energy_uj=1, max_energy_uj=70000, timestamp=two_seconds_ago)
+    rapl = RAPL(path=path, rapl_separator=rapl_separator_for_windows, rapl_results=rapl_results)
     host_energy_usage_expected = 35
     cpu_energy_usage_expected = 35
 
@@ -82,12 +75,8 @@ async def test_get_total_uj_one_call():
     rapl_results["package-0"] = RAPLResult(
         name="package", energy_uj=50000, max_energy_uj=70000, timestamp=one_minute_ago
     )
-    rapl_results["core"] = RAPLResult(
-        name="core", energy_uj=40000, max_energy_uj=70000, timestamp=one_minute_ago
-    )
-    rapl = RAPL(
-        path=path, rapl_separator=rapl_separator_for_windows, rapl_results=rapl_results
-    )
+    rapl_results["core"] = RAPLResult(name="core", energy_uj=40000, max_energy_uj=70000, timestamp=one_minute_ago)
+    rapl = RAPL(path=path, rapl_separator=rapl_separator_for_windows, rapl_results=rapl_results)
     host_energy_usage_expected = 0.33
     cpu_energy_usage_expected = 0.5
 

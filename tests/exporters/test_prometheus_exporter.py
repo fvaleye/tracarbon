@@ -2,8 +2,11 @@ import sys
 
 import psutil
 
-from tracarbon import Country, MetricGenerator
-from tracarbon.exporters import Metric, PrometheusExporter, Tag
+from tracarbon import Country
+from tracarbon import MetricGenerator
+from tracarbon.exporters import Metric
+from tracarbon.exporters import PrometheusExporter
+from tracarbon.exporters import Tag
 
 
 def test_prometheus_exporter(mocker):
@@ -27,19 +30,12 @@ def test_prometheus_exporter(mocker):
         tags=[Tag(key="test", value="tags")],
     )
     metric_generators = [MetricGenerator(metrics=[memory_metric])]
-    exporter = PrometheusExporter(
-        quit=True, metric_generators=metric_generators, metric_prefix_name="tracarbon"
-    )
+    exporter = PrometheusExporter(quit=True, metric_generators=metric_generators, metric_prefix_name="tracarbon")
     exporter.start(interval_in_seconds=interval_in_seconds)
     exporter.stop()
 
-    assert (
-        str(exporter.prometheus_metrics["tracarbon_test_metric_1"]) == expected_metric_1
-    )
-    assert (
-        exporter.metric_report["test_metric_1"].exporter_name
-        == PrometheusExporter.get_name()
-    )
+    assert str(exporter.prometheus_metrics["tracarbon_test_metric_1"]) == expected_metric_1
+    assert exporter.metric_report["test_metric_1"].exporter_name == PrometheusExporter.get_name()
     assert exporter.metric_report["test_metric_1"].metric == memory_metric
     assert exporter.metric_report["test_metric_1"].total > 0
     assert exporter.metric_report["test_metric_1"].average > 0

@@ -6,7 +6,8 @@ from typing import Any
 import aiofiles
 import ujson
 
-from tracarbon.exporters.exporter import Exporter, MetricGenerator
+from tracarbon.exporters.exporter import Exporter
+from tracarbon.exporters.exporter import MetricGenerator
 
 
 class JSONExporter(Exporter):
@@ -49,9 +50,7 @@ class JSONExporter(Exporter):
                         ujson.dumps(
                             {
                                 "timestamp": str(datetime.utcnow()),
-                                "metric_name": metric.format_name(
-                                    metric_prefix_name=self.metric_prefix_name
-                                ),
+                                "metric_name": metric.format_name(metric_prefix_name=self.metric_prefix_name),
                                 "metric_value": metric_value,
                                 "metric_tags": metric.format_tags(),
                             },

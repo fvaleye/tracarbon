@@ -1,6 +1,9 @@
-from abc import ABC, abstractmethod
+from abc import ABC
+from abc import abstractmethod
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 import aiohttp
 import ujson
@@ -26,9 +29,7 @@ class Location(ABC, BaseModel):
     co2g_kwh: float = 0.0
 
     @classmethod
-    async def request(
-        cls, url: str, headers: Optional[Dict[str, str]] = None
-    ) -> Dict[str, Any]:
+    async def request(cls, url: str, headers: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
         """
         Launch an async request.
 

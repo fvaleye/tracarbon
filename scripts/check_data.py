@@ -1,11 +1,20 @@
 import urllib.request
+from urllib.parse import urlparse
+
+
+def is_valid_url(url: str) -> bool:
+    parsed_url = urlparse(url)
+    return parsed_url.scheme in ["http", "https"]
 
 
 def check_content_length(url: str, expected_content_length: str) -> bool:
-    site = urllib.request.urlopen(url)
-    assert (
-        site.getheader("Content-Length") == expected_content_length
-    ), f"This url content changed {url}"
+    if not is_valid_url(url):
+        raise ValueError(f"Invalid or unsafe URL scheme for URL: {url}")
+
+    site = urllib.request.urlopen(url)  # noqa: S310
+    if site.getheader("Content-Length") != expected_content_length:
+        raise ValueError(f"This url content changed {url}")
+    return True
 
 
 if __name__ == "__main__":
@@ -24,6 +33,4 @@ if __name__ == "__main__":
         },
     ]
     for url in urls:
-        check_content_length(
-            url=url["url"], expected_content_length=url["content_length"]
-        )
+        check_content_length(url=url["url"], expected_content_length=url["content_length"])

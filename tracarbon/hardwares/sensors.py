@@ -1,13 +1,15 @@
 import asyncio
 import csv
 import importlib
-from abc import ABC, abstractmethod
+from abc import ABC
+from abc import abstractmethod
 from typing import Any
 
 from loguru import logger
 from pydantic import BaseModel
 
-from tracarbon.exceptions import AWSSensorException, TracarbonException
+from tracarbon.exceptions import AWSSensorException
+from tracarbon.exceptions import TracarbonException
 from tracarbon.hardwares import EnergyUsage
 from tracarbon.hardwares.cloud_providers import CloudProviders
 from tracarbon.hardwares.hardware import HardwareInfo
@@ -79,9 +81,7 @@ class MacEnergyConsumption(EnergyConsumption):
     Energy Consumption of the Mac, working only if it's plugged into plugged-in wall adapter, in watts.
     """
 
-    shell_command: str = (
-        """/usr/sbin/ioreg -rw0 -c AppleSmartBattery | grep BatteryData | grep -o '"AdapterPower"=[0-9]*' | cut -c 16- | xargs -I %  lldb --batch -o "print/f %" | grep -o '$0 = [0-9.]*' | cut -c 6-"""
-    )
+    shell_command: str = """/usr/sbin/ioreg -rw0 -c AppleSmartBattery | grep BatteryData | grep -o '"AdapterPower"=[0-9]*' | cut -c 16- | xargs -I %  lldb --batch -o "print/f %" | grep -o '$0 = [0-9.]*' | cut -c 6-"""
 
     async def get_energy_usage(self) -> EnergyUsage:
         """
@@ -89,9 +89,7 @@ class MacEnergyConsumption(EnergyConsumption):
 
         :return: the generated energy usage.
         """
-        proc = await asyncio.create_subprocess_shell(
-            self.shell_command, stdout=asyncio.subprocess.PIPE
-        )
+        proc = await asyncio.create_subprocess_shell(self.shell_command, stdout=asyncio.subprocess.PIPE)
         result, _ = await proc.communicate()
 
         return EnergyUsage(host_energy_usage=float(result))
@@ -146,9 +144,7 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
     delta_full_machine: float
 
     def __init__(self, instance_type: str, **data: Any) -> None:
-        with importlib.resources.path(
-            "tracarbon.hardwares.data", "aws-instances.csv"
-        ) as resource:
+        with importlib.resources.path("tracarbon.hardwares.data", "aws-instances.csv") as resource:
             try:
                 with open(str(resource)) as csvfile:
                     reader = csv.reader(csvfile)
@@ -164,9 +160,7 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
                             data["memory_at_50"] = float(row[20].replace(",", "."))
                             data["memory_at_100"] = float(row[21].replace(",", "."))
                             data["has_gpu"] = float(row[22].replace(",", ".")) > 0
-                            data["delta_full_machine"] = float(
-                                row[26].replace(",", ".")
-                            )
+                            data["delta_full_machine"] = float(row[26].replace(",", "."))
                             super().__init__(
                                 **data,
                             )
@@ -176,7 +170,7 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
                 )
             except Exception as exception:
                 logger.exception("Error in the AWSSensor")
-                raise AWSSensorException(exception)
+                raise AWSSensorException(exception) from exception
 
     async def get_energy_usage(self) -> EnergyUsage:
         """

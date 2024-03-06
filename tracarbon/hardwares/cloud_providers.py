@@ -1,7 +1,8 @@
 from typing import Optional
 
 import requests
-from ec2_metadata import EC2Metadata, ec2_metadata
+from ec2_metadata import EC2Metadata
+from ec2_metadata import ec2_metadata
 from pydantic import BaseModel
 
 

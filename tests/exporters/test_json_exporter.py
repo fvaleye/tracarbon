@@ -4,8 +4,11 @@ from datetime import datetime
 import psutil
 import ujson
 
-from tracarbon import Country, MetricGenerator
-from tracarbon.exporters import JSONExporter, Metric, Tag
+from tracarbon import Country
+from tracarbon import MetricGenerator
+from tracarbon.exporters import JSONExporter
+from tracarbon.exporters import Metric
+from tracarbon.exporters import Tag
 
 
 def test_json_exporter_should_write_well_formatted_metrics_in_json_file(mocker, tmpdir):
@@ -48,9 +51,7 @@ def test_json_exporter_should_write_well_formatted_metrics_in_json_file(mocker, 
     )
 
     metric_generators = [MetricGenerator(metrics=[memory_metric])]
-    exporter = JSONExporter(
-        quit=True, metric_generators=metric_generators, path=str(test_json_file)
-    )
+    exporter = JSONExporter(quit=True, metric_generators=metric_generators, path=str(test_json_file))
     exporter.start(interval_in_seconds=interval_in_seconds)
     exporter.stop()
 
@@ -61,9 +62,7 @@ def test_json_exporter_should_write_well_formatted_metrics_in_json_file(mocker, 
     with open(test_json_file, "r") as file:
         assert ujson.load(file) == expected
 
-    assert (
-        exporter.metric_report["test_metric_1"].exporter_name == JSONExporter.get_name()
-    )
+    assert exporter.metric_report["test_metric_1"].exporter_name == JSONExporter.get_name()
     assert exporter.metric_report["test_metric_1"].metric == memory_metric
     assert exporter.metric_report["test_metric_1"].total > 0
     assert exporter.metric_report["test_metric_1"].average > 0

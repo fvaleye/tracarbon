@@ -1,12 +1,16 @@
 import datetime
-from typing import Dict, Optional
+from typing import Dict
+from typing import Optional
 
 from pydantic import BaseModel
 
 from tracarbon.conf import TracarbonConfiguration
-from tracarbon.exporters import Exporter, MetricReport, StdoutExporter
+from tracarbon.exporters import Exporter
+from tracarbon.exporters import MetricReport
+from tracarbon.exporters import StdoutExporter
 from tracarbon.general_metrics import CarbonEmissionGenerator
-from tracarbon.locations import Country, Location
+from tracarbon.locations import Country
+from tracarbon.locations import Location
 
 
 class TracarbonReport(BaseModel):
@@ -103,9 +107,7 @@ class TracarbonBuilder(BaseModel):
                 co2signal_url=self.configuration.co2signal_url,
             )
         if not self.exporter:
-            self.exporter = StdoutExporter(
-                metric_generators=[CarbonEmissionGenerator(location=self.location)]
-            )
+            self.exporter = StdoutExporter(metric_generators=[CarbonEmissionGenerator(location=self.location)])
 
         return Tracarbon(
             configuration=self.configuration,

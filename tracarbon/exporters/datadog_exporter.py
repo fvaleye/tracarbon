@@ -1,13 +1,16 @@
 import os
-from typing import Any, Optional
+from typing import Any
+from typing import Optional
 
 from loguru import logger
 
 from tracarbon.conf import DATADOG_INSTALLED
-from tracarbon.exporters.exporter import Exporter, MetricGenerator
+from tracarbon.exporters.exporter import Exporter
+from tracarbon.exporters.exporter import MetricGenerator
 
 if DATADOG_INSTALLED:
-    from datadog import ThreadStats, initialize
+    from datadog import ThreadStats
+    from datadog import initialize
 
     class DatadogExporter(Exporter):
         """
@@ -47,15 +50,11 @@ if DATADOG_INSTALLED:
                 metric_value = await metric.value()
                 if metric_value:
                     await self.add_metric_to_report(metric=metric, value=metric_value)
-                    metric_name = metric.format_name(
-                        metric_prefix_name=self.metric_prefix_name
-                    )
+                    metric_name = metric.format_name(metric_prefix_name=self.metric_prefix_name)
                     logger.info(
                         f"Sending metric[{metric_name}] with value [{metric_value}] and tags{metric.format_tags()} to Datadog."
                     )
-                    self.stats.gauge(
-                        metric_name, metric_value, tags=metric.format_tags()
-                    )
+                    self.stats.gauge(metric_name, metric_value, tags=metric.format_tags())
 
         @classmethod
         def get_name(cls) -> str:

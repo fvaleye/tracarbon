@@ -1,10 +1,11 @@
 import platform
+import shutil
 from collections import namedtuple
 
 import psutil
 import pytest
 
-from tracarbon import RAPL, HardwareInfo
+from tracarbon import HardwareInfo
 from tracarbon.exceptions import TracarbonException
 from tracarbon.hardwares.gpu import NvidiaGPU
 
@@ -60,9 +61,7 @@ def test_get_cpu_count(mocker):
 def test_get_gpu_power_usage(mocker):
     gpu_power_usage_returned = "226 W"
     gpu_usage_expected = 226
-    mocker.patch.object(
-        NvidiaGPU, "launch_shell_command", return_value=[gpu_power_usage_returned, 0]
-    )
+    mocker.patch.object(NvidiaGPU, "launch_shell_command", return_value=[gpu_power_usage_returned, 0])
 
     gpu_usage = HardwareInfo.get_gpu_power_usage()
 
@@ -71,9 +70,8 @@ def test_get_gpu_power_usage(mocker):
 
 def test_get_gpu_power_usage_with_no_0(mocker):
     gpu_power_usage_returned = "0 W"
-    mocker.patch.object(
-        NvidiaGPU, "launch_shell_command", return_value=[gpu_power_usage_returned, -1]
-    )
+    mocker.patch.object(shutil, "which", return_value=True)
+    mocker.patch.object(NvidiaGPU, "launch_shell_command", return_value=[gpu_power_usage_returned, -1])
 
     with pytest.raises(TracarbonException) as exception:
         HardwareInfo.get_gpu_power_usage()
@@ -83,4 +81,4 @@ def test_get_gpu_power_usage_with_no_0(mocker):
 def test_get_gpu_power_usage_with_no_gpu():
     with pytest.raises(TracarbonException) as exception:
         HardwareInfo.get_gpu_power_usage()
-    assert exception.value.args[0] == "No Nvidia GPU detected."
+    assert exception.value.args[0] == "Nvidia GPU with nvidia-smi not found in PATH."

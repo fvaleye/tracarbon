@@ -1,8 +1,11 @@
 import pytest
 
-from tracarbon.exceptions import CloudProviderRegionIsMissing, CountryIsMissing
+from tracarbon.exceptions import CloudProviderRegionIsMissing
+from tracarbon.exceptions import CountryIsMissing
 from tracarbon.hardwares import CloudProviders
-from tracarbon.locations import AWSLocation, Country, Location
+from tracarbon.locations import AWSLocation
+from tracarbon.locations import Country
+from tracarbon.locations import Location
 
 
 @pytest.mark.asyncio
@@ -44,9 +47,7 @@ def test_unknown_location(mocker):
     with pytest.raises(CountryIsMissing) as exception:
         Country.get_location()
 
-    assert (
-        exception.value.args[0] == "The country [ze] is not in the co2 emission file."
-    )
+    assert exception.value.args[0] == "The country [ze] is not in the co2 emission file."
 
 
 def test_world_emission_should_get_country():
@@ -68,10 +69,7 @@ def test_world_emission_should_raise_error_when_country_is_missing():
     with pytest.raises(CountryIsMissing) as exception:
         Country.from_eu_file(country_code_alpha_iso_2=country_code_alpha_iso_2)
 
-    assert (
-        exception.value.args[0]
-        == f"The country [{country_code_alpha_iso_2}] is not in the co2 emission file."
-    )
+    assert exception.value.args[0] == f"The country [{country_code_alpha_iso_2}] is not in the co2 emission file."
 
 
 def test_aws_location_should_return_an_error_if_region_not_exists():
@@ -79,10 +77,7 @@ def test_aws_location_should_return_an_error_if_region_not_exists():
 
     with pytest.raises(CloudProviderRegionIsMissing) as exception:
         AWSLocation(region_name=region_name)
-    assert (
-        exception.value.args[0]
-        == f"The region [{region_name}] is not in the AWS grid emissions factors file."
-    )
+    assert exception.value.args[0] == f"The region [{region_name}] is not in the AWS grid emissions factors file."
 
 
 def test_aws_location_should_return_ok_if_region_exists():

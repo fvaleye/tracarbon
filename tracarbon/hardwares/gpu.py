@@ -1,3 +1,4 @@
+import shutil
 import subprocess
 from abc import ABC
 from typing import Tuple
@@ -34,10 +35,13 @@ class NvidiaGPU(GPUInfo):
 
         :return: result of the shell command and returncode
         """
+        nvidia_smi_path = shutil.which("nvidia-smi")
+        if nvidia_smi_path is None:
+            raise HardwareNoGPUDetectedException("Nvidia GPU with nvidia-smi not found in PATH.")
+
         process = subprocess.Popen(
-            "nvidia-smi --query-gpu=power.draw --format=csv,noheader",
+            [nvidia_smi_path, "--query-gpu=power.draw", "--format=csv,noheader"],
             stdout=subprocess.PIPE,
-            shell=True,
         )
         stdout, _ = process.communicate()
         return stdout, process.returncode

@@ -1,14 +1,14 @@
 from kubernetes import config
-from kubernetes.client import (
-    CoreV1Api,
-    CustomObjectsApi,
-    V1Namespace,
-    V1NamespaceList,
-    V1ObjectMeta,
-)
+from kubernetes.client import CoreV1Api
+from kubernetes.client import CustomObjectsApi
+from kubernetes.client import V1Namespace
+from kubernetes.client import V1NamespaceList
+from kubernetes.client import V1ObjectMeta
 
 from tracarbon import HardwareInfo
-from tracarbon.hardwares.containers import Container, Kubernetes, Pod
+from tracarbon.hardwares.containers import Container
+from tracarbon.hardwares.containers import Kubernetes
+from tracarbon.hardwares.containers import Pod
 
 
 def test_get_pods_usage(mocker):
@@ -50,9 +50,7 @@ def test_get_pods_usage(mocker):
                 },
                 "timestamp": "2023-01-09T08:01:31Z",
                 "window": "18s",
-                "containers": [
-                    {"name": "shorty", "usage": {"cpu": "380444n", "memory": "3304Ki"}}
-                ],
+                "containers": [{"name": "shorty", "usage": {"cpu": "380444n", "memory": "3304Ki"}}],
             },
             {
                 "metadata": {
@@ -73,20 +71,14 @@ def test_get_pods_usage(mocker):
         ],
     }
     number_of_cores = 2
-    mocker.patch.object(
-        HardwareInfo, "get_number_of_cores", return_value=number_of_cores
-    )
+    mocker.patch.object(HardwareInfo, "get_number_of_cores", return_value=number_of_cores)
     memory_total = 1000000000
     mocker.patch.object(HardwareInfo, "get_memory_total", return_value=memory_total)
-    mocker.patch.object(
-        CustomObjectsApi, "list_namespaced_custom_object", return_value=return_value
-    )
+    mocker.patch.object(CustomObjectsApi, "list_namespaced_custom_object", return_value=return_value)
     mocker.patch.object(
         CoreV1Api,
         "list_namespace",
-        return_value=V1NamespaceList(
-            items=[V1Namespace(metadata=V1ObjectMeta(name="default"))]
-        ),
+        return_value=V1NamespaceList(items=[V1Namespace(metadata=V1ObjectMeta(name="default"))]),
     )
     mocker.patch.object(config, "load_kube_config", return_value=None)
     pods_usage_expected = [
@@ -98,16 +90,12 @@ def test_get_pods_usage(mocker):
         Pod(
             name="shorty-5469f85799-n4k2x",
             namespace="default",
-            containers=[
-                Container(name="shorty", cpu_usage=0.000190222, memory_usage=0.003304)
-            ],
+            containers=[Container(name="shorty", cpu_usage=0.000190222, memory_usage=0.003304)],
         ),
         Pod(
             name="subnet-router",
             namespace="default",
-            containers=[
-                Container(name="tailscale", cpu_usage=0.0070081, memory_usage=0.014912)
-            ],
+            containers=[Container(name="tailscale", cpu_usage=0.0070081, memory_usage=0.014912)],
         ),
     ]
 
