@@ -46,8 +46,8 @@ class AWS(CloudProviders):
 
         :return: is a EC2
         """
-        ec2_metadata = EC2Metadata()
         try:
+            ec2_metadata = EC2Metadata()
             requests.head(ec2_metadata.service_url, timeout=1)
         except Exception:
             return False
