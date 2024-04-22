@@ -231,13 +231,13 @@ tests-no-zope = ["attrs[tests-mypy]", "cloudpickle", "hypothesis", "pympler", "p
 
 [[package]]
 name = "autodoc-pydantic"
-version = "1.9.0"
+version = "1.9.1"
 description = "Seamlessly integrate pydantic models in your Sphinx documentation."
 optional = false
-python-versions = ">=3.7.1,<4.0.0"
+python-versions = "<4.0.0,>=3.7.1"
 files = [
-    {file = "autodoc_pydantic-1.9.0-py3-none-any.whl", hash = "sha256:cbf7ec2f27f913629bd38f9944fa6c4a86541c3cadba4a6fa9d2079e500223d8"},
-    {file = "autodoc_pydantic-1.9.0.tar.gz", hash = "sha256:0f35f8051abe77b5ae16d8a1084c47a5871435e2ca9060e36c838d063c03cc89"},
+    {file = "autodoc_pydantic-1.9.1-py3-none-any.whl", hash = "sha256:7b7c68ce3720f099ec85b7b8b9bd91414b8873704aa60f75489c2bcfe2d57bb5"},
+    {file = "autodoc_pydantic-1.9.1.tar.gz", hash = "sha256:0443987f1cc2516c8186e85d05a1816a314a19e1433b69a0a4b154f4acca3f9b"},
 ]
 
 [package.dependencies]
@@ -2233,4 +2233,4 @@ prometheus = ["prometheus-client"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "da4f6ffa86c94f6bac4f5ef1c88ac79e3223bc1a0bae3deeb84775658798d747"
+content-hash = "77db8cf03195f47815797dedccdae3c7f0f8ea62553e4622ebf3effcd56d0fac"
