@@ -197,18 +197,18 @@ files = [
 
 [[package]]
 name = "asyncer"
-version = "0.0.5"
+version = "0.0.7"
 description = "Asyncer, async and await, focused on developer experience."
 optional = false
-python-versions = ">=3.8,<4.0"
+python-versions = ">=3.8"
 files = [
-    {file = "asyncer-0.0.5-py3-none-any.whl", hash = "sha256:ba06d6de3c750763868dffacf89b18d40b667605b0241d31c2ee43f188e2ab74"},
-    {file = "asyncer-0.0.5.tar.gz", hash = "sha256:2979f3e04cbedfe5cfeb79027dcf7d004fcc4430a0ca0066ae20490f218ec06e"},
+    {file = "asyncer-0.0.7-py3-none-any.whl", hash = "sha256:f0d579d4f67c4ead52ede3a45c854f462cae569058a8a6a68a4ebccac1c335d8"},
+    {file = "asyncer-0.0.7.tar.gz", hash = "sha256:d5e563fb0f56eb87b97257984703658a4f5bbdb52ff851b3e8ed864cc200b1d2"},
 ]
 
 [package.dependencies]
 anyio = ">=3.4.0,<5.0"
-typing_extensions = {version = ">=4.8.0,<5.0.0", markers = "python_version < \"3.10\""}
+typing_extensions = {version = ">=4.8.0", markers = "python_version < \"3.10\""}
 
 [[package]]
 name = "attrs"
@@ -2233,4 +2233,4 @@ prometheus = ["prometheus-client"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "97d6a1648eb93faf1cd106f61e7449ab969cd7c61131710d1e1ef9b23b0eaeae"
+content-hash = "226b8ca901999ad4125bcc42550c5f75d6d538c4219824b1bd60f82908e6bdaf"
