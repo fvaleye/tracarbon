@@ -49,7 +49,7 @@ prometheus-client = ">=0.16,<0.21"
 types-requests = "^2.31.0"
 bandit = "^1.7.9"
 radon = "^6.0.1"
-types-aiofiles = "^23.2.0"
+types-aiofiles = "^24.1.0"
 kubernetes = ">=26.1,<30.0"
 autodoc_pydantic = "1.9.1"
 
