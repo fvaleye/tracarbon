@@ -554,13 +554,13 @@ toml = ["tomli"]
 
 [[package]]
 name = "datadog"
-version = "0.49.1"
+version = "0.50.1"
 description = "The Datadog Python library"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
 files = [
-    {file = "datadog-0.49.1-py2.py3-none-any.whl", hash = "sha256:4a56d57490ea699a0dfd9253547485a57b4120e93489defadcf95c66272374d6"},
-    {file = "datadog-0.49.1.tar.gz", hash = "sha256:4cb7a7991af6cadb868fe450cd456473e65f11fc678b7d7cf61044ff1c6074d8"},
+    {file = "datadog-0.50.1-py2.py3-none-any.whl", hash = "sha256:eb101abee34fe6c1121558fd5ea48f592eb661604abb7914c4f693d8ad25a515"},
+    {file = "datadog-0.50.1.tar.gz", hash = "sha256:579d4db54bd6ef918c5250217edb15b80b7b11582b8e24fce43702768c3f2e2d"},
 ]
 
 [package.dependencies]
@@ -2281,4 +2281,4 @@ prometheus = ["prometheus-client"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "48bb15c17a0558bc7b45603cac165c66b5901bdd9557a91ce16637e4a6868e07"
+content-hash = "f20102a9eb5e5674d17aabde0227f428e62915428eb7002b6c1493c2103c318c"
