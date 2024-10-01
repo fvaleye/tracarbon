@@ -578,6 +578,16 @@ files = [
 ]
 
 [[package]]
+name = "durationpy"
+version = "0.8"
+description = "Module for converting between datetime.timedelta and Go's Duration strings."
+optional = false
+python-versions = "*"
+files = [
+    {file = "durationpy-0.8.tar.gz", hash = "sha256:e90941562e260bdb0e2244cd9eee9be5b3aa0efc0557fca754f36d18fe080f9d"},
+]
+
+[[package]]
 name = "ec2-metadata"
 version = "2.13.0"
 description = "An easy interface to query the EC2 metadata API, with caching."
@@ -799,17 +809,18 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "kubernetes"
-version = "30.1.0"
+version = "31.0.0"
 description = "Kubernetes python client"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "kubernetes-30.1.0-py2.py3-none-any.whl", hash = "sha256:e212e8b7579031dd2e512168b617373bc1e03888d41ac4e04039240a292d478d"},
-    {file = "kubernetes-30.1.0.tar.gz", hash = "sha256:41e4c77af9f28e7a6c314e3bd06a8c6229ddd787cad684e0ab9f69b498e98ebc"},
+    {file = "kubernetes-31.0.0-py2.py3-none-any.whl", hash = "sha256:bf141e2d380c8520eada8b351f4e319ffee9636328c137aa432bc486ca1200e1"},
+    {file = "kubernetes-31.0.0.tar.gz", hash = "sha256:28945de906c8c259c1ebe62703b56a03b714049372196f854105afe4e6d014c0"},
 ]
 
 [package.dependencies]
 certifi = ">=14.05.14"
+durationpy = ">=0.7"
 google-auth = ">=1.0.1"
 oauthlib = ">=3.2.2"
 python-dateutil = ">=2.5.3"
@@ -2281,4 +2292,4 @@ prometheus = ["prometheus-client"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "f20102a9eb5e5674d17aabde0227f428e62915428eb7002b6c1493c2103c318c"
+content-hash = "bffb7ea1d315e3833c44e9e62fd9e48665d1bb54fd5c3051a71c81c861603cfe"
