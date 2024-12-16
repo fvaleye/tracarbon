@@ -1,6 +1,7 @@
 import os
 import re
 from datetime import datetime
+from pathlib import Path
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -76,8 +77,10 @@ class RAPL(BaseModel):
             if not self.file_list:
                 self.get_rapl_files_list()
             for file_path in self.file_list:
+                name_prefix = Path(file_path).name.replace("intel-rapl", "")
                 async with aiofiles.open(f"{file_path}/name", "r") as rapl_name:
                     name = await rapl_name.read()
+                    name = f"{name_prefix}-{name}"
                     async with aiofiles.open(f"{file_path}/energy_uj", "r") as rapl_energy:
                         energy_uj = float(await rapl_energy.read())
                     async with aiofiles.open(f"{file_path}/max_energy_range_uj", "r") as rapl_max_energy:
