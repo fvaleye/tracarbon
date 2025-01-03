@@ -18,7 +18,7 @@ def test_get_platform_should_return_the_platform_energy_consumption_mac():
 
     assert (
         energy_consumption.shell_command
-        == """ioreg -rw0 -a -c AppleSmartBattery | plutil -extract '0.BatteryData.SystemPower' raw -"""
+        == """ioreg -rw0 -a -c AppleSmartBattery | plutil -extract '0.BatteryData.AdapterPower' raw -"""
     )
     assert energy_consumption.init is False
 

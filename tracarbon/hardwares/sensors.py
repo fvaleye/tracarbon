@@ -81,7 +81,7 @@ class MacEnergyConsumption(EnergyConsumption):
     Energy Consumption of the Mac, working only if it's plugged into plugged-in wall adapter, in watts.
     """
 
-    shell_command: str = """ioreg -rw0 -a -c AppleSmartBattery | plutil -extract '0.BatteryData.SystemPower' raw -"""
+    shell_command: str = """ioreg -rw0 -a -c AppleSmartBattery | plutil -extract '0.BatteryData.AdapterPower' raw -"""
 
     async def get_energy_usage(self) -> EnergyUsage:
         """
