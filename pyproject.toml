@@ -33,7 +33,7 @@ kubernetes = {version = ">=26.1,<32.0", optional = true}
 
 [tool.poetry.dev-dependencies]
 mypy = "^1.10"
-ruff = "^0.9.5"
+ruff = "^0.9.6"
 pytest = "^8.2.1"
 pytest-mock = "^3.14.0"
 pytest-asyncio = "^0.24.0"
