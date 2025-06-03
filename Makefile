@@ -3,7 +3,7 @@
 .PHONY: init
 init: ## Init the requirements
 	$(info --- 🖥 Init dependencies ---)
-	@poetry install
+	@poetry install --with dev
 
 .PHONY: format
 format: ## Format the code

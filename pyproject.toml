@@ -1,6 +1,6 @@
-[tool.poetry]
+[project]
 name = "tracarbon"
-authors = ["Florian Valeye <fvaleye@github.com>"]
+authors = [{"name" = "Florian Valeye", "email" = "<fvaleye@github.com>"}]
 version = "0.7.4"
 description = "Tracarbon is a Python library that tracks your device's energy consumption and calculates your carbon emissions."
 readme = "README.md"
@@ -14,7 +14,7 @@ classifiers = [
 include = ["tracarbon/py.typed"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 loguru = ">=0.6,<0.8"
 aiohttp = "^3.9.3"
 aiocache = "^0.12.1"
@@ -31,7 +31,7 @@ datadog = {version = ">=0.44,<0.52", optional = true}
 prometheus-client = {version = ">=0.16,<0.22", optional = true}
 kubernetes = {version = ">=26.1,<32.0", optional = true}
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 mypy = "^1.10"
 ruff = "^0.9.9"
 pytest = "^8.2.1"

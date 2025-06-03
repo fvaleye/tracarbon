@@ -15,13 +15,23 @@ class StdoutExporter(Exporter):
 
         :param metric_generator: the metric generator
         """
-        async for metric in metric_generator.generate():
-            metric_value = await metric.value()
-            if metric_value:
-                await self.add_metric_to_report(metric=metric, value=metric_value)
-                logger.info(
-                    f"Metric name[{metric.format_name(metric_prefix_name=self.metric_prefix_name)}], value[{metric_value}], tags{metric.format_tags()}"
-                )
+        try:
+            async for metric in metric_generator.generate():
+                try:
+                    metric_value = await metric.value()
+                    logger.debug(f"Generated metric '{metric.name}' with value: {metric_value}")
+
+                    if metric_value is not None:
+                        await self.add_metric_to_report(metric=metric, value=metric_value)
+                        logger.info(
+                            f"Metric name[{metric.format_name(metric_prefix_name=self.metric_prefix_name)}], value[{metric_value}], tags{metric.format_tags()}"
+                        )
+                    else:
+                        logger.debug(f"Skipping metric '{metric.name}' with None value")
+                except Exception as e:
+                    logger.error(f"Error processing metric '{metric.name}': {e}")
+        except Exception as e:
+            logger.error(f"Error in StdoutExporter.launch: {e}")
 
     @classmethod
     def get_name(cls) -> str:

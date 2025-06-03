@@ -26,7 +26,7 @@ def get_release_version() -> str:
     :return:
     """
     pyproject = toml.load("../../pyproject.toml")
-    return pyproject["tool"]["poetry"]["version"]
+    return pyproject["project"]["version"]
 
 
 # -- Project information -----------------------------------------------------
