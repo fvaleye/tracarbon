@@ -104,6 +104,8 @@ def run_metrics(
     ]
     if containers:
         metric_generators.extend(add_containers_generator(location=location))
+
+    tracarbon = None
     try:
         exporter = get_exporter(
             exporter_name=exporter_name,
@@ -119,7 +121,13 @@ def run_metrics(
                 time.sleep(tracarbon_builder.configuration.interval_in_seconds)
     except KeyboardInterrupt:
         pass
-    logger.info(f"Tracarbon CLI exited. Tracarbon report: {tracarbon.report}")
+    except Exception as e:
+        logger.exception(f"Error in Tracarbon execution: {e}")
+
+    if tracarbon:
+        logger.info(f"Tracarbon CLI exited. Tracarbon report: {tracarbon.report}")
+    else:
+        logger.info("Tracarbon CLI exited with errors during initialization.")
 
 
 @app.command()
