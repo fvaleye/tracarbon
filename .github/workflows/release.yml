@@ -34,7 +34,7 @@ jobs:
           python-version: 3.8
 
       - name: Install Poetry
-        uses: abatilo/actions-poetry@v2
+        uses: abatilo/actions-poetry@v4
 
       - name: Setup
         run: make init
@@ -54,7 +54,7 @@ jobs:
           python-version: 3.8
 
       - name: Install Poetry
-        uses: abatilo/actions-poetry@v2
+        uses: abatilo/actions-poetry@v4
 
       - name: Setup
         run: make init
