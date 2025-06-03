@@ -13,7 +13,7 @@ RUN pip install --upgrade pip
 # Install poetry separated from system interpreter and add it to PATH
 RUN python3 -m venv $POETRY_VENV \
     && $POETRY_VENV/bin/pip install -U pip setuptools \
-    && $POETRY_VENV/bin/pip install poetry==1.3.2
+    && $POETRY_VENV/bin/pip install poetry==1.8.0
 ENV PATH="${PATH}:${POETRY_VENV}/bin"
 
 COPY . ./carbon-tracker
