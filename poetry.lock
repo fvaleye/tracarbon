@@ -636,14 +636,14 @@ files = [
 
 [[package]]
 name = "ec2-metadata"
-version = "2.13.0"
+version = "2.14.0"
 description = "An easy interface to query the EC2 metadata API, with caching."
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "ec2_metadata-2.13.0-py3-none-any.whl", hash = "sha256:9615ec916a1a68b19a11f94b1c8e90c448b198ecbdbd938f822adf33e50595cd"},
-    {file = "ec2_metadata-2.13.0.tar.gz", hash = "sha256:2c02c8f724cfbbf7a25cbfe18e0034454f9ad9be2cfb44c4daef5af3db55b94a"},
+    {file = "ec2_metadata-2.14.0-py3-none-any.whl", hash = "sha256:fc4f9e893da1c049761221ec3d2208cce4872953b8960e1ed1f7120ff4ca3512"},
+    {file = "ec2_metadata-2.14.0.tar.gz", hash = "sha256:b2f83381722072efa28f65dc37e726c0abd3a0532f227b3fa6a2ad68460c7feb"},
 ]
 
 [package.dependencies]
@@ -2640,4 +2640,4 @@ prometheus = ["prometheus-client"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9"
-content-hash = "c8bfb778e09d7d240b2d801753fef653b4afadecc026b28a17d62228d0a9a378"
+content-hash = "b0b292f476718e6dcbfd0a3b93b0e32d6e1342818e11cae3b9a2db70413efbec"
