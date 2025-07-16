@@ -16,7 +16,7 @@ include = ["tracarbon/py.typed"]
 [tool.poetry.dependencies]
 python = "^3.9"
 loguru = ">=0.6,<0.8"
-aiohttp = "^3.9.3"
+aiohttp = "^3.12.14"
 aiocache = "^0.12.1"
 aiofiles = ">=23.2,<25.0"
 psutil = ">=5.9.8"
