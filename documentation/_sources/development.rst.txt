@@ -13,7 +13,7 @@ With Docker
     # Build with Docker
     docker run -it tracarbon bash
 
-With Poetry
+With uv
 ===========
 
 .. code-block:: bash

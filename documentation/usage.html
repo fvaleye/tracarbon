@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="" >
+<html lang="en" data-content_root="./" >
 
   <head>
     <meta charset="utf-8" />
@@ -35,9 +35,9 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=5b4479735964841361fd" />
   <script src="_static/vendor/fontawesome/6.1.2/js/all.min.js?digest=5b4479735964841361fd"></script>
 
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
-    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'usage';</script>
     <link rel="icon" href="_static/logo.png"/>
     <link rel="index" title="Index" href="genindex.html" />
@@ -389,9 +389,9 @@ document.write(`
                 <article class="bd-article" role="main">
                   
   <section id="usage">
-<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this heading">#</a></h1>
+<h1>Usage<a class="headerlink" href="#usage" title="Link to this heading">#</a></h1>
 <section id="tracarbon">
-<h2>Tracarbon<a class="headerlink" href="#tracarbon" title="Permalink to this heading">#</a></h2>
+<h2>Tracarbon<a class="headerlink" href="#tracarbon" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
 <li><p>Set the environment variable or directly set the configuration.</p></li>
 <li><p>Choose <a class="reference internal" href="api_reference.html#tracarbon.exporters.exporter.Exporter" title="tracarbon.exporters.exporter.Exporter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exporter</span></code></a> with your list of <a class="reference internal" href="api_reference.html#tracarbon.exporters.exporter.Metric" title="tracarbon.exporters.exporter.Metric"><code class="xref py py-class docutils literal notranslate"><span class="pre">Metric</span></code></a>.</p></li>
@@ -399,7 +399,7 @@ document.write(`
 </ol>
 </section>
 <section id="run-the-cli">
-<h2>Run the CLI<a class="headerlink" href="#run-the-cli" title="Permalink to this heading">#</a></h2>
+<h2>Run the CLI<a class="headerlink" href="#run-the-cli" title="Link to this heading">#</a></h2>
 <p>Run Tracarbon CLI with the default Stdout exporter and the C02 Signal API:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">TRACARBON_CO2SIGNAL_API_KEY</span><span class="o">=</span><span class="n">API_KEY</span> <span class="n">tracarbon</span> <span class="n">run</span>
 </pre></div>
@@ -422,7 +422,7 @@ document.write(`
 </div>
 </section>
 <section id="run-the-code">
-<h2>Run the code<a class="headerlink" href="#run-the-code" title="Permalink to this heading">#</a></h2>
+<h2>Run the code<a class="headerlink" href="#run-the-code" title="Link to this heading">#</a></h2>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">tracarbon</span><span class="w"> </span><span class="kn">import</span> <span class="n">TracarbonBuilder</span><span class="p">,</span> <span class="n">TracarbonConfiguration</span>
 <span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">configuration</span> <span class="o">=</span> <span class="n">TracarbonConfiguration</span><span class="p">(</span><span class="n">co2signal_api_key</span><span class="o">=</span><span class="s2">&quot;API_KEY&quot;</span><span class="p">)</span>  <span class="c1"># Your configuration</span>
@@ -439,7 +439,7 @@ document.write(`
 </div>
 </section>
 <section id="run-the-code-with-general-metrics">
-<h2>Run the code with general metrics<a class="headerlink" href="#run-the-code-with-general-metrics" title="Permalink to this heading">#</a></h2>
+<h2>Run the code with general metrics<a class="headerlink" href="#run-the-code-with-general-metrics" title="Link to this heading">#</a></h2>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">tracarbon</span><span class="w"> </span><span class="kn">import</span> <span class="n">TracarbonBuilder</span><span class="p">,</span> <span class="n">TracarbonConfiguration</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">tracarbon.exporters</span><span class="w"> </span><span class="kn">import</span> <span class="n">StdoutExporter</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">tracarbon.general_metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">CarbonEmissionGenerator</span><span class="p">,</span> <span class="n">EnergyConsumptionGenerator</span>
@@ -460,7 +460,7 @@ document.write(`
 </div>
 </section>
 <section id="run-the-code-with-a-custom-configuration">
-<h2>Run the code with a custom configuration<a class="headerlink" href="#run-the-code-with-a-custom-configuration" title="Permalink to this heading">#</a></h2>
+<h2>Run the code with a custom configuration<a class="headerlink" href="#run-the-code-with-a-custom-configuration" title="Link to this heading">#</a></h2>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">tracarbon</span><span class="w"> </span><span class="kn">import</span> <span class="n">TracarbonBuilder</span><span class="p">,</span> <span class="n">TracarbonConfiguration</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">tracarbon.exporters</span><span class="w"> </span><span class="kn">import</span> <span class="n">StdoutExporter</span><span class="p">,</span> <span class="n">MetricGenerator</span><span class="p">,</span> <span class="n">Metric</span><span class="p">,</span> <span class="n">Tag</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">tracarbon.emissions</span><span class="w"> </span><span class="kn">import</span> <span class="n">CarbonEmission</span>
@@ -577,7 +577,7 @@ document.write(`
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.2.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.4.7.
     <br/>
   </p>
 </div>
