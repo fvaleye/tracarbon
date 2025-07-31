@@ -2,10 +2,9 @@ name: build
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
-
+    branches: [main]
 
 jobs:
   format:
@@ -18,8 +17,8 @@ jobs:
         with:
           python-version: 3.9
 
-      - name: Install Poetry
-        uses: abatilo/actions-poetry@v4
+      - name: Install uv
+        run: pip install uv
 
       - name: Check Python
         run: |
@@ -29,7 +28,7 @@ jobs:
           make format
 
       - name: Check Data
-        run:  make check-data
+        run: make check-data
 
   unit_test:
     strategy:
@@ -39,7 +38,7 @@ jobs:
           - macos-13
           - macos-14
           - macos-15
-          - windows-2019
+          - windows-2022
           - ubuntu-latest
     runs-on: ${{ matrix.os }}
     steps:
@@ -50,8 +49,8 @@ jobs:
         with:
           python-version: 3.9
 
-      - name: Install Poetry
-        uses: abatilo/actions-poetry@v4
+      - name: Install uv
+        run: pip install uv
 
       - name: Run unit tests
         run: |
