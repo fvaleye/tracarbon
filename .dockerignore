@@ -1,0 +1,20 @@
+.git
+.venv
+.vscode
+__pycache__
+*.pyc
+.DS_Store
+.env
+# Docker
+.dockerignore
+Dockerfile
+*.log
+# Uv
+uv.lock
+# Tests
+.pytest_cache
+.coverage
+htmlcov
+.tox
+# MyPy
+.mypy_cache

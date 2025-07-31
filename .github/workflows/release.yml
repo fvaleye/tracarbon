@@ -2,7 +2,7 @@ name: Release to PyPI
 
 on:
   push:
-    tags: [ 'v*' ]
+    tags: ["v*"]
 
 defaults:
   run:
@@ -33,15 +33,20 @@ jobs:
         with:
           python-version: 3.9
 
-      - name: Install Poetry
-        uses: abatilo/actions-poetry@v4
+      - name: Install uv and twine
+        run: pip install uv twine
 
       - name: Setup
         run: make init
 
-      - name: Publish
-        run: poetry publish --build --username "${{ secrets.PYPI_USERNAME }}" --password "${{ secrets.PYPI_PASSWORD }}"
+      - name: Build
+        run: uv build
 
+      - name: Publish
+        run: twine upload dist/*
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
 
   release-documentation:
     needs: release-pypi-ubuntu
@@ -53,8 +58,8 @@ jobs:
         with:
           python-version: 3.9
 
-      - name: Install Poetry
-        uses: abatilo/actions-poetry@v4
+      - name: Install uv
+        run: pip install uv
 
       - name: Setup
         run: make init
@@ -86,35 +91,35 @@ jobs:
     needs: release-pypi-ubuntu
     runs-on: ubuntu-latest
     steps:
-       - name: Checkout
-         uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-       - name: Set up QEMU
-         uses: docker/setup-qemu-action@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
 
-       - name: Set up Docker Buildx
-         uses: docker/setup-buildx-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-       - name: Docker meta
-         id: meta
-         uses: docker/metadata-action@v4
-         with:
-            images: |
-               florianvaleye/tracarbon
-            tags: |
-               type=ref,event=branch
-               type=semver,pattern={{version}}
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            florianvaleye/tracarbon
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
 
-       - name: Login to DockerHub
-         uses: docker/login-action@v2
-         with:
-            username: ${{ secrets.DOCKERHUB_USERNAME }}
-            password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-       - name: Build and push
-         uses: docker/build-push-action@v4
-         with:
-            context: .
-            push: true
-            tags: ${{ steps.meta.outputs.tags }}
-            labels: ${{ steps.meta.outputs.labels }}
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
