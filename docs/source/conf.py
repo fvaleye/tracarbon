@@ -50,6 +50,7 @@ nitpick_ignore = [
     ("py:class", "threading.Event"),
     ("py:class", "prometheus_client.metrics.Gauge"),
     ("py:class", "kubernetes.client.api.custom_objects_api.CustomObjectsApi"),
+    ("py:class", "ConfigDict"),
 ]
 
 # Add any paths that contain templates here, relative to this directory.
