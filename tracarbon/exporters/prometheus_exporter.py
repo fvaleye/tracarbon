@@ -4,6 +4,7 @@ from typing import Dict
 from typing import Optional
 
 from loguru import logger
+from pydantic import Field
 
 from tracarbon.conf import PROMETHEUS_INSTALLED
 from tracarbon.exporters.exporter import Exporter
@@ -19,7 +20,7 @@ if PROMETHEUS_INSTALLED:
         Send the metrics to Prometheus by running an HTTP server for the metrics exposure.
         """
 
-        prometheus_metrics: Dict[str, Gauge] = dict()
+        prometheus_metrics: Dict[str, Gauge] = Field(default_factory=dict)
         address: Optional[str] = None
         port: Optional[int] = None
 

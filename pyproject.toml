@@ -51,7 +51,8 @@ dev = [
     "types-aiofiles>=24.1.0,<25.0.0",
     "kubernetes>=26.1,<34.0",
     "autodoc_pydantic==2.2.0",
-    "uv"
+    "uv",
+    "pre-commit>=3.7.0,<5.0.0"
 ]
 all = [
     "tracarbon[datadog]",
@@ -65,7 +66,10 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 include-package-data = true
-packages = ["tracarbon"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["tracarbon*"]
 
 [project.scripts]
 tracarbon = "tracarbon.cli:main"
@@ -99,14 +103,16 @@ exclude_dirs = ["tests", "scripts", ".venv"]
 
 [tool.ruff]
 fix = true
-select = ["I", "S", "B"]
 line-length = 120
+
+[tool.ruff.lint]
+select = ["I", "S", "B"]
 ignore = ["B023", "S603"]
 
-[tool.ruff.per-file-ignores]  # Don’t apply ruff rules to our tests
+[tool.ruff.lint.per-file-ignores]  # Don’t apply ruff rules to our tests
 "**/tests/*" = ["S"]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 force-single-line = true
 
 [tool.pytest.ini_options]

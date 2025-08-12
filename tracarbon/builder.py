@@ -3,6 +3,8 @@ from typing import Dict
 from typing import Optional
 
 from pydantic import BaseModel
+from pydantic import ConfigDict
+from pydantic import Field
 
 from tracarbon.conf import TracarbonConfiguration
 from tracarbon.exporters import Exporter
@@ -20,12 +22,8 @@ class TracarbonReport(BaseModel):
 
     start_time: Optional[datetime.datetime] = None
     end_time: Optional[datetime.datetime] = None
-    metric_report: Dict[str, MetricReport] = dict()
-
-    class Config:
-        """Pydantic configuration."""
-
-        arbitrary_types_allowed = True
+    metric_report: Dict[str, MetricReport] = Field(default_factory=dict)
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class Tracarbon:
@@ -36,7 +34,7 @@ class Tracarbon:
     configuration: TracarbonConfiguration
     exporter: Exporter
     location: Location
-    report: TracarbonReport = TracarbonReport()
+    report: TracarbonReport
 
     def __init__(
         self,
@@ -47,9 +45,11 @@ class Tracarbon:
         self.configuration = configuration
         self.exporter = exporter
         self.location = location
+        self.report = TracarbonReport()
 
-    def __enter__(self) -> None:
+    def __enter__(self) -> "Tracarbon":
         self.start()
+        return self
 
     def __exit__(self, type, value, traceback) -> None:  # type: ignore
         self.stop()

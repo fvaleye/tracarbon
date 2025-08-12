@@ -31,13 +31,13 @@ def logger_configuration(level: str) -> None:
     """
     from loguru import logger
 
-    format = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <cyan><level>{level: <8}</level></cyan> <level>{message}</level>"
-    config = {
+    log_format = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <cyan><level>{level: <8}</level></cyan> <level>{message}</level>"
+    logger_config = {
         "handlers": [
-            {"sink": sys.stderr, "format": format, "level": level},
+            {"sink": sys.stderr, "format": log_format, "level": level},
         ],
     }
-    logger.configure(**config)  # type: ignore
+    logger.configure(**logger_config)  # type: ignore
 
 
 class TracarbonConfiguration(BaseModel):

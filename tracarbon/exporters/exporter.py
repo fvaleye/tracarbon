@@ -15,6 +15,8 @@ from typing import Optional
 from asyncer import asyncify
 from loguru import logger
 from pydantic import BaseModel
+from pydantic import ConfigDict
+from pydantic import Field
 
 from tracarbon.hardwares.hardware import HardwareInfo
 from tracarbon.locations import Location
@@ -36,7 +38,7 @@ class Metric(BaseModel):
 
     name: str
     value: Callable[[], Awaitable[float]]
-    tags: List[Tag] = list()
+    tags: List[Tag] = Field(default_factory=list)
 
     def format_name(self, metric_prefix_name: Optional[str] = None, separator: str = ".") -> str:
         """
@@ -73,10 +75,7 @@ class MetricReport(BaseModel):
     maximum: float = 0.0
     call_count: int = 0
 
-    class Config:
-        """Pydantic configuration."""
-
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class MetricGenerator(BaseModel):
@@ -103,12 +102,9 @@ class Exporter(BaseModel, metaclass=ABCMeta):
     event: Optional[Event] = None
     stopped: bool = False
     metric_prefix_name: Optional[str] = None
-    metric_report: Dict[str, MetricReport] = dict()
+    metric_report: Dict[str, MetricReport] = Field(default_factory=dict)
 
-    class Config:
-        """Pydantic configuration."""
-
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @abstractmethod
     async def launch(self, metric_generator: "MetricGenerator") -> None:
