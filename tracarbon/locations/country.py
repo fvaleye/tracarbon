@@ -29,16 +29,18 @@ class Country(Location):
         :param country_code_alpha_iso_2: the alpha_iso_2 name of the country
         :return:
         """
-        with importlib.resources.path("tracarbon.locations.data", "co2-emission-intensity-9.exhibit.json") as resource:
-            with open(str(resource)) as json_file:
-                countries_values = ujson.load(json_file)["countries"]
-                for country in countries_values:
-                    if country_code_alpha_iso_2.lower() == country["name"]:
-                        return cls.parse_obj(country)
+        resource_file = importlib.resources.files("tracarbon.locations.data").joinpath(
+            "co2-emission-intensity-9.exhibit.json"
+        )
+        with resource_file.open("r") as json_file:
+            countries_values = ujson.load(json_file)["countries"]
+            for country in countries_values:
+                if country_code_alpha_iso_2.lower() == country["name"]:
+                    return cls.model_validate(country)
         raise CountryIsMissing(f"The country [{country_code_alpha_iso_2}] is not in the co2 emission file.")
 
     @classmethod
-    def get_current_country(cls, url: str = "http://ipinfo.io/json", timeout: int = 300) -> str:
+    def get_current_country(cls, url: str = "https://ipinfo.io/json", timeout: int = 300) -> str:
         """
         Get the client's country using an internet access.
 
@@ -132,18 +134,18 @@ class AWSLocation(Country):
     """
 
     def __init__(self, region_name: str, **data: Any) -> None:
-        with importlib.resources.path("tracarbon.locations.data", "grid-emissions-factors-aws.csv") as resource:
-            co2g_kwh = None
-            with open(str(resource)) as csv_file:
-                reader = csv.reader(csv_file)
-                for row in reader:
-                    if row[0] == region_name:
-                        co2g_kwh = float(row[3]) * 1000000
-                        super().__init__(name=f"AWS({region_name})", co2g_kwh=co2g_kwh, **data)
-                if not co2g_kwh:
-                    raise CloudProviderRegionIsMissing(
-                        f"The region [{region_name}] is not in the AWS grid emissions factors file."
-                    )
+        resource_file = importlib.resources.files("tracarbon.locations.data").joinpath("grid-emissions-factors-aws.csv")
+        co2g_kwh = None
+        with resource_file.open("r") as csv_file:
+            reader = csv.reader(csv_file)
+            for row in reader:
+                if row[0] == region_name:
+                    co2g_kwh = float(row[3]) * 1000000
+                    super().__init__(name=f"AWS({region_name})", co2g_kwh=co2g_kwh, **data)
+            if not co2g_kwh:
+                raise CloudProviderRegionIsMissing(
+                    f"The region [{region_name}] is not in the AWS grid emissions factors file."
+                )
 
     @cached()  # type: ignore
     async def get_latest_co2g_kwh(self) -> float:

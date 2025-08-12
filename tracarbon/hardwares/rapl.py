@@ -9,6 +9,7 @@ from typing import Optional
 import aiofiles
 from loguru import logger
 from pydantic import BaseModel
+from pydantic import Field
 
 from tracarbon.exceptions import HardwareRAPLException
 from tracarbon.hardwares.energy import EnergyUsage
@@ -33,8 +34,8 @@ class RAPL(BaseModel):
 
     path: str = "/sys/class/powercap/intel-rapl"
     rapl_separator: str = ":"
-    rapl_results: Dict[str, RAPLResult] = dict()
-    file_list: List[str] = list()
+    rapl_results: Dict[str, RAPLResult] = Field(default_factory=dict)
+    file_list: List[str] = Field(default_factory=list)
 
     def is_rapl_compatible(self) -> bool:
         """
@@ -112,16 +113,17 @@ class RAPL(BaseModel):
         gpu_energy_usage_watts = 0.0
         for rapl_result in rapl_results:
             previous_rapl_result = self.rapl_results.get(rapl_result.name, rapl_result)
-            time_difference = (rapl_result.timestamp - previous_rapl_result.timestamp).total_seconds()
+            # Round to the nearest second to make calculation stable over small IO delays
+            time_difference_seconds = round((rapl_result.timestamp - previous_rapl_result.timestamp).total_seconds())
+            if time_difference_seconds <= 0:
+                time_difference_seconds = 1
             energy_uj = rapl_result.energy_uj
             if previous_rapl_result.energy_uj > rapl_result.energy_uj:
                 logger.debug(
                     f"Wrap-around detected in RAPL {rapl_result.name}. The current RAPL energy value ({rapl_result.energy_uj}) is lower than previous value ({previous_rapl_result.energy_uj})."
                 )
                 energy_uj = energy_uj + rapl_result.max_energy_uj
-            watts = Power.watts_from_microjoules(
-                ((energy_uj - previous_rapl_result.energy_uj) / time_difference if time_difference > 0 else 1)
-            )
+            watts = Power.watts_from_microjoules((energy_uj - previous_rapl_result.energy_uj) / time_difference_seconds)
             self.rapl_results[rapl_result.name] = rapl_result
             if "package" in rapl_result.name or "ram" in rapl_result.name:
                 host_energy_usage_watts += watts

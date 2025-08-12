@@ -1,12 +1,13 @@
 import asyncio
 import csv
-import importlib
+import importlib.resources
 from abc import ABC
 from abc import abstractmethod
 from typing import Any
 
 from loguru import logger
 from pydantic import BaseModel
+from pydantic import ConfigDict
 
 from tracarbon.exceptions import AWSSensorException
 from tracarbon.exceptions import TracarbonException
@@ -21,10 +22,7 @@ class Sensor(ABC, BaseModel):
     The Sensor contract.
     """
 
-    class Config:
-        """Pydantic configuration."""
-
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @abstractmethod
     async def get_energy_usage(self) -> EnergyUsage:
@@ -144,33 +142,31 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
     delta_full_machine: float
 
     def __init__(self, instance_type: str, **data: Any) -> None:
-        with importlib.resources.path("tracarbon.hardwares.data", "aws-instances.csv") as resource:
-            try:
-                with open(str(resource)) as csvfile:
-                    reader = csv.reader(csvfile)
+        resource_file = importlib.resources.files("tracarbon.hardwares.data").joinpath("aws-instances.csv")
+        try:
+            with resource_file.open("r") as csvfile:
+                reader = csv.reader(csvfile)
 
-                    for row in reader:
-                        if row[0] == instance_type:
-                            data["cpu_idle"] = float(row[14].replace(",", "."))
-                            data["cpu_at_10"] = float(row[15].replace(",", "."))
-                            data["cpu_at_50"] = float(row[16].replace(",", "."))
-                            data["cpu_at_100"] = float(row[17].replace(",", "."))
-                            data["memory_idle"] = float(row[18].replace(",", "."))
-                            data["memory_at_10"] = float(row[19].replace(",", "."))
-                            data["memory_at_50"] = float(row[20].replace(",", "."))
-                            data["memory_at_100"] = float(row[21].replace(",", "."))
-                            data["has_gpu"] = float(row[22].replace(",", ".")) > 0
-                            data["delta_full_machine"] = float(row[26].replace(",", "."))
-                            super().__init__(
-                                **data,
-                            )
-                            return
-                raise AWSSensorException(
-                    f"The AWS instance type [{instance_type}] is missing from the aws instances file."
-                )
-            except Exception as exception:
-                logger.exception("Error in the AWSSensor")
-                raise AWSSensorException(exception) from exception
+                for row in reader:
+                    if row[0] == instance_type:
+                        data["cpu_idle"] = float(row[14].replace(",", "."))
+                        data["cpu_at_10"] = float(row[15].replace(",", "."))
+                        data["cpu_at_50"] = float(row[16].replace(",", "."))
+                        data["cpu_at_100"] = float(row[17].replace(",", "."))
+                        data["memory_idle"] = float(row[18].replace(",", "."))
+                        data["memory_at_10"] = float(row[19].replace(",", "."))
+                        data["memory_at_50"] = float(row[20].replace(",", "."))
+                        data["memory_at_100"] = float(row[21].replace(",", "."))
+                        data["has_gpu"] = float(row[22].replace(",", ".")) > 0
+                        data["delta_full_machine"] = float(row[26].replace(",", "."))
+                        super().__init__(
+                            **data,
+                        )
+                        return
+            raise AWSSensorException(f"The AWS instance type [{instance_type}] is missing from the aws instances file.")
+        except Exception as exception:
+            logger.exception("Error in the AWSSensor")
+            raise AWSSensorException(exception) from exception
 
     async def get_energy_usage(self) -> EnergyUsage:
         """

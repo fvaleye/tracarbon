@@ -56,28 +56,26 @@ class EnergyUsage(BaseModel):
 
     def convert_unit(self, unit: EnergyUsageUnit) -> None:
         """
-        Convert the EnergyUsage with the right energy usage type
+        Convert the EnergyUsage values to the requested unit.
 
-        :param: unit: the energy usage unit for the conversion
+        :param unit: the target energy usage unit for the conversion
         """
-        if self.unit != unit:
-            if unit == EnergyUsageUnit.WATT and self.unit == EnergyUsageUnit.MILLIWATT:
-                self.host_energy_usage = self.host_energy_usage * 1000
-                self.cpu_energy_usage = self.cpu_energy_usage * 1000 if self.cpu_energy_usage is not None else None
-                self.memory_energy_usage = (
-                    self.memory_energy_usage * 1000 if self.memory_energy_usage is not None else None
-                )
-                self.gpu_energy_usage = self.gpu_energy_usage / 1000 if self.gpu_energy_usage is not None else None
-                self.unit = EnergyUsageUnit.MILLIWATT
-            elif unit == EnergyUsageUnit.MILLIWATT and self.unit == EnergyUsageUnit.WATT:
-                self.host_energy_usage = self.host_energy_usage * 1000
-
-                self.cpu_energy_usage = self.cpu_energy_usage * 1000 if self.cpu_energy_usage is not None else None
-                self.memory_energy_usage = (
-                    self.memory_energy_usage * 1000 if self.memory_energy_usage is not None else None
-                )
-                self.gpu_energy_usage = self.gpu_energy_usage * 1000 if self.gpu_energy_usage is not None else None
-                self.unit = EnergyUsageUnit.MILLIWATT
+        if self.unit == unit:
+            return
+        # Convert from milliwatts to watts
+        if self.unit == EnergyUsageUnit.MILLIWATT and unit == EnergyUsageUnit.WATT:
+            self.host_energy_usage = self.host_energy_usage / 1000
+            self.cpu_energy_usage = self.cpu_energy_usage / 1000 if self.cpu_energy_usage is not None else None
+            self.memory_energy_usage = self.memory_energy_usage / 1000 if self.memory_energy_usage is not None else None
+            self.gpu_energy_usage = self.gpu_energy_usage / 1000 if self.gpu_energy_usage is not None else None
+            self.unit = EnergyUsageUnit.WATT
+        # Convert from watts to milliwatts
+        elif self.unit == EnergyUsageUnit.WATT and unit == EnergyUsageUnit.MILLIWATT:
+            self.host_energy_usage = self.host_energy_usage * 1000
+            self.cpu_energy_usage = self.cpu_energy_usage * 1000 if self.cpu_energy_usage is not None else None
+            self.memory_energy_usage = self.memory_energy_usage * 1000 if self.memory_energy_usage is not None else None
+            self.gpu_energy_usage = self.gpu_energy_usage * 1000 if self.gpu_energy_usage is not None else None
+            self.unit = EnergyUsageUnit.MILLIWATT
 
 
 class Power(BaseModel):

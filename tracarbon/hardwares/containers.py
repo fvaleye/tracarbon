@@ -66,10 +66,9 @@ if KUBERNETES_INSTALLED:
         group: str = "metrics.k8s.io"
         version: str = "v1beta1"
 
-        class Config:
-            """Pydantic configuration."""
-
-            arbitrary_types_allowed = True
+        model_config = {
+            "arbitrary_types_allowed": True,
+        }
 
         def __init__(self, **data: Any) -> None:
             try:
