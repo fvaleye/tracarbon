@@ -23,7 +23,7 @@ dependencies = [
     "typer>=0.7,<0.20",
     "ec2-metadata>=2.14.0,<3.0.0",
     "python-dotenv>=0.21,<1.2",
-    "asyncer>=0.0.5,<0.0.10",
+    "asyncer>=0.0.5,<0.0.11",
 ]
 
 [project.optional-dependencies]
