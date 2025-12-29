@@ -1,59 +1,59 @@
 {
   "countries": [
     {
-      "co2g_kwh": 479.2,
+      "co2g_kwh": 394,
       "name": "gr"
     },
     {
-      "co2g_kwh": 410.4,
+      "co2g_kwh": 455,
       "name": "bg"
     },
     {
-      "co2g_kwh": 133.8,
+      "co2g_kwh": 170,
       "name": "hr"
     },
     {
-      "co2g_kwh": 198.4,
+      "co2g_kwh": 171,
       "name": "pt"
     },
     {
-      "co2g_kwh": 51.1,
+      "co2g_kwh": 74,
       "name": "fr"
     },
     {
-      "co2g_kwh": 328.4,
+      "co2g_kwh": 310,
       "name": "nl"
     },
     {
-      "co2g_kwh": 774.9,
+      "co2g_kwh": 693,
       "name": "ee"
     },
     {
-      "co2g_kwh": 311.0,
+      "co2g_kwh": 368,
       "name": "de"
     },
     {
-      "co2g_kwh": 45.4,
+      "co2g_kwh": 110,
       "name": "lt"
     },
     {
-      "co2g_kwh": 709.8,
+      "co2g_kwh": 681,
       "name": "pl"
     },
     {
-      "co2g_kwh": 8.8,
+      "co2g_kwh": 8,
       "name": "se"
     },
     {
-      "co2g_kwh": 213.4,
+      "co2g_kwh": 297,
       "name": "it"
     },
     {
-      "co2g_kwh": 278.6,
+      "co2g_kwh": 305,
       "name": "ie"
     },
     {
-      "co2g_kwh": 436.6,
+      "co2g_kwh": 407,
       "name": "cz"
     },
     {
@@ -61,55 +61,55 @@
       "name": "gb"
     },
     {
-      "co2g_kwh": 161.0,
+      "co2g_kwh": 154,
       "name": "be"
     },
     {
-      "co2g_kwh": 82.4,
+      "co2g_kwh": 80,
       "name": "at"
     },
     {
-      "co2g_kwh": 106.5,
+      "co2g_kwh": 66,
       "name": "lv"
     },
     {
-      "co2g_kwh": 379.0,
+      "co2g_kwh": 348,
       "name": "mt"
     },
     {
-      "co2g_kwh": 216.4,
+      "co2g_kwh": 181,
       "name": "hu"
     },
     {
-      "co2g_kwh": 68.6,
+      "co2g_kwh": 62,
       "name": "fi"
     },
     {
-      "co2g_kwh": 101.7,
+      "co2g_kwh": 95,
       "name": "sk"
     },
     {
-      "co2g_kwh": 109.0,
+      "co2g_kwh": 117,
       "name": "dk"
     },
     {
-      "co2g_kwh": 217.8,
+      "co2g_kwh": 202,
       "name": "si"
     },
     {
-      "co2g_kwh": 156.4,
+      "co2g_kwh": 178,
       "name": "es"
     },
     {
-      "co2g_kwh": 58.5,
+      "co2g_kwh": 62,
       "name": "lu"
     },
     {
-      "co2g_kwh": 299.5,
+      "co2g_kwh": 250,
       "name": "ro"
     },
     {
-      "co2g_kwh": 620.9,
+      "co2g_kwh": 591,
       "name": "cy"
     }
   ]

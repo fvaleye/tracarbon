@@ -29,9 +29,7 @@ class Country(Location):
         :param country_code_alpha_iso_2: the alpha_iso_2 name of the country
         :return:
         """
-        resource_file = importlib.resources.files("tracarbon.locations.data").joinpath(
-            "co2-emission-intensity-9.exhibit.json"
-        )
+        resource_file = importlib.resources.files("tracarbon.locations.data").joinpath("eu-co2-emission-intensity.json")
         with resource_file.open("r") as json_file:
             countries_values = ujson.load(json_file)["countries"]
             for country in countries_values:
@@ -118,7 +116,7 @@ class Country(Location):
             logger.info(f"The latest carbon intensity of your country {self.name} is: {self.co2g_kwh} CO2g/kwh.")
         except Exception:
             logger.error(
-                f'Failed to get the latest carbon intensity of your country {self.name} {response if response else ""}.'
+                f"Failed to get the latest carbon intensity of your country {self.name} {response if response else ''}."
                 f"Please check your API configuration."
                 f"Fallback to use the last known CO2g/kWh of your location {self.co2g_kwh}"
             )
