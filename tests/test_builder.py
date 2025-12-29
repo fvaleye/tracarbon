@@ -14,7 +14,7 @@ def test_builder_without_configuration(mocker):
     mocker.patch.object(Country, "get_current_country", return_value=location)
     builder = TracarbonBuilder()
     expected_exporter = StdoutExporter(
-        metric_generators=[CarbonEmissionGenerator(location=Country(name=location, co2g_kwh=51.1))]
+        metric_generators=[CarbonEmissionGenerator(location=Country(name=location, co2g_kwh=74.0))]
     )
 
     tracarbon = builder.build()
@@ -22,13 +22,13 @@ def test_builder_without_configuration(mocker):
     assert tracarbon.configuration == TracarbonConfiguration()
     assert type(tracarbon.exporter) == type(expected_exporter)
     assert type(tracarbon.exporter.metric_generators[0]) == type(expected_exporter.metric_generators[0])
-    assert tracarbon.location == Country(name=location, co2g_kwh=51.1)
+    assert tracarbon.location == Country(name=location, co2g_kwh=74.0)
 
 
 @pytest.mark.darwin
 def test_builder_with_configuration():
     configuration = TracarbonConfiguration(co2signal_api_key="API_KEY")
-    expected_location = Country(name="fr", co2g_kwh=51.1)
+    expected_location = Country(name="fr", co2g_kwh=74.0)
     expected_exporter = StdoutExporter(metric_generators=[CarbonEmissionGenerator(location=expected_location)])
     builder = TracarbonBuilder(configuration=configuration)
 

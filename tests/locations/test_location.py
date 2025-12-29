@@ -25,7 +25,7 @@ def test_country_location(mocker):
         return_value=False,
     )
     location_expected = "be"
-    co2g_kwh = 161.0
+    co2g_kwh = 154.0
 
     mocker.patch.object(Country, "get_current_country", return_value=location_expected)
 
@@ -52,7 +52,7 @@ def test_unknown_location(mocker):
 
 def test_world_emission_should_get_country():
     country_code_alpha_iso_2 = "fr"
-    co2g_kwh_expected = 51.1
+    co2g_kwh_expected = 74.0
     country_expected = Country(
         name=country_code_alpha_iso_2,
         co2g_kwh=co2g_kwh_expected,

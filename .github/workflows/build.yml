@@ -35,7 +35,6 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - macos-13
           - macos-14
           - macos-15
           - windows-2022

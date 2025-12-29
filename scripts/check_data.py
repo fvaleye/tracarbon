@@ -20,8 +20,8 @@ def check_content_length(url: str, expected_content_length: str) -> bool:
 if __name__ == "__main__":
     urls = [
         {
-            "url": "https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-9/download.exhibit",
-            "content_length": "106078",
+            "url": "https://www.eea.europa.eu/en/analysis/maps-and-charts/co2-emission-intensity-15/@@download/file",
+            "content_length": "18552",
         },
         {
             "url": "https://raw.githubusercontent.com/cloud-carbon-footprint/ccf-coefficients/main/data/aws-instances.csv",
