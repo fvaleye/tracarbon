@@ -1,6 +1,7 @@
 import pytest
 import requests
 
+from tracarbon import AMDRAPL
 from tracarbon import RAPL
 from tracarbon import AWSEC2EnergyConsumption
 from tracarbon import EnergyConsumption
@@ -107,18 +108,35 @@ async def test_get_platform_should_return_the_platform_energy_consumption_linux_
     mocker,
 ):
     mocker.patch.object(RAPL, "is_rapl_compatible", return_value=False)
+    mocker.patch.object(AMDRAPL, "is_amd_rapl_compatible", return_value=False)
 
     with pytest.raises(TracarbonException) as exception:
         await LinuxEnergyConsumption().get_energy_usage()
-    assert exception.value.args[0] == "This Linux hardware is not yet supported."
+    assert "No supported RAPL interface found" in exception.value.args[0]
 
 
 @pytest.mark.asyncio
 async def test_get_platform_should_return_the_platform_energy_consumption_linux(mocker):
-    energy_usage = EnergyUsage(host_energy_usage_watts=1.8)
+    energy_usage = EnergyUsage(host_energy_usage=1.8)
     mocker.patch.object(RAPL, "is_rapl_compatible", return_value=True)
     mocker.patch.object(
         RAPL,
+        "get_energy_report",
+        return_value=energy_usage,
+    )
+
+    results = await LinuxEnergyConsumption().get_energy_usage()
+
+    assert results == energy_usage
+
+
+@pytest.mark.asyncio
+async def test_get_platform_should_return_amd_rapl_when_intel_not_available(mocker):
+    energy_usage = EnergyUsage(host_energy_usage=2.5)
+    mocker.patch.object(RAPL, "is_rapl_compatible", return_value=False)
+    mocker.patch.object(AMDRAPL, "is_amd_rapl_compatible", return_value=True)
+    mocker.patch.object(
+        AMDRAPL,
         "get_energy_report",
         return_value=energy_usage,
     )

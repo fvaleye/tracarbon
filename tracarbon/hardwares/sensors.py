@@ -11,8 +11,9 @@ from pydantic import ConfigDict
 
 from tracarbon.exceptions import AWSSensorException
 from tracarbon.exceptions import TracarbonException
-from tracarbon.hardwares import EnergyUsage
+from tracarbon.hardwares.amd_rapl import AMDRAPL
 from tracarbon.hardwares.cloud_providers import CloudProviders
+from tracarbon.hardwares.energy import EnergyUsage
 from tracarbon.hardwares.hardware import HardwareInfo
 from tracarbon.hardwares.rapl import RAPL
 
@@ -95,20 +96,46 @@ class MacEnergyConsumption(EnergyConsumption):
 
 class LinuxEnergyConsumption(EnergyConsumption):
     """
-    Energy Consumption of a Linux device: https://github.com/fvaleye/tracarbon/issues/1
+    Energy Consumption of a Linux device.
+
+    Supports both Intel and AMD processors via RAPL:
+    - Intel: Uses powercap interface at /sys/class/powercap/intel-rapl
+    - AMD (kernel 5.8+): Also uses powercap interface (same path as Intel)
+    - AMD (older/alternative): Uses HWMON interface via amd_energy driver
+
     """
 
     rapl: RAPL = RAPL()
+    amd_rapl: AMDRAPL = AMDRAPL()
+    _active_sensor: str = ""
 
     async def get_energy_usage(self) -> EnergyUsage:
         """
         Run the sensor and generate energy usage.
 
+        Tries sensors in order of preference:
+        1. Intel RAPL (powercap) - works for Intel and AMD on kernel 5.8+
+        2. AMD RAPL (HWMON) - fallback for AMD with amd_energy driver
+
         :return: the generated energy usage.
         """
         if self.rapl.is_rapl_compatible():
+            if self._active_sensor != "intel_rapl":
+                logger.info("Using Intel RAPL (powercap) for energy measurement")
+                self._active_sensor = "intel_rapl"
             return await self.rapl.get_energy_report()
-        raise TracarbonException(f"This Linux hardware is not yet supported.")
+
+        if await self.amd_rapl.is_amd_rapl_compatible():
+            if self._active_sensor != "amd_rapl":
+                logger.info("Using AMD RAPL (HWMON) for energy measurement")
+                self._active_sensor = "amd_rapl"
+            return await self.amd_rapl.get_energy_report()
+
+        raise TracarbonException(
+            "No supported RAPL interface found. "
+            "Intel RAPL requires /sys/class/powercap/intel-rapl. "
+            "AMD RAPL requires kernel 5.8+ or amd_energy driver."
+        )
 
 
 class WindowsEnergyConsumption(EnergyConsumption):
