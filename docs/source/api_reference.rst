@@ -38,6 +38,9 @@ Hardware
 .. automodule:: tracarbon.hardwares.rapl
     :members:
 
+.. automodule:: tracarbon.hardwares.amd_rapl
+    :members:
+
 .. automodule:: tracarbon.hardwares.sensors
     :members:
 
