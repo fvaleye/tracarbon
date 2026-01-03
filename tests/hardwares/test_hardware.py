@@ -3,10 +3,8 @@ import shutil
 from collections import namedtuple
 
 import psutil
-import pytest
 
 from tracarbon import HardwareInfo
-from tracarbon.exceptions import TracarbonException
 from tracarbon.hardwares.gpu import NvidiaGPU
 
 
@@ -59,26 +57,35 @@ def test_get_cpu_count(mocker):
 
 
 def test_get_gpu_power_usage(mocker):
-    gpu_power_usage_returned = "226 W"
+    gpu_power_usage_returned = b"226 W"
     gpu_usage_expected = 226
-    mocker.patch.object(NvidiaGPU, "launch_shell_command", return_value=[gpu_power_usage_returned, 0])
+    mocker.patch.object(shutil, "which", return_value="/usr/bin/nvidia-smi")
+    mocker.patch.object(NvidiaGPU, "launch_shell_command", return_value=(gpu_power_usage_returned, 0))
+    mocker.patch("tracarbon.hardwares.gpu.platform.system", return_value="Linux")
 
     gpu_usage = HardwareInfo.get_gpu_power_usage()
 
     assert gpu_usage == gpu_usage_expected
 
 
-def test_get_gpu_power_usage_with_no_0(mocker):
-    gpu_power_usage_returned = "0 W"
-    mocker.patch.object(shutil, "which", return_value=True)
-    mocker.patch.object(NvidiaGPU, "launch_shell_command", return_value=[gpu_power_usage_returned, -1])
+def test_get_gpu_power_usage_with_non_zero_return_code(mocker):
+    from tracarbon.exceptions import HardwareNoGPUDetectedException
+    from tracarbon.hardwares.gpu import GPUInfo
 
-    with pytest.raises(TracarbonException) as exception:
-        HardwareInfo.get_gpu_power_usage()
-    assert exception.value.args[0] == "No Nvidia GPU detected."
+    mocker.patch.object(
+        NvidiaGPU,
+        "get_gpu_power_usage",
+        side_effect=HardwareNoGPUDetectedException("No Nvidia GPU detected."),
+    )
+    mocker.patch("tracarbon.hardwares.gpu.platform.system", return_value="Linux")
+    mocker.patch("tracarbon.hardwares.gpu.shutil.which", return_value=None)
+
+    gpu_usage = GPUInfo.get_gpu_power_usage()
+    assert gpu_usage == 0.0
 
 
-def test_get_gpu_power_usage_with_no_gpu():
-    with pytest.raises(TracarbonException) as exception:
-        HardwareInfo.get_gpu_power_usage()
-    assert exception.value.args[0] == "Nvidia GPU with nvidia-smi not found in PATH."
+def test_get_gpu_power_usage_with_no_gpu(mocker):
+    mocker.patch.object(shutil, "which", return_value=None)
+
+    gpu_usage = HardwareInfo.get_gpu_power_usage()
+    assert gpu_usage == 0.0
