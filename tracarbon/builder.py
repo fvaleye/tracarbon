@@ -39,8 +39,8 @@ class Tracarbon:
     def __init__(
         self,
         configuration: TracarbonConfiguration,
-        exporter: Optional[Exporter],
-        location: Optional[Location],
+        exporter: Exporter,
+        location: Location,
     ) -> None:
         self.configuration = configuration
         self.exporter = exporter

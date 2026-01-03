@@ -3,8 +3,8 @@ import importlib.resources
 from typing import Any
 from typing import Optional
 
+import orjson
 import requests
-import ujson
 from aiocache import cached
 from loguru import logger
 
@@ -30,8 +30,8 @@ class Country(Location):
         :return:
         """
         resource_file = importlib.resources.files("tracarbon.locations.data").joinpath("eu-co2-emission-intensity.json")
-        with resource_file.open("r") as json_file:
-            countries_values = ujson.load(json_file)["countries"]
+        with resource_file.open("rb") as json_file:
+            countries_values = orjson.loads(json_file.read())["countries"]
             for country in countries_values:
                 if country_code_alpha_iso_2.lower() == country["name"]:
                     return cls.model_validate(country)
@@ -49,7 +49,7 @@ class Country(Location):
         try:
             logger.debug(f"Send request to this url: {url}, timeout {timeout}s")
             text = requests.get(url, timeout=timeout).text
-            content_json = ujson.loads(text)
+            content_json = orjson.loads(text)
             return content_json["country"]
         except Exception as exception:
             logger.error(f"Failed to request this url: {url}")

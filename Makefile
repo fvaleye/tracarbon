@@ -11,6 +11,11 @@ format: ## Format the code
 	$(info --- 🐍 Check Python format ---)
 	pre-commit run -a
 
+.PHONY: typecheck
+typecheck: ## Run type checking with ty
+	$(info --- 🐍 Type checking Python ---)
+	@uv run ty check tracarbon/
+
 .PHONY: security
 security: ## Run security checks
 	$(info --- 🐍 Security Python ---)

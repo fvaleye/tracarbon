@@ -1,10 +1,11 @@
 import atexit
 import os
 from datetime import datetime
+from datetime import timezone
 from typing import Any
 
 import aiofiles
-import ujson
+import orjson
 
 from tracarbon.exporters.exporter import Exporter
 from tracarbon.exporters.exporter import MetricGenerator
@@ -100,17 +101,17 @@ class JSONExporter(Exporter):
                         await file.write(f",{os.linesep}")
                     else:
                         await file.write(f"[{os.linesep}")
-                    await file.write(
-                        ujson.dumps(
-                            {
-                                "timestamp": str(datetime.utcnow()),
-                                "metric_name": metric.format_name(metric_prefix_name=self.metric_prefix_name),
-                                "metric_value": metric_value,
-                                "metric_tags": metric.format_tags(),
-                            },
-                            indent=self.indent,
-                        )
+                    option = orjson.OPT_INDENT_2 if self.indent >= 2 else 0
+                    json_bytes = orjson.dumps(
+                        {
+                            "timestamp": str(datetime.now(timezone.utc)),
+                            "metric_name": metric.format_name(metric_prefix_name=self.metric_prefix_name),
+                            "metric_value": metric_value,
+                            "metric_tags": metric.format_tags(),
+                        },
+                        option=option,
                     )
+                    await file.write(json_bytes.decode("utf-8"))
 
     @classmethod
     def get_name(cls) -> str:

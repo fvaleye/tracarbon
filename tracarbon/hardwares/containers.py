@@ -100,7 +100,7 @@ if KUBERNETES_INSTALLED:
                         f"The Kubernetes namespace {namespace} is not available in the namespaces {self.namespaces}."
                     )
                 )
-            for n in self.namespaces:
+            for n in self.namespaces or []:
                 if namespace and namespace != n:
                     continue
 

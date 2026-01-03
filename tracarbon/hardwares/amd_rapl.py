@@ -119,6 +119,8 @@ class AMDRAPL(BaseModel):
             if not self.energy_files:
                 self.get_energy_files_list()
 
+            if self.amd_energy_path is None:
+                raise ValueError("AMD energy HWMON interface not found")
             for energy_index in self.energy_files:
                 input_file = os.path.join(self.amd_energy_path, f"energy{energy_index}_input")
                 label_file = os.path.join(self.amd_energy_path, f"energy{energy_index}_label")
