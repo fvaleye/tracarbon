@@ -6,15 +6,15 @@ from typing import Dict
 from typing import Optional
 
 import aiohttp
-import ujson
+import orjson
 from aiocache import cached
 from loguru import logger
 from pydantic import BaseModel
 
 
-class CarbonIntensitySource(Enum):
-    FILE: str = "file"
-    CO2SignalAPI: str = "CO2SignalAPI"
+class CarbonIntensitySource(str, Enum):
+    FILE = "file"
+    CO2SignalAPI = "CO2SignalAPI"
 
 
 class Location(ABC, BaseModel):
@@ -43,7 +43,7 @@ class Location(ABC, BaseModel):
                 try:
                     logger.info(f"Sending request to the url: {url}.")
                     text = await response.text()
-                    return ujson.loads(text)
+                    return orjson.loads(text)
                 except Exception as exception:
                     logger.exception(f"Failed to request this url: {url}")
                     raise exception

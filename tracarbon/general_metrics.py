@@ -39,12 +39,14 @@ class EnergyConsumptionGenerator(MetricGenerator):
 
         for usage_type in UsageType:
 
-            async def energy_consumption_by_usage_type() -> float:
+            async def energy_consumption_by_usage_type() -> Optional[float]:
                 """
                 Get the energy usage.
                 """
                 return energy_usage.get_energy_usage_on_type(usage_type=usage_type)
 
+            if self.location is None:
+                raise ValueError("Location must be set")
             yield Metric(
                 name=f"energy_consumption_{usage_type.value}",
                 value=energy_consumption_by_usage_type,
@@ -87,12 +89,14 @@ class CarbonEmissionGenerator(MetricGenerator):
 
         for usage_type in UsageType:
 
-            async def get_carbon_emission_by_usage_type() -> float:
+            async def get_carbon_emission_by_usage_type() -> Optional[float]:
                 """
                 Get the carbon usage.
                 """
                 return carbon_usage.get_carbon_usage_on_type(usage_type=usage_type)
 
+            if self.location is None:
+                raise ValueError("Location must be set")
             yield Metric(
                 name=f"carbon_emission_{usage_type.value}",
                 value=get_carbon_emission_by_usage_type,
@@ -138,21 +142,30 @@ if KUBERNETES_INSTALLED:
                         """
                         Get the memory energy consumption of the pod.
                         """
+                        if energy_usage.memory_energy_usage is None:
+                            return None
                         return container.memory_usage * energy_usage.memory_energy_usage
 
                     async def get_pod_cpu_energy_consumption() -> Optional[float]:
                         """
                         Get the CPU energy consumption of the pod.
                         """
+                        if energy_usage.cpu_energy_usage is None:
+                            return None
                         return container.cpu_usage * energy_usage.cpu_energy_usage
 
                     async def get_pod_total_energy_consumption() -> Optional[float]:
                         """
                         Get the total energy consumption of the pod.
                         """
-                        total = await get_pod_memory_energy_consumption() + await get_pod_cpu_energy_consumption()
-                        return total
+                        memory = await get_pod_memory_energy_consumption()
+                        cpu = await get_pod_cpu_energy_consumption()
+                        if memory is None or cpu is None:
+                            return None
+                        return memory + cpu
 
+                    if self.location is None:
+                        raise ValueError("Location must be set")
                     tags = [
                         Tag(key="pod_name", value=pod.name),
                         Tag(key="pod_namespace", value=pod.namespace),
@@ -217,21 +230,30 @@ if KUBERNETES_INSTALLED:
                         """
                         Get the CPU carbon emission of the pod.
                         """
+                        if carbon_usage.cpu_carbon_usage is None:
+                            return None
                         return container.cpu_usage * carbon_usage.cpu_carbon_usage
 
                     async def get_memory_pod_carbon_emission() -> Optional[float]:
                         """
                         Get the memory carbon emission of the pod.
                         """
+                        if carbon_usage.memory_carbon_usage is None:
+                            return None
                         return container.memory_usage * carbon_usage.memory_carbon_usage
 
                     async def get_total_pod_carbon_emission() -> Optional[float]:
                         """
                         Get the total carbon emission of the pod.
                         """
-                        total = await get_cpu_pod_carbon_emission() + await get_memory_pod_carbon_emission()
-                        return total
+                        cpu = await get_cpu_pod_carbon_emission()
+                        memory = await get_memory_pod_carbon_emission()
+                        if cpu is None or memory is None:
+                            return None
+                        return cpu + memory
 
+                    if self.location is None:
+                        raise ValueError("Location must be set")
                     tags = [
                         Tag(key="pod_name", value=pod.name),
                         Tag(key="pod_namespace", value=pod.namespace),

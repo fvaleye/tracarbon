@@ -1,8 +1,9 @@
 import sys
 from datetime import datetime
+from datetime import timezone
 
+import orjson
 import psutil
-import ujson
 
 from tracarbon import Country
 from tracarbon import MetricGenerator
@@ -13,8 +14,8 @@ from tracarbon.exporters import Tag
 
 def test_json_exporter_should_write_well_formatted_metrics_in_json_file(mocker, tmpdir):
     mock = mocker.patch("tracarbon.exporters.json_exporter.datetime")
-    fixed_timestamp = datetime(2021, 12, 21)
-    mock.utcnow.return_value = fixed_timestamp
+    fixed_timestamp = datetime(2021, 12, 21, tzinfo=timezone.utc)
+    mock.now.return_value = fixed_timestamp
     test_json_file = tmpdir.mkdir("data").join("test.json")
     interval_in_seconds = 1
     memory_value = 70
@@ -59,8 +60,8 @@ def test_json_exporter_should_write_well_formatted_metrics_in_json_file(mocker, 
     exporter.stop()
     exporter.flush()
 
-    with open(test_json_file, "r") as file:
-        assert ujson.load(file) == expected
+    with open(test_json_file, "rb") as file:
+        assert orjson.loads(file.read()) == expected
 
     assert exporter.metric_report["test_metric_1"].exporter_name == JSONExporter.get_name()
     assert exporter.metric_report["test_metric_1"].metric == memory_metric

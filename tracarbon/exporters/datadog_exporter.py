@@ -54,6 +54,8 @@ if DATADOG_INSTALLED:
                     logger.info(
                         f"Sending metric[{metric_name}] with value [{metric_value}] and tags{metric.format_tags()} to Datadog."
                     )
+                    if self.stats is None:
+                        raise RuntimeError("DatadogExporter stats not initialized")
                     self.stats.gauge(metric_name, metric_value, tags=metric.format_tags())
 
         @classmethod
