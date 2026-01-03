@@ -113,8 +113,6 @@ def run_metrics(
             tracarbon_builder=tracarbon_builder,
         )
         tracarbon = tracarbon_builder.with_location(location=location).with_exporter(exporter=exporter).build()
-        from loguru import logger
-
         logger.info("Tracarbon CLI started.")
         with tracarbon:
             while running:

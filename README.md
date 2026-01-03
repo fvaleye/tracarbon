@@ -30,8 +30,8 @@ pip install 'tracarbon[datadog,prometheus,kubernetes]'
 
 | **Devices** |                                                                                                                                                           **Description**                                                                                                                                                            |
 | ----------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| Mac         |                                                                                                                           ✅ Global energy consumption of your Mac (must be plugged into a wall adapter).                                                                                                                            |
-| Linux       | ⚠️ Only with [RAPL](https://web.eece.maine.edu/~vweaver/projects/rapl/). See [#1](https://github.com/fvaleye/tracarbon/issues/1). It works with containers on [Kubernetes](https://kubernetes.io/) using the [Metric API](https://kubernetes.io/docs/tasks/debug/debug-cluster/resource-metrics-pipeline/#metrics-api) if available. |
+| Mac         |                                                                                                  ✅ Global energy consumption of your Mac (must be plugged into a wall adapter). Supports Apple Silicon GPU power tracking via `powermetrics` (requires sudo).                                                                                                  |
+| Linux       | ✅ Supports Intel and AMD processors via [RAPL](https://web.eece.maine.edu/~vweaver/projects/rapl/). Intel uses the powercap interface. AMD is supported on kernel 5.8+ (powercap) or via the `amd_energy` driver (HWMON). Works with containers on [Kubernetes](https://kubernetes.io/) using the [Metric API](https://kubernetes.io/docs/tasks/debug/debug-cluster/resource-metrics-pipeline/#metrics-api) if available. |
 | Windows     |                                                                                                                        ❌ Not yet implemented. See [#184](https://github.com/hubblo-org/scaphandre/pull/184).                                                                                                                        |
 
 | **Cloud Provider** |                                                                                              **Description**                                                                                              |
@@ -39,6 +39,15 @@ pip install 'tracarbon[datadog,prometheus,kubernetes]'
 | AWS                | ✅ Use the hardware's usage with the EC2 instances carbon emissions datasets of [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/ccf-coefficients/blob/main/data/aws-instances.csv). |
 | GCP                |                                                                                          ❌ Not yet implemented.                                                                                          |
 | Azure              |                                                                                          ❌ Not yet implemented.                                                                                          |
+
+### 🎮 GPU: power tracking
+
+| **GPU**        |                                                        **Description**                                                         |
+| -------------- | :----------------------------------------------------------------------------------------------------------------------------: |
+| NVIDIA         | ✅ Supported via `nvidia-smi`. Works on Linux, Windows, and Intel Macs. Supports multiple GPUs.                                 |
+| AMD            | ✅ Supported via `rocm-smi` or `amd-smi` on Linux. Supports multiple GPUs.                                                      |
+| Apple Silicon  | ✅ Supported via `powermetrics` on Mac (requires sudo). Tracks integrated GPU power on M1/M2/M3/M4 chips.                       |
+| Intel          | ❌ Not yet implemented.                                                                                                         |
 
 ## 📡 Exporters
 

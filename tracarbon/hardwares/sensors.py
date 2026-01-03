@@ -14,6 +14,7 @@ from tracarbon.exceptions import TracarbonException
 from tracarbon.hardwares.amd_rapl import AMDRAPL
 from tracarbon.hardwares.cloud_providers import CloudProviders
 from tracarbon.hardwares.energy import EnergyUsage
+from tracarbon.hardwares.gpu import GPUInfo
 from tracarbon.hardwares.hardware import HardwareInfo
 from tracarbon.hardwares.rapl import RAPL
 
@@ -91,7 +92,9 @@ class MacEnergyConsumption(EnergyConsumption):
         proc = await asyncio.create_subprocess_shell(self.shell_command, stdout=asyncio.subprocess.PIPE)
         result, _ = await proc.communicate()
 
-        return EnergyUsage(host_energy_usage=float(result))
+        gpu_power = GPUInfo.get_gpu_power_usage_or_none()
+
+        return EnergyUsage(host_energy_usage=float(result), gpu_energy_usage=gpu_power)
 
 
 class LinuxEnergyConsumption(EnergyConsumption):
@@ -117,25 +120,30 @@ class LinuxEnergyConsumption(EnergyConsumption):
         1. Intel RAPL (powercap) - works for Intel and AMD on kernel 5.8+
         2. AMD RAPL (HWMON) - fallback for AMD with amd_energy driver
 
+        GPU power is also queried if available (NVIDIA or AMD GPU).
+
         :return: the generated energy usage.
         """
+        energy_usage: EnergyUsage
         if self.rapl.is_rapl_compatible():
             if self._active_sensor != "intel_rapl":
                 logger.info("Using Intel RAPL (powercap) for energy measurement")
                 self._active_sensor = "intel_rapl"
-            return await self.rapl.get_energy_report()
-
-        if await self.amd_rapl.is_amd_rapl_compatible():
+            energy_usage = await self.rapl.get_energy_report()
+        elif await self.amd_rapl.is_amd_rapl_compatible():
             if self._active_sensor != "amd_rapl":
                 logger.info("Using AMD RAPL (HWMON) for energy measurement")
                 self._active_sensor = "amd_rapl"
-            return await self.amd_rapl.get_energy_report()
+            energy_usage = await self.amd_rapl.get_energy_report()
+        else:
+            raise TracarbonException(
+                "No supported RAPL interface found. "
+                "Intel RAPL requires /sys/class/powercap/intel-rapl. "
+                "AMD RAPL requires kernel 5.8+ or amd_energy driver."
+            )
 
-        raise TracarbonException(
-            "No supported RAPL interface found. "
-            "Intel RAPL requires /sys/class/powercap/intel-rapl. "
-            "AMD RAPL requires kernel 5.8+ or amd_energy driver."
-        )
+        energy_usage.gpu_energy_usage = GPUInfo.get_gpu_power_usage_or_none()
+        return energy_usage
 
 
 class WindowsEnergyConsumption(EnergyConsumption):
