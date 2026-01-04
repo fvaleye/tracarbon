@@ -46,7 +46,7 @@
     <link rel="search" title="Search" href="search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.9.0" />
+  <meta name="docsearch:version" content="0.9.1" />
   </head>
   
   
@@ -371,11 +371,15 @@
       <li><a href="api_reference.html#tracarbon.hardwares.gpu.AMDGPU">AMDGPU (class in tracarbon.hardwares.gpu)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.hardwares.amd_rapl.AMDRAPL">AMDRAPL (class in tracarbon.hardwares.amd_rapl)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.AMDRAPL">(class in tracarbon.hardwares.sensors)</a>
+</li>
+      </ul></li>
+      <li><a href="api_reference.html#tracarbon.hardwares.amd_rapl.AMDRAPLResult">AMDRAPLResult (class in tracarbon.hardwares.amd_rapl)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_reference.html#tracarbon.hardwares.amd_rapl.AMDRAPLResult">AMDRAPLResult (class in tracarbon.hardwares.amd_rapl)</a>
-</li>
       <li><a href="api_reference.html#tracarbon.hardwares.gpu.AppleSiliconGPU">AppleSiliconGPU (class in tracarbon.hardwares.gpu)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.hardwares.sensors.AWSEC2EnergyConsumption">AWSEC2EnergyConsumption (class in tracarbon.hardwares.sensors)</a>
@@ -383,6 +387,12 @@
       <li><a href="api_reference.html#tracarbon.locations.country.AWSLocation">AWSLocation (class in tracarbon.locations.country)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.exceptions.AWSSensorException">AWSSensorException</a>
+</li>
+      <li><a href="api_reference.html#tracarbon.hardwares.sensors.AzureEnergyConsumption">AzureEnergyConsumption (class in tracarbon.hardwares.sensors)</a>
+</li>
+      <li><a href="api_reference.html#tracarbon.locations.country.AzureLocation">AzureLocation (class in tracarbon.locations.country)</a>
+</li>
+      <li><a href="api_reference.html#tracarbon.exceptions.AzureSensorException">AzureSensorException</a>
 </li>
   </ul></td>
 </tr></table>
@@ -410,10 +420,14 @@
 </li>
       <li><a href="api_reference.html#tracarbon.emissions.carbon_emissions.CarbonUsageUnit">CarbonUsageUnit (class in tracarbon.emissions.carbon_emissions)</a>
 </li>
-      <li><a href="api_reference.html#tracarbon.exceptions.CloudProviderRegionIsMissing">CloudProviderRegionIsMissing</a>
+      <li><a href="api_reference.html#tracarbon.hardwares.sensors.CloudEnergyConsumption">CloudEnergyConsumption (class in tracarbon.hardwares.sensors)</a>
+</li>
+      <li><a href="api_reference.html#tracarbon.locations.country.CloudLocation">CloudLocation (class in tracarbon.locations.country)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#tracarbon.exceptions.CloudProviderRegionIsMissing">CloudProviderRegionIsMissing</a>
+</li>
       <li><a href="api_reference.html#tracarbon.hardwares.energy.Power.co2g_from_watts_hour">co2g_from_watts_hour() (tracarbon.hardwares.energy.Power static method)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.exceptions.CO2SignalAPIKeyIsMissing">CO2SignalAPIKeyIsMissing</a>
@@ -424,6 +438,8 @@
 
       <ul>
         <li><a href="api_reference.html#tracarbon.hardwares.energy.EnergyUsage.convert_unit">(tracarbon.hardwares.energy.EnergyUsage method)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.EnergyUsage.convert_unit">(tracarbon.hardwares.sensors.EnergyUsage method)</a>
 </li>
       </ul></li>
       <li><a href="api_reference.html#tracarbon.locations.country.Country">Country (class in tracarbon.locations.country)</a>
@@ -453,7 +469,11 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#tracarbon.hardwares.energy.EnergyUsage">EnergyUsage (class in tracarbon.hardwares.energy)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.EnergyUsage">(class in tracarbon.hardwares.sensors)</a>
 </li>
+      </ul></li>
       <li><a href="api_reference.html#tracarbon.hardwares.energy.EnergyUsageUnit">EnergyUsageUnit (class in tracarbon.hardwares.energy)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.exporters.exporter.Exporter">Exporter (class in tracarbon.exporters.exporter)</a>
@@ -482,6 +502,12 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#tracarbon.hardwares.sensors.GCPEnergyConsumption">GCPEnergyConsumption (class in tracarbon.hardwares.sensors)</a>
+</li>
+      <li><a href="api_reference.html#tracarbon.locations.country.GCPLocation">GCPLocation (class in tracarbon.locations.country)</a>
+</li>
+      <li><a href="api_reference.html#tracarbon.exceptions.GCPSensorException">GCPSensorException</a>
+</li>
       <li><a href="api_reference.html#tracarbon.exporters.exporter.MetricGenerator.generate">generate() (tracarbon.exporters.exporter.MetricGenerator method)</a>
 
       <ul>
@@ -495,29 +521,51 @@
 </li>
       </ul></li>
       <li><a href="api_reference.html#tracarbon.hardwares.amd_rapl.AMDRAPL.get_amd_rapl_power_usage">get_amd_rapl_power_usage() (tracarbon.hardwares.amd_rapl.AMDRAPL method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.AMDRAPL.get_amd_rapl_power_usage">(tracarbon.hardwares.sensors.AMDRAPL method)</a>
 </li>
+      </ul></li>
       <li><a href="api_reference.html#tracarbon.emissions.carbon_emissions.CarbonUsage.get_carbon_usage_on_type">get_carbon_usage_on_type() (tracarbon.emissions.carbon_emissions.CarbonUsage method)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.emissions.carbon_emissions.CarbonEmission.get_co2_usage">get_co2_usage() (tracarbon.emissions.carbon_emissions.CarbonEmission method)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.locations.country.AWSLocation.get_co2g_kwh">get_co2g_kwh() (tracarbon.locations.country.AWSLocation method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.locations.country.CloudLocation.get_co2g_kwh">(tracarbon.locations.country.CloudLocation method)</a>
 </li>
+      </ul></li>
       <li><a href="api_reference.html#tracarbon.hardwares.hardware.HardwareInfo.get_cpu_usage">get_cpu_usage() (tracarbon.hardwares.hardware.HardwareInfo static method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.HardwareInfo.get_cpu_usage">(tracarbon.hardwares.sensors.HardwareInfo static method)</a>
 </li>
+      </ul></li>
       <li><a href="api_reference.html#tracarbon.locations.country.Country.get_current_country">get_current_country() (tracarbon.locations.country.Country class method)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.hardwares.amd_rapl.AMDRAPL.get_energy_files_list">get_energy_files_list() (tracarbon.hardwares.amd_rapl.AMDRAPL method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.AMDRAPL.get_energy_files_list">(tracarbon.hardwares.sensors.AMDRAPL method)</a>
 </li>
+      </ul></li>
       <li><a href="api_reference.html#tracarbon.hardwares.amd_rapl.AMDRAPL.get_energy_report">get_energy_report() (tracarbon.hardwares.amd_rapl.AMDRAPL method)</a>
 
       <ul>
         <li><a href="api_reference.html#tracarbon.hardwares.rapl.RAPL.get_energy_report">(tracarbon.hardwares.rapl.RAPL method)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.AMDRAPL.get_energy_report">(tracarbon.hardwares.sensors.AMDRAPL method)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.RAPL.get_energy_report">(tracarbon.hardwares.sensors.RAPL method)</a>
 </li>
       </ul></li>
       <li><a href="api_reference.html#tracarbon.emissions.carbon_emissions.CarbonEmission.get_energy_usage">get_energy_usage() (tracarbon.emissions.carbon_emissions.CarbonEmission method)</a>
 
       <ul>
         <li><a href="api_reference.html#tracarbon.hardwares.sensors.AWSEC2EnergyConsumption.get_energy_usage">(tracarbon.hardwares.sensors.AWSEC2EnergyConsumption method)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.CloudEnergyConsumption.get_energy_usage">(tracarbon.hardwares.sensors.CloudEnergyConsumption method)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.hardwares.sensors.EnergyConsumption.get_energy_usage">(tracarbon.hardwares.sensors.EnergyConsumption method)</a>
 </li>
@@ -531,7 +579,11 @@
 </li>
       </ul></li>
       <li><a href="api_reference.html#tracarbon.hardwares.energy.EnergyUsage.get_energy_usage_on_type">get_energy_usage_on_type() (tracarbon.hardwares.energy.EnergyUsage method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.EnergyUsage.get_energy_usage_on_type">(tracarbon.hardwares.sensors.EnergyUsage method)</a>
 </li>
+      </ul></li>
       <li><a href="api_reference.html#tracarbon.cli.get_exporter">get_exporter() (in module tracarbon.cli)</a>
 </li>
   </ul></td>
@@ -547,12 +599,22 @@
 </li>
         <li><a href="api_reference.html#tracarbon.hardwares.hardware.HardwareInfo.get_gpu_power_usage">(tracarbon.hardwares.hardware.HardwareInfo class method)</a>
 </li>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.GPUInfo.get_gpu_power_usage">(tracarbon.hardwares.sensors.GPUInfo class method)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.HardwareInfo.get_gpu_power_usage">(tracarbon.hardwares.sensors.HardwareInfo class method)</a>
+</li>
       </ul></li>
       <li><a href="api_reference.html#tracarbon.hardwares.gpu.GPUInfo.get_gpu_power_usage_or_none">get_gpu_power_usage_or_none() (tracarbon.hardwares.gpu.GPUInfo class method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.GPUInfo.get_gpu_power_usage_or_none">(tracarbon.hardwares.sensors.GPUInfo class method)</a>
 </li>
+      </ul></li>
       <li><a href="api_reference.html#tracarbon.locations.country.AWSLocation.get_latest_co2g_kwh">get_latest_co2g_kwh() (tracarbon.locations.country.AWSLocation method)</a>
 
       <ul>
+        <li><a href="api_reference.html#tracarbon.locations.country.CloudLocation.get_latest_co2g_kwh">(tracarbon.locations.country.CloudLocation method)</a>
+</li>
         <li><a href="api_reference.html#tracarbon.locations.country.Country.get_latest_co2g_kwh">(tracarbon.locations.country.Country method)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.locations.location.Location.get_latest_co2g_kwh">(tracarbon.locations.location.Location method)</a>
@@ -561,9 +623,17 @@
       <li><a href="api_reference.html#tracarbon.locations.country.Country.get_location">get_location() (tracarbon.locations.country.Country class method)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.hardwares.hardware.HardwareInfo.get_memory_total">get_memory_total() (tracarbon.hardwares.hardware.HardwareInfo static method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.HardwareInfo.get_memory_total">(tracarbon.hardwares.sensors.HardwareInfo static method)</a>
 </li>
+      </ul></li>
       <li><a href="api_reference.html#tracarbon.hardwares.hardware.HardwareInfo.get_memory_usage">get_memory_usage() (tracarbon.hardwares.hardware.HardwareInfo static method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.HardwareInfo.get_memory_usage">(tracarbon.hardwares.sensors.HardwareInfo static method)</a>
 </li>
+      </ul></li>
       <li><a href="api_reference.html#tracarbon.exporters.datadog_exporter.DatadogExporter.get_name">get_name() (tracarbon.exporters.datadog_exporter.DatadogExporter class method)</a>
 
       <ul>
@@ -577,17 +647,37 @@
 </li>
       </ul></li>
       <li><a href="api_reference.html#tracarbon.hardwares.hardware.HardwareInfo.get_number_of_cores">get_number_of_cores() (tracarbon.hardwares.hardware.HardwareInfo static method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.HardwareInfo.get_number_of_cores">(tracarbon.hardwares.sensors.HardwareInfo static method)</a>
 </li>
+      </ul></li>
       <li><a href="api_reference.html#tracarbon.hardwares.hardware.HardwareInfo.get_platform">get_platform() (tracarbon.hardwares.hardware.HardwareInfo static method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.HardwareInfo.get_platform">(tracarbon.hardwares.sensors.HardwareInfo static method)</a>
 </li>
+      </ul></li>
       <li><a href="api_reference.html#tracarbon.hardwares.containers.Kubernetes.get_pods_usage">get_pods_usage() (tracarbon.hardwares.containers.Kubernetes method)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.hardwares.rapl.RAPL.get_rapl_files_list">get_rapl_files_list() (tracarbon.hardwares.rapl.RAPL method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.RAPL.get_rapl_files_list">(tracarbon.hardwares.sensors.RAPL method)</a>
 </li>
+      </ul></li>
       <li><a href="api_reference.html#tracarbon.hardwares.rapl.RAPL.get_rapl_power_usage">get_rapl_power_usage() (tracarbon.hardwares.rapl.RAPL method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.RAPL.get_rapl_power_usage">(tracarbon.hardwares.sensors.RAPL method)</a>
 </li>
+      </ul></li>
       <li><a href="api_reference.html#tracarbon.hardwares.gpu.GPUInfo">GPUInfo (class in tracarbon.hardwares.gpu)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.GPUInfo">(class in tracarbon.hardwares.sensors)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -595,7 +685,11 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#tracarbon.hardwares.hardware.HardwareInfo">HardwareInfo (class in tracarbon.hardwares.hardware)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.HardwareInfo">(class in tracarbon.hardwares.sensors)</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#tracarbon.exceptions.HardwareNoGPUDetectedException">HardwareNoGPUDetectedException</a>
@@ -609,11 +703,19 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#tracarbon.hardwares.amd_rapl.AMDRAPL.is_amd_rapl_compatible">is_amd_rapl_compatible() (tracarbon.hardwares.amd_rapl.AMDRAPL method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.AMDRAPL.is_amd_rapl_compatible">(tracarbon.hardwares.sensors.AMDRAPL method)</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#tracarbon.hardwares.rapl.RAPL.is_rapl_compatible">is_rapl_compatible() (tracarbon.hardwares.rapl.RAPL method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.RAPL.is_rapl_compatible">(tracarbon.hardwares.sensors.RAPL method)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -745,13 +847,29 @@
 </li>
         <li><a href="api_reference.html#tracarbon.hardwares.rapl.RAPLResult.model_config">(tracarbon.hardwares.rapl.RAPLResult attribute)</a>
 </li>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.AMDRAPL.model_config">(tracarbon.hardwares.sensors.AMDRAPL attribute)</a>
+</li>
         <li><a href="api_reference.html#tracarbon.hardwares.sensors.AWSEC2EnergyConsumption.model_config">(tracarbon.hardwares.sensors.AWSEC2EnergyConsumption attribute)</a>
 </li>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.AzureEnergyConsumption.model_config">(tracarbon.hardwares.sensors.AzureEnergyConsumption attribute)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.CloudEnergyConsumption.model_config">(tracarbon.hardwares.sensors.CloudEnergyConsumption attribute)</a>
+</li>
         <li><a href="api_reference.html#tracarbon.hardwares.sensors.EnergyConsumption.model_config">(tracarbon.hardwares.sensors.EnergyConsumption attribute)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.EnergyUsage.model_config">(tracarbon.hardwares.sensors.EnergyUsage attribute)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.GCPEnergyConsumption.model_config">(tracarbon.hardwares.sensors.GCPEnergyConsumption attribute)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.GPUInfo.model_config">(tracarbon.hardwares.sensors.GPUInfo attribute)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.HardwareInfo.model_config">(tracarbon.hardwares.sensors.HardwareInfo attribute)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.hardwares.sensors.LinuxEnergyConsumption.model_config">(tracarbon.hardwares.sensors.LinuxEnergyConsumption attribute)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.hardwares.sensors.MacEnergyConsumption.model_config">(tracarbon.hardwares.sensors.MacEnergyConsumption attribute)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.RAPL.model_config">(tracarbon.hardwares.sensors.RAPL attribute)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.hardwares.sensors.Sensor.model_config">(tracarbon.hardwares.sensors.Sensor attribute)</a>
 </li>
@@ -759,7 +877,13 @@
 </li>
         <li><a href="api_reference.html#tracarbon.locations.country.AWSLocation.model_config">(tracarbon.locations.country.AWSLocation attribute)</a>
 </li>
+        <li><a href="api_reference.html#tracarbon.locations.country.AzureLocation.model_config">(tracarbon.locations.country.AzureLocation attribute)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.locations.country.CloudLocation.model_config">(tracarbon.locations.country.CloudLocation attribute)</a>
+</li>
         <li><a href="api_reference.html#tracarbon.locations.country.Country.model_config">(tracarbon.locations.country.Country attribute)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.locations.country.GCPLocation.model_config">(tracarbon.locations.country.GCPLocation attribute)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.locations.location.Location.model_config">(tracarbon.locations.location.Location attribute)</a>
 </li>
@@ -842,13 +966,17 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#tracarbon.hardwares.rapl.RAPL">RAPL (class in tracarbon.hardwares.rapl)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.RAPL">(class in tracarbon.hardwares.sensors)</a>
 </li>
+      </ul></li>
       <li><a href="api_reference.html#tracarbon.hardwares.rapl.RAPLResult">RAPLResult (class in tracarbon.hardwares.rapl)</a>
-</li>
-      <li><a href="api_reference.html#tracarbon.hardwares.containers.Kubernetes.refresh_namespaces">refresh_namespaces() (tracarbon.hardwares.containers.Kubernetes method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#tracarbon.hardwares.containers.Kubernetes.refresh_namespaces">refresh_namespaces() (tracarbon.hardwares.containers.Kubernetes method)</a>
+</li>
       <li><a href="api_reference.html#tracarbon.locations.location.Location.request">request() (tracarbon.locations.location.Location class method)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.cli.run">run() (in module tracarbon.cli)</a>

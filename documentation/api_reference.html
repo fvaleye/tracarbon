@@ -49,7 +49,7 @@
     <link rel="prev" title="Usage" href="usage.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.9.0" />
+  <meta name="docsearch:version" content="0.9.1" />
   </head>
   
   
@@ -1376,6 +1376,95 @@ For RAM measurements, the package domain includes integrated memory controller.<
 </dd></dl>
 
 <dl class="py class" id="module-tracarbon.hardwares.sensors">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.AMDRAPL">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.sensors.</span></span><span class="sig-name descname"><span class="pre">AMDRAPL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hwmon_base_path='/sys/class/hwmon'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amd_energy_path=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rapl_results=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_files=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.AMDRAPL" title="Link to this definition">#</a></dt>
+<dd><p>AMD RAPL to read energy consumption via HWMON interface.</p>
+<p>The amd_energy driver exposes energy counters at:
+/sys/class/hwmon/hwmon*/energy*_input (in microjoules)
+/sys/class/hwmon/hwmon*/energy*_label (domain label)</p>
+<p>Labels follow the pattern:
+- Esocket0, Esocket1, … : Package/socket level energy
+- Ecore0, Ecore1, … : Per-core energy</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hwmon_base_path</strong> (<em>str</em>)</p></li>
+<li><p><strong>amd_energy_path</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>rapl_results</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="#tracarbon.hardwares.amd_rapl.AMDRAPLResult" title="tracarbon.hardwares.amd_rapl.AMDRAPLResult"><em>AMDRAPLResult</em></a><em>]</em>)</p></li>
+<li><p><strong>energy_files</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.AMDRAPL.get_amd_rapl_power_usage">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_amd_rapl_power_usage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.AMDRAPL.get_amd_rapl_power_usage" title="Link to this definition">#</a></dt>
+<dd><p>Read the AMD RAPL energy measurements from HWMON files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of AMD RAPL results</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>List</em>[<a class="reference internal" href="#tracarbon.hardwares.amd_rapl.AMDRAPLResult" title="tracarbon.hardwares.amd_rapl.AMDRAPLResult"><em>AMDRAPLResult</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.AMDRAPL.get_energy_files_list">
+<span class="sig-name descname"><span class="pre">get_energy_files_list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.AMDRAPL.get_energy_files_list" title="Link to this definition">#</a></dt>
+<dd><p>Get the list of energy files from the AMD HWMON interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If AMD energy interface is not available</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.AMDRAPL.get_energy_report">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_energy_report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.AMDRAPL.get_energy_report" title="Link to this definition">#</a></dt>
+<dd><p>Get the energy report based on AMD RAPL HWMON readings.</p>
+<p>AMD RAPL domains:
+- Esocket*: Package-level power (similar to Intel’s package domain)
+- Ecore*: Per-core power</p>
+<p>Note: AMD RAPL does not expose separate RAM domain via HWMON.
+For RAM measurements, the package domain includes integrated memory controller.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>EnergyUsage report from AMD RAPL measurements</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#tracarbon.hardwares.energy.EnergyUsage" title="tracarbon.hardwares.energy.EnergyUsage"><em>EnergyUsage</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.AMDRAPL.is_amd_rapl_compatible">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_amd_rapl_compatible</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.AMDRAPL.is_amd_rapl_compatible" title="Link to this definition">#</a></dt>
+<dd><p>Check if AMD RAPL energy measurement is available via HWMON.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if AMD energy HWMON interface is available</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.AMDRAPL.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#tracarbon.hardwares.sensors.AMDRAPL.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.hardwares.sensors.AWSEC2EnergyConsumption">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.sensors.</span></span><span class="sig-name descname"><span class="pre">AWSEC2EnergyConsumption</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_type</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpu_idle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpu_at_10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpu_at_50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpu_at_100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_idle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_at_10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_at_50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_at_100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">has_gpu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_full_machine</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.AWSEC2EnergyConsumption" title="Link to this definition">#</a></dt>
 <dd><p>The AWS EC2 Energy Consumption.</p>
@@ -1414,6 +1503,69 @@ For RAM measurements, the package domain includes integrated memory controller.<
 <dl class="py attribute">
 <dt class="sig sig-object py" id="tracarbon.hardwares.sensors.AWSEC2EnergyConsumption.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'arbitrary_types_allowed':</span> <span class="pre">True}</span></em><a class="headerlink" href="#tracarbon.hardwares.sensors.AWSEC2EnergyConsumption.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.AzureEnergyConsumption">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.sensors.</span></span><span class="sig-name descname"><span class="pre">AzureEnergyConsumption</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_type</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_watts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_watts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vcpus</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_gb</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.AzureEnergyConsumption" title="Link to this definition">#</a></dt>
+<dd><p>The Azure VM Energy Consumption.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>instance_type</strong> (<em>str</em>)</p></li>
+<li><p><strong>init</strong> (<em>bool</em>)</p></li>
+<li><p><strong>min_watts</strong> (<em>float</em>)</p></li>
+<li><p><strong>max_watts</strong> (<em>float</em>)</p></li>
+<li><p><strong>vcpus</strong> (<em>float</em>)</p></li>
+<li><p><strong>memory_gb</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.AzureEnergyConsumption.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'arbitrary_types_allowed':</span> <span class="pre">True}</span></em><a class="headerlink" href="#tracarbon.hardwares.sensors.AzureEnergyConsumption.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.CloudEnergyConsumption">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.sensors.</span></span><span class="sig-name descname"><span class="pre">CloudEnergyConsumption</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_type</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_watts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_watts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vcpus</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_gb</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.CloudEnergyConsumption" title="Link to this definition">#</a></dt>
+<dd><p>Base class for cloud provider energy consumption.
+Uses linear interpolation between min and max watts based on CPU usage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>instance_type</strong> (<em>str</em>)</p></li>
+<li><p><strong>init</strong> (<em>bool</em>)</p></li>
+<li><p><strong>min_watts</strong> (<em>float</em>)</p></li>
+<li><p><strong>max_watts</strong> (<em>float</em>)</p></li>
+<li><p><strong>vcpus</strong> (<em>float</em>)</p></li>
+<li><p><strong>memory_gb</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.CloudEnergyConsumption.get_energy_usage">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_energy_usage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.CloudEnergyConsumption.get_energy_usage" title="Link to this definition">#</a></dt>
+<dd><p>Run the sensor and generate energy usage using linear interpolation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the generated energy usage.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#tracarbon.hardwares.energy.EnergyUsage" title="tracarbon.hardwares.energy.EnergyUsage"><em>EnergyUsage</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.CloudEnergyConsumption.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'arbitrary_types_allowed':</span> <span class="pre">True}</span></em><a class="headerlink" href="#tracarbon.hardwares.sensors.CloudEnergyConsumption.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
@@ -1462,6 +1614,238 @@ For RAM measurements, the package domain includes integrated memory controller.<
 <dl class="py attribute">
 <dt class="sig sig-object py" id="tracarbon.hardwares.sensors.EnergyConsumption.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'arbitrary_types_allowed':</span> <span class="pre">True}</span></em><a class="headerlink" href="#tracarbon.hardwares.sensors.EnergyConsumption.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.EnergyUsage">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.sensors.</span></span><span class="sig-name descname"><span class="pre">EnergyUsage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">host_energy_usage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpu_energy_usage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_energy_usage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gpu_energy_usage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">EnergyUsageUnit.WATT</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.EnergyUsage" title="Link to this definition">#</a></dt>
+<dd><p>Energy report in watts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>host_energy_usage</strong> (<em>float</em>)</p></li>
+<li><p><strong>cpu_energy_usage</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>memory_energy_usage</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>gpu_energy_usage</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>unit</strong> (<a class="reference internal" href="#tracarbon.hardwares.energy.EnergyUsageUnit" title="tracarbon.hardwares.energy.EnergyUsageUnit"><em>EnergyUsageUnit</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.EnergyUsage.convert_unit">
+<span class="sig-name descname"><span class="pre">convert_unit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unit</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.EnergyUsage.convert_unit" title="Link to this definition">#</a></dt>
+<dd><p>Convert the EnergyUsage values to the requested unit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>unit</strong> (<a class="reference internal" href="#tracarbon.hardwares.energy.EnergyUsageUnit" title="tracarbon.hardwares.energy.EnergyUsageUnit"><em>EnergyUsageUnit</em></a>) – the target energy usage unit for the conversion</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.EnergyUsage.get_energy_usage_on_type">
+<span class="sig-name descname"><span class="pre">get_energy_usage_on_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">usage_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.EnergyUsage.get_energy_usage_on_type" title="Link to this definition">#</a></dt>
+<dd><p>Get the energy usage based on the type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param<span class="colon">:</span></dt>
+<dd class="field-odd"><p>usage_type: the type of energy to return</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the energy of the type</p>
+</dd>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>usage_type</strong> (<a class="reference internal" href="#tracarbon.hardwares.energy.UsageType" title="tracarbon.hardwares.energy.UsageType"><em>UsageType</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.EnergyUsage.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#tracarbon.hardwares.sensors.EnergyUsage.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.GCPEnergyConsumption">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.sensors.</span></span><span class="sig-name descname"><span class="pre">GCPEnergyConsumption</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_type</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_watts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_watts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vcpus</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_gb</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.GCPEnergyConsumption" title="Link to this definition">#</a></dt>
+<dd><p>The GCP Compute Engine Energy Consumption.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>instance_type</strong> (<em>str</em>)</p></li>
+<li><p><strong>init</strong> (<em>bool</em>)</p></li>
+<li><p><strong>min_watts</strong> (<em>float</em>)</p></li>
+<li><p><strong>max_watts</strong> (<em>float</em>)</p></li>
+<li><p><strong>vcpus</strong> (<em>float</em>)</p></li>
+<li><p><strong>memory_gb</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.GCPEnergyConsumption.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'arbitrary_types_allowed':</span> <span class="pre">True}</span></em><a class="headerlink" href="#tracarbon.hardwares.sensors.GCPEnergyConsumption.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.GPUInfo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.sensors.</span></span><span class="sig-name descname"><span class="pre">GPUInfo</span></span><a class="headerlink" href="#tracarbon.hardwares.sensors.GPUInfo" title="Link to this definition">#</a></dt>
+<dd><p>GPU information with auto-detection and graceful fallback.
+Tries all available GPU types and returns 0.0 if none found.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.GPUInfo.get_gpu_power_usage">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_gpu_power_usage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.GPUInfo.get_gpu_power_usage" title="Link to this definition">#</a></dt>
+<dd><p>Get the GPU power usage in watts.
+Auto-detects GPU type and falls back to 0.0 if no GPU is found.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the gpu power usage in W, or 0.0 if no GPU detected</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.GPUInfo.get_gpu_power_usage_or_none">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_gpu_power_usage_or_none</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.GPUInfo.get_gpu_power_usage_or_none" title="Link to this definition">#</a></dt>
+<dd><p>Get the GPU power usage in watts, or None if no GPU is available.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the gpu power usage in W, or None if no GPU detected</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.GPUInfo.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#tracarbon.hardwares.sensors.GPUInfo.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.HardwareInfo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.sensors.</span></span><span class="sig-name descname"><span class="pre">HardwareInfo</span></span><a class="headerlink" href="#tracarbon.hardwares.sensors.HardwareInfo" title="Link to this definition">#</a></dt>
+<dd><p>Hardware information.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.HardwareInfo.get_cpu_usage">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_cpu_usage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.HardwareInfo.get_cpu_usage" title="Link to this definition">#</a></dt>
+<dd><p>Get the CPU load percentage usage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>interval</strong> (<em>float</em><em> | </em><em>None</em>) – the minimal interval to wait between two consecutive measures</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the CPU load in %</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.HardwareInfo.get_gpu_power_usage">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_gpu_power_usage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.HardwareInfo.get_gpu_power_usage" title="Link to this definition">#</a></dt>
+<dd><p>Get the GPU power usage in watts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the gpu power usage in W</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.HardwareInfo.get_memory_total">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_memory_total</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.HardwareInfo.get_memory_total" title="Link to this definition">#</a></dt>
+<dd><p>Get the total physical memory available.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the total physical memory available</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.HardwareInfo.get_memory_usage">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_memory_usage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.HardwareInfo.get_memory_usage" title="Link to this definition">#</a></dt>
+<dd><p>Get the local memory usage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the memory used in percentage</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.HardwareInfo.get_number_of_cores">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_number_of_cores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.HardwareInfo.get_number_of_cores" title="Link to this definition">#</a></dt>
+<dd><p>Get the number of CPU’s cores.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param<span class="colon">:</span></dt>
+<dd class="field-odd"><p>logical: core as logical included</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the number of CPU’s cores</p>
+</dd>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>logical</strong> (<em>bool</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.HardwareInfo.get_platform">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_platform</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.HardwareInfo.get_platform" title="Link to this definition">#</a></dt>
+<dd><p>Get the platform name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the name of the platform</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.HardwareInfo.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#tracarbon.hardwares.sensors.HardwareInfo.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
@@ -1562,6 +1946,85 @@ context: The context.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="tracarbon.hardwares.sensors.MacEnergyConsumption.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'arbitrary_types_allowed':</span> <span class="pre">True}</span></em><a class="headerlink" href="#tracarbon.hardwares.sensors.MacEnergyConsumption.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.RAPL">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.sensors.</span></span><span class="sig-name descname"><span class="pre">RAPL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path='/sys/class/powercap/intel-rapl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rapl_separator=':'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rapl_results=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_list=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.RAPL" title="Link to this definition">#</a></dt>
+<dd><p>RAPL to read energy consumption with Intel hardware</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>)</p></li>
+<li><p><strong>rapl_separator</strong> (<em>str</em>)</p></li>
+<li><p><strong>rapl_results</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="#tracarbon.hardwares.rapl.RAPLResult" title="tracarbon.hardwares.rapl.RAPLResult"><em>RAPLResult</em></a><em>]</em>)</p></li>
+<li><p><strong>file_list</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.RAPL.get_energy_report">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_energy_report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.RAPL.get_energy_report" title="Link to this definition">#</a></dt>
+<dd><p>Get the energy report based on RAPL.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the energy usage report of the RAPL measurements</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#tracarbon.hardwares.energy.EnergyUsage" title="tracarbon.hardwares.energy.EnergyUsage"><em>EnergyUsage</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.RAPL.get_rapl_files_list">
+<span class="sig-name descname"><span class="pre">get_rapl_files_list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.RAPL.get_rapl_files_list" title="Link to this definition">#</a></dt>
+<dd><p>Get the list of files containing RAPL energy measurements.
+Raise error if it’s the hardware is not compatible with RAPL.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the list of files path containing RAPL energy measurements.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.RAPL.get_rapl_power_usage">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_rapl_power_usage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.RAPL.get_rapl_power_usage" title="Link to this definition">#</a></dt>
+<dd><p>Read the RAPL energy measurements files on paths provided.</p>
+<p>If energy_uj is greater than max_energy_range_uj, the value is set to 0.
+In this case, max_energy_range_uj contanst must be returned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a list of the RAPL results.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>List</em>[<a class="reference internal" href="#tracarbon.hardwares.rapl.RAPLResult" title="tracarbon.hardwares.rapl.RAPLResult"><em>RAPLResult</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.RAPL.is_rapl_compatible">
+<span class="sig-name descname"><span class="pre">is_rapl_compatible</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.RAPL.is_rapl_compatible" title="Link to this definition">#</a></dt>
+<dd><p>Check if the path of the hardware for reading RAPL energy measurements exists.
+:return: if the RAPL files path exists</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tracarbon.hardwares.sensors.RAPL.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#tracarbon.hardwares.sensors.RAPL.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
@@ -2328,6 +2791,82 @@ Add the metric generator to the metric reporter.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.locations.country.AzureLocation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.country.</span></span><span class="sig-name descname"><span class="pre">AzureLocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">region_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CarbonIntensitySource.FILE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.AzureLocation" title="Link to this definition">#</a></dt>
+<dd><p>Azure Location.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>region_name</strong> (<em>str</em>)</p></li>
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>co2g_kwh_source</strong> (<a class="reference internal" href="#tracarbon.locations.location.CarbonIntensitySource" title="tracarbon.locations.location.CarbonIntensitySource"><em>CarbonIntensitySource</em></a>)</p></li>
+<li><p><strong>co2signal_api_key</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>co2signal_url</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>co2g_kwh</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tracarbon.locations.country.AzureLocation.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#tracarbon.locations.country.AzureLocation.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.locations.country.CloudLocation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.country.</span></span><span class="sig-name descname"><span class="pre">CloudLocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">region_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CarbonIntensitySource.FILE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.CloudLocation" title="Link to this definition">#</a></dt>
+<dd><p>Base class for cloud provider locations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>region_name</strong> (<em>str</em>)</p></li>
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>co2g_kwh_source</strong> (<a class="reference internal" href="#tracarbon.locations.location.CarbonIntensitySource" title="tracarbon.locations.location.CarbonIntensitySource"><em>CarbonIntensitySource</em></a>)</p></li>
+<li><p><strong>co2signal_api_key</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>co2signal_url</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>co2g_kwh</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.locations.country.CloudLocation.get_co2g_kwh">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_co2g_kwh</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.CloudLocation.get_co2g_kwh" title="Link to this definition">#</a></dt>
+<dd><p>Get the Co2g per kwh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the co2g/kwh value</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.locations.country.CloudLocation.get_latest_co2g_kwh">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_latest_co2g_kwh</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.CloudLocation.get_latest_co2g_kwh" title="Link to this definition">#</a></dt>
+<dd><p>Get the latest co2g_kwh for this cloud provider.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the latest co2g_kwh</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tracarbon.locations.country.CloudLocation.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#tracarbon.locations.country.CloudLocation.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.locations.country.Country">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.country.</span></span><span class="sig-name descname"><span class="pre">Country</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CarbonIntensitySource.FILE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.Country" title="Link to this definition">#</a></dt>
 <dd><p>Country definition.</p>
@@ -2422,6 +2961,30 @@ Add the metric generator to the metric reporter.</p>
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.locations.country.GCPLocation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.country.</span></span><span class="sig-name descname"><span class="pre">GCPLocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">region_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CarbonIntensitySource.FILE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.GCPLocation" title="Link to this definition">#</a></dt>
+<dd><p>GCP Location.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>region_name</strong> (<em>str</em>)</p></li>
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>co2g_kwh_source</strong> (<a class="reference internal" href="#tracarbon.locations.location.CarbonIntensitySource" title="tracarbon.locations.location.CarbonIntensitySource"><em>CarbonIntensitySource</em></a>)</p></li>
+<li><p><strong>co2signal_api_key</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>co2signal_url</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>co2g_kwh</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tracarbon.locations.country.GCPLocation.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#tracarbon.locations.country.GCPLocation.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="module-tracarbon.exceptions">
 <span id="exceptions"></span><h2>Exceptions<a class="headerlink" href="#module-tracarbon.exceptions" title="Link to this heading">#</a></h2>
@@ -2429,6 +2992,12 @@ Add the metric generator to the metric reporter.</p>
 <dt class="sig sig-object py" id="tracarbon.exceptions.AWSSensorException">
 <em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exceptions.</span></span><span class="sig-name descname"><span class="pre">AWSSensorException</span></span><a class="headerlink" href="#tracarbon.exceptions.AWSSensorException" title="Link to this definition">#</a></dt>
 <dd><p>Error in the AWS Sensor Error.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="tracarbon.exceptions.AzureSensorException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exceptions.</span></span><span class="sig-name descname"><span class="pre">AzureSensorException</span></span><a class="headerlink" href="#tracarbon.exceptions.AzureSensorException" title="Link to this definition">#</a></dt>
+<dd><p>Error in the Azure Sensor.</p>
 </dd></dl>
 
 <dl class="py exception">
@@ -2447,6 +3016,12 @@ Add the metric generator to the metric reporter.</p>
 <dt class="sig sig-object py" id="tracarbon.exceptions.CountryIsMissing">
 <em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exceptions.</span></span><span class="sig-name descname"><span class="pre">CountryIsMissing</span></span><a class="headerlink" href="#tracarbon.exceptions.CountryIsMissing" title="Link to this definition">#</a></dt>
 <dd><p>The country is missing.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="tracarbon.exceptions.GCPSensorException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exceptions.</span></span><span class="sig-name descname"><span class="pre">GCPSensorException</span></span><a class="headerlink" href="#tracarbon.exceptions.GCPSensorException" title="Link to this definition">#</a></dt>
+<dd><p>Error in the GCP Sensor.</p>
 </dd></dl>
 
 <dl class="py exception">
@@ -2791,15 +3366,58 @@ Add the metric generator to the metric reporter.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.amd_rapl.AMDRAPLResult.model_config"><code class="docutils literal notranslate"><span class="pre">AMDRAPLResult.model_config</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.AMDRAPL"><code class="docutils literal notranslate"><span class="pre">AMDRAPL</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.AMDRAPL.get_amd_rapl_power_usage"><code class="docutils literal notranslate"><span class="pre">AMDRAPL.get_amd_rapl_power_usage()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.AMDRAPL.get_energy_files_list"><code class="docutils literal notranslate"><span class="pre">AMDRAPL.get_energy_files_list()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.AMDRAPL.get_energy_report"><code class="docutils literal notranslate"><span class="pre">AMDRAPL.get_energy_report()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.AMDRAPL.is_amd_rapl_compatible"><code class="docutils literal notranslate"><span class="pre">AMDRAPL.is_amd_rapl_compatible()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.AMDRAPL.model_config"><code class="docutils literal notranslate"><span class="pre">AMDRAPL.model_config</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.AWSEC2EnergyConsumption"><code class="docutils literal notranslate"><span class="pre">AWSEC2EnergyConsumption</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.AWSEC2EnergyConsumption.get_energy_usage"><code class="docutils literal notranslate"><span class="pre">AWSEC2EnergyConsumption.get_energy_usage()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.AWSEC2EnergyConsumption.model_config"><code class="docutils literal notranslate"><span class="pre">AWSEC2EnergyConsumption.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.AzureEnergyConsumption"><code class="docutils literal notranslate"><span class="pre">AzureEnergyConsumption</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.AzureEnergyConsumption.model_config"><code class="docutils literal notranslate"><span class="pre">AzureEnergyConsumption.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.CloudEnergyConsumption"><code class="docutils literal notranslate"><span class="pre">CloudEnergyConsumption</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.CloudEnergyConsumption.get_energy_usage"><code class="docutils literal notranslate"><span class="pre">CloudEnergyConsumption.get_energy_usage()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.CloudEnergyConsumption.model_config"><code class="docutils literal notranslate"><span class="pre">CloudEnergyConsumption.model_config</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.EnergyConsumption"><code class="docutils literal notranslate"><span class="pre">EnergyConsumption</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.EnergyConsumption.from_platform"><code class="docutils literal notranslate"><span class="pre">EnergyConsumption.from_platform()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.EnergyConsumption.get_energy_usage"><code class="docutils literal notranslate"><span class="pre">EnergyConsumption.get_energy_usage()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.EnergyConsumption.model_config"><code class="docutils literal notranslate"><span class="pre">EnergyConsumption.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.EnergyUsage"><code class="docutils literal notranslate"><span class="pre">EnergyUsage</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.EnergyUsage.convert_unit"><code class="docutils literal notranslate"><span class="pre">EnergyUsage.convert_unit()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.EnergyUsage.get_energy_usage_on_type"><code class="docutils literal notranslate"><span class="pre">EnergyUsage.get_energy_usage_on_type()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.EnergyUsage.model_config"><code class="docutils literal notranslate"><span class="pre">EnergyUsage.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.GCPEnergyConsumption"><code class="docutils literal notranslate"><span class="pre">GCPEnergyConsumption</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.GCPEnergyConsumption.model_config"><code class="docutils literal notranslate"><span class="pre">GCPEnergyConsumption.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.GPUInfo"><code class="docutils literal notranslate"><span class="pre">GPUInfo</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.GPUInfo.get_gpu_power_usage"><code class="docutils literal notranslate"><span class="pre">GPUInfo.get_gpu_power_usage()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.GPUInfo.get_gpu_power_usage_or_none"><code class="docutils literal notranslate"><span class="pre">GPUInfo.get_gpu_power_usage_or_none()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.GPUInfo.model_config"><code class="docutils literal notranslate"><span class="pre">GPUInfo.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.HardwareInfo"><code class="docutils literal notranslate"><span class="pre">HardwareInfo</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.HardwareInfo.get_cpu_usage"><code class="docutils literal notranslate"><span class="pre">HardwareInfo.get_cpu_usage()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.HardwareInfo.get_gpu_power_usage"><code class="docutils literal notranslate"><span class="pre">HardwareInfo.get_gpu_power_usage()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.HardwareInfo.get_memory_total"><code class="docutils literal notranslate"><span class="pre">HardwareInfo.get_memory_total()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.HardwareInfo.get_memory_usage"><code class="docutils literal notranslate"><span class="pre">HardwareInfo.get_memory_usage()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.HardwareInfo.get_number_of_cores"><code class="docutils literal notranslate"><span class="pre">HardwareInfo.get_number_of_cores()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.HardwareInfo.get_platform"><code class="docutils literal notranslate"><span class="pre">HardwareInfo.get_platform()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.HardwareInfo.model_config"><code class="docutils literal notranslate"><span class="pre">HardwareInfo.model_config</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.LinuxEnergyConsumption"><code class="docutils literal notranslate"><span class="pre">LinuxEnergyConsumption</span></code></a><ul class="nav section-nav flex-column">
@@ -2811,6 +3429,14 @@ Add the metric generator to the metric reporter.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.MacEnergyConsumption"><code class="docutils literal notranslate"><span class="pre">MacEnergyConsumption</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.MacEnergyConsumption.get_energy_usage"><code class="docutils literal notranslate"><span class="pre">MacEnergyConsumption.get_energy_usage()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.MacEnergyConsumption.model_config"><code class="docutils literal notranslate"><span class="pre">MacEnergyConsumption.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.RAPL"><code class="docutils literal notranslate"><span class="pre">RAPL</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.RAPL.get_energy_report"><code class="docutils literal notranslate"><span class="pre">RAPL.get_energy_report()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.RAPL.get_rapl_files_list"><code class="docutils literal notranslate"><span class="pre">RAPL.get_rapl_files_list()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.RAPL.get_rapl_power_usage"><code class="docutils literal notranslate"><span class="pre">RAPL.get_rapl_power_usage()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.RAPL.is_rapl_compatible"><code class="docutils literal notranslate"><span class="pre">RAPL.is_rapl_compatible()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.RAPL.model_config"><code class="docutils literal notranslate"><span class="pre">RAPL.model_config</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.sensors.Sensor"><code class="docutils literal notranslate"><span class="pre">Sensor</span></code></a><ul class="nav section-nav flex-column">
@@ -2911,6 +3537,16 @@ Add the metric generator to the metric reporter.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.AWSLocation.model_config"><code class="docutils literal notranslate"><span class="pre">AWSLocation.model_config</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.AzureLocation"><code class="docutils literal notranslate"><span class="pre">AzureLocation</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.AzureLocation.model_config"><code class="docutils literal notranslate"><span class="pre">AzureLocation.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.CloudLocation"><code class="docutils literal notranslate"><span class="pre">CloudLocation</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.CloudLocation.get_co2g_kwh"><code class="docutils literal notranslate"><span class="pre">CloudLocation.get_co2g_kwh()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.CloudLocation.get_latest_co2g_kwh"><code class="docutils literal notranslate"><span class="pre">CloudLocation.get_latest_co2g_kwh()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.CloudLocation.model_config"><code class="docutils literal notranslate"><span class="pre">CloudLocation.model_config</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.Country"><code class="docutils literal notranslate"><span class="pre">Country</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.Country.from_eu_file"><code class="docutils literal notranslate"><span class="pre">Country.from_eu_file()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.Country.get_current_country"><code class="docutils literal notranslate"><span class="pre">Country.get_current_country()</span></code></a></li>
@@ -2919,13 +3555,19 @@ Add the metric generator to the metric reporter.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.Country.model_config"><code class="docutils literal notranslate"><span class="pre">Country.model_config</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.GCPLocation"><code class="docutils literal notranslate"><span class="pre">GCPLocation</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.GCPLocation.model_config"><code class="docutils literal notranslate"><span class="pre">GCPLocation.model_config</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-tracarbon.exceptions">Exceptions</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exceptions.AWSSensorException"><code class="docutils literal notranslate"><span class="pre">AWSSensorException</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exceptions.AzureSensorException"><code class="docutils literal notranslate"><span class="pre">AzureSensorException</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exceptions.CO2SignalAPIKeyIsMissing"><code class="docutils literal notranslate"><span class="pre">CO2SignalAPIKeyIsMissing</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exceptions.CloudProviderRegionIsMissing"><code class="docutils literal notranslate"><span class="pre">CloudProviderRegionIsMissing</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exceptions.CountryIsMissing"><code class="docutils literal notranslate"><span class="pre">CountryIsMissing</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exceptions.GCPSensorException"><code class="docutils literal notranslate"><span class="pre">GCPSensorException</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exceptions.HardwareNoGPUDetectedException"><code class="docutils literal notranslate"><span class="pre">HardwareNoGPUDetectedException</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exceptions.HardwareRAPLException"><code class="docutils literal notranslate"><span class="pre">HardwareRAPLException</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exceptions.TracarbonException"><code class="docutils literal notranslate"><span class="pre">TracarbonException</span></code></a></li>
