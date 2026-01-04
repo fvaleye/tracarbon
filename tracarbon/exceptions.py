@@ -1,3 +1,16 @@
+__all__ = [
+    "TracarbonException",
+    "CountryIsMissing",
+    "CloudProviderRegionIsMissing",
+    "AWSSensorException",
+    "GCPSensorException",
+    "AzureSensorException",
+    "HardwareRAPLException",
+    "HardwareNoGPUDetectedException",
+    "CO2SignalAPIKeyIsMissing",
+]
+
+
 class TracarbonException(Exception):
     """General Tracarbon Exception."""
 
@@ -18,6 +31,18 @@ class CloudProviderRegionIsMissing(TracarbonException):
 
 class AWSSensorException(TracarbonException):
     """Error in the AWS Sensor Error."""
+
+    pass
+
+
+class GCPSensorException(TracarbonException):
+    """Error in the GCP Sensor."""
+
+    pass
+
+
+class AzureSensorException(TracarbonException):
+    """Error in the Azure Sensor."""
 
     pass
 

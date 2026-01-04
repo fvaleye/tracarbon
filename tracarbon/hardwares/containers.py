@@ -9,7 +9,10 @@ from tracarbon.conf import KUBERNETES_INSTALLED
 from tracarbon.exceptions import TracarbonException
 from tracarbon.hardwares.hardware import HardwareInfo
 
+__all__: list[str] = []
+
 if KUBERNETES_INSTALLED:
+    __all__ = ["Container", "Pod", "Kubernetes"]
     from kubernetes import config
     from kubernetes.client import CoreV1Api
     from kubernetes.client import CustomObjectsApi

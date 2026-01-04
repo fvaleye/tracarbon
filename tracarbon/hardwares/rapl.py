@@ -15,6 +15,11 @@ from tracarbon.exceptions import HardwareRAPLException
 from tracarbon.hardwares.energy import EnergyUsage
 from tracarbon.hardwares.energy import Power
 
+__all__ = [
+    "RAPLResult",
+    "RAPL",
+]
+
 
 class RAPLResult(BaseModel):
     """

@@ -1,0 +1,394 @@
+Instance type,Instance vCPU,Instance Memory (in GB),Min Watts,Max Watts,Architecture
+A1 v2,1.0,2.0,0.85,3.69,Unknown
+A2 v2,2.0,4.0,1.69,7.39,Unknown
+A2m v2,2.0,16.0,1.69,7.39,Unknown
+A4 v2,4.0,8.0,3.39,14.77,Unknown
+A4m v2,4.0,32.0,3.39,14.77,Unknown
+A8 v2,8.0,16.0,6.78,29.55,Unknown
+A8m v2,8.0,64.0,6.78,29.55,Unknown
+B12MS,12.0,48.0,10.17,44.32,Unknown
+B16MS,16.0,64.0,13.56,59.09,Unknown
+B1LS,1.0,0.5,0.85,3.69,Unknown
+B1MS,1.0,2.0,0.85,3.69,Unknown
+B1S,1.0,1.0,0.85,3.69,Unknown
+B20MS,20.0,80.0,16.94,73.87,Unknown
+B2MS,2.0,8.0,1.69,7.39,Unknown
+B2S,2.0,4.0,1.69,7.39,Unknown
+B4MS,4.0,16.0,3.39,14.77,Unknown
+B8MS,8.0,32.0,6.78,29.55,Unknown
+D1 v2,1.0,3.5,1.9,6.01,Haswell
+D11 v2,2.0,14.0,3.8,12.03,Haswell
+D12 v2,4.0,28.0,7.6,24.05,Haswell
+D13 v2,8.0,56.0,15.2,48.1,Haswell
+D14 v2,16.0,112.0,30.41,96.21,Haswell
+D15 v2,20.0,140.0,38.01,120.26,Haswell
+D15i v2 1,20.0,140.0,38.01,120.26,Haswell
+D16 v3,16.0,64.0,30.41,96.21,Haswell
+D16 v4,16.0,64.0,10.22,63.48,Cascade Lake
+D16a v4,16.0,64.0,7.59,27.09,EPYC 2nd Gen
+D16as v4,16.0,64.0,7.59,27.09,EPYC 2nd Gen
+D16d v4,16.0,64.0,10.22,63.48,Cascade Lake
+D16ds v4,16.0,64.0,10.22,63.48,Cascade Lake
+D16s v3,16.0,64.0,30.41,96.21,Haswell
+D16s v4,16.0,64.0,30.41,96.21,Haswell
+D2 v2,2.0,7.0,3.8,12.03,Haswell
+D2 v3,2.0,8.0,3.8,12.03,Haswell
+D2 v4,2.0,8.0,1.28,7.93,Cascade Lake
+D2a v4,2.0,8.0,0.95,3.39,EPYC 2nd Gen
+D2as v4,2.0,8.0,0.95,3.39,EPYC 2nd Gen
+D2d v4,2.0,8.0,1.28,7.93,Cascade Lake
+D2ds v4,2.0,8.0,1.28,7.93,Cascade Lake
+D2s v3,2.0,8.0,3.8,12.03,Haswell
+D2s v4,2.0,8.0,3.8,12.03,Haswell
+D3 v2,4.0,14.0,7.6,24.05,Haswell
+D32 v3,32.0,128.0,60.82,192.41,Haswell
+D32 v4,32.0,128.0,20.45,126.95,Cascade Lake
+D32a v4,32.0,128.0,15.18,54.17,EPYC 2nd Gen
+D32as v4,32.0,128.0,15.18,54.17,EPYC 2nd Gen
+D32d v4,32.0,128.0,20.45,126.95,Cascade Lake
+D32ds v4,32.0,128.0,20.45,126.95,Cascade Lake
+D32s v3,32.0,128.0,60.82,192.41,Haswell
+D32s v4,32.0,128.0,60.82,192.41,Haswell
+D4 v2,8.0,28.0,15.2,48.1,Haswell
+D4 v3,4.0,16.0,7.6,24.05,Haswell
+D4 v4,4.0,16.0,2.56,15.87,Cascade Lake
+D48 v3,48.0,192.0,91.23,288.62,Haswell
+D48 v4,48.0,192.0,30.67,190.43,Cascade Lake
+D48a v4,48.0,192.0,22.76,81.26,EPYC 2nd Gen
+D48as v4,48.0,192.0,22.76,81.26,EPYC 2nd Gen
+D48d v4,48.0,192.0,30.67,190.43,Cascade Lake
+D48ds v4,48.0,192.0,30.67,190.43,Cascade Lake
+D48s v3,48.0,192.0,91.23,288.62,Haswell
+D48s v4,48.0,192.0,91.23,288.62,Haswell
+D4a v4,4.0,16.0,1.9,6.77,EPYC 2nd Gen
+D4as v4,4.0,16.0,1.9,6.77,EPYC 2nd Gen
+D4d v4,4.0,16.0,2.56,15.87,Cascade Lake
+D4ds v4,4.0,16.0,2.56,15.87,Cascade Lake
+D4s v3,4.0,16.0,7.6,24.05,Haswell
+D4s v4,4.0,16.0,7.6,24.05,Haswell
+D5 v2,16.0,56.0,30.41,96.21,Haswell
+D64 v3,64.0,256.0,121.64,384.83,Haswell
+D64 v4,64.0,256.0,40.89,253.91,Cascade Lake
+D64a v4,64.0,256.0,30.35,108.35,EPYC 2nd Gen
+D64as v4,64.0,256.0,30.35,108.35,EPYC 2nd Gen
+D64d v4,64.0,256.0,40.89,253.91,Cascade Lake
+D64ds v4,64.0,256.0,40.89,253.91,Cascade Lake
+D64s v3,64.0,256.0,121.64,384.83,Haswell
+D64s v4,64.0,256.0,121.64,384.83,Haswell
+D8 v3,8.0,32.0,15.2,48.1,Haswell
+D8 v4,8.0,32.0,5.11,31.74,Cascade Lake
+D8a v4,8.0,32.0,3.79,13.54,EPYC 2nd Gen
+D8as v4,8.0,32.0,3.79,13.54,EPYC 2nd Gen
+D8d v4,8.0,32.0,5.11,31.74,Cascade Lake
+D8ds v4,8.0,32.0,5.11,31.74,Cascade Lake
+D8s v3,8.0,32.0,15.2,48.1,Haswell
+D8s v4,8.0,32.0,15.2,48.1,Haswell
+D96a v4,96.0,384.0,45.53,162.52,EPYC 2nd Gen
+D96as v4,96.0,384.0,45.53,162.52,EPYC 2nd Gen
+DC1s v2,1.0,4.0,1.14,5.42,Coffee Lake
+DC2s v2,2.0,8.0,2.28,10.84,Coffee Lake
+DC4s v2,4.0,16.0,4.55,21.69,Coffee Lake
+DC8 v2,8.0,32.0,9.11,43.37,Coffee Lake
+DS1 v2,1.0,3.5,1.9,6.01,Haswell
+DS11 v2,2.0,14.0,3.8,12.03,Haswell
+DS11-1 v2,0.5,14.0,0.42,1.85,Unknown
+DS12 v2,4.0,28.0,7.6,24.05,Haswell
+DS12-1 v2,0.25,28.0,0.21,0.92,Unknown
+DS12-2 v2,0.5,28.0,0.42,1.85,Unknown
+DS13 v2,8.0,56.0,15.2,48.1,Haswell
+DS13-2 v2,0.25,56.0,0.21,0.92,Unknown
+DS13-4 v2,0.5,56.0,0.42,1.85,Unknown
+DS14 v2,16.0,112.0,30.41,96.21,Haswell
+DS14-4 v2,0.25,112.0,0.21,0.92,Unknown
+DS14-8 v2,0.5,112.0,0.42,1.85,Unknown
+DS15 v2,20.0,140.0,38.01,120.26,Haswell
+DS15i v2 1,20.0,140.0,38.01,120.26,Haswell
+DS2 v2,2.0,7.0,3.8,12.03,Haswell
+DS3 v2,4.0,14.0,7.6,24.05,Haswell
+DS4 v2,8.0,28.0,15.2,48.1,Haswell
+DS5 v2,16.0,56.0,30.41,96.21,Haswell
+E16 v3,16.0,128.0,11.41,58.97,Broadwell
+E16 v4,16.0,128.0,10.22,63.48,Cascade Lake
+E16 v5,16.0,128.0,13.56,59.09,Unknown
+E16-4as v4,0.25,128.0,0.21,0.92,Unknown
+E16-4ds v4,0.25,128.0,0.21,0.92,Unknown
+E16-4s v3,0.25,128.0,0.21,0.92,Unknown
+E16-4s v4,0.25,128.0,0.21,0.92,Unknown
+E16-8as v4,0.5,128.0,0.42,1.85,Unknown
+E16-8ds v4,0.5,128.0,0.42,1.85,Unknown
+E16-8s v3,0.5,128.0,0.42,1.85,Unknown
+E16-8s v4,0.5,128.0,0.42,1.85,Unknown
+E16a v4,16.0,128.0,7.59,27.09,EPYC 2nd Gen
+E16as v4,16.0,128.0,7.59,27.09,EPYC 2nd Gen
+E16d v4,16.0,128.0,10.22,63.48,Cascade Lake
+E16ds v4,16.0,128.0,10.22,63.48,Cascade Lake
+E16s v3,16.0,128.0,11.41,58.97,Broadwell
+E16s v4,16.0,128.0,10.22,63.48,Cascade Lake
+E2 v3,2.0,16.0,1.43,7.37,Broadwell
+E2 v4,2.0,16.0,1.28,7.93,Cascade Lake
+E2 v5,2.0,16.0,1.69,7.39,Unknown
+E20 v3,20.0,160.0,14.26,73.71,Broadwell
+E20 v5,20.0,160.0,16.94,73.87,Unknown
+E20a v4,20.0,160.0,9.49,33.86,EPYC 2nd Gen
+E20as v4,20.0,160.0,9.49,33.86,EPYC 2nd Gen
+E20d v4,20.0,160.0,12.78,79.35,Cascade Lake
+E20ds v4,20.0,160.0,12.78,79.35,Cascade Lake
+E20s v3,20.0,160.0,14.26,73.71,Broadwell
+E20s v4,20.0,160.0,12.78,79.35,Cascade Lake
+E2a v4,2.0,16.0,0.95,3.39,EPYC 2nd Gen
+E2as v4,2.0,16.0,0.95,3.39,EPYC 2nd Gen
+E2d v4,2.0,16.0,1.28,7.93,Cascade Lake
+E2ds v4,2.0,16.0,1.28,7.93,Cascade Lake
+E2s v3,2.0,16.0,1.43,7.37,Broadwell
+E2s v4,2.0,16.0,1.28,7.93,Cascade Lake
+E32 v3,32.0,256.0,22.81,117.93,Broadwell
+E32 v4,32.0,256.0,20.45,126.95,Cascade Lake
+E32 v5,32.0,256.0,27.11,118.18,Unknown
+E32-16as v4,0.5,256.0,0.42,1.85,Unknown
+E32-16ds v4,0.5,256.0,0.42,1.85,Unknown
+E32-16s v3,0.5,256.0,0.42,1.85,Unknown
+E32-16s v4,0.5,256.0,0.42,1.85,Unknown
+E32-8as v4,0.25,256.0,0.21,0.92,Unknown
+E32-8ds v4,0.25,256.0,0.21,0.92,Unknown
+E32-8s v3,0.25,256.0,0.21,0.92,Unknown
+E32-8s v4,0.25,256.0,0.21,0.92,Unknown
+E32a v4,32.0,256.0,15.18,54.17,EPYC 2nd Gen
+E32as v4,32.0,256.0,15.18,54.17,EPYC 2nd Gen
+E32d v4,32.0,256.0,20.45,126.95,Cascade Lake
+E32ds v4,32.0,256.0,20.45,126.95,Cascade Lake
+E32s v3,32.0,256.0,22.81,117.93,Broadwell
+E32s v4,32.0,256.0,20.45,126.95,Cascade Lake
+E4 v3,4.0,32.0,2.85,14.74,Broadwell
+E4 v4,4.0,32.0,2.56,15.87,Cascade Lake
+E4 v5,4.0,32.0,3.39,14.77,Unknown
+E4-2as v4,0.5,32.0,0.42,1.85,Unknown
+E4-2ds v4,0.5,32.0,0.42,1.85,Unknown
+E4-2s v3,0.5,32.0,0.42,1.85,Unknown
+E4-2s v4,0.5,32.0,0.42,1.85,Unknown
+E48 v3,48.0,384.0,34.22,176.9,Broadwell
+E48 v4,48.0,384.0,30.67,190.43,Cascade Lake
+E48 v5,48.0,384.0,40.67,177.28,Unknown
+E48a v4,48.0,384.0,22.76,81.26,EPYC 2nd Gen
+E48as v4,48.0,384.0,22.76,81.26,EPYC 2nd Gen
+E48d v4,48.0,384.0,30.67,190.43,Cascade Lake
+E48ds v4,48.0,384.0,30.67,190.43,Cascade Lake
+E48s v3,48.0,384.0,34.22,176.9,Broadwell
+E48s v4,48.0,384.0,30.67,190.43,Cascade Lake
+E4a v4,4.0,32.0,1.9,6.77,EPYC 2nd Gen
+E4as v4,4.0,32.0,1.9,6.77,EPYC 2nd Gen
+E4d v4,4.0,32.0,2.56,15.87,Cascade Lake
+E4ds v4,4.0,32.0,2.56,15.87,Cascade Lake
+E4s v3,4.0,32.0,2.85,14.74,Broadwell
+E4s v4,4.0,32.0,2.56,15.87,Cascade Lake
+E64 v3,64.0,432.0,45.62,235.86,Broadwell
+E64 v4,64.0,504.0,40.89,253.91,Cascade Lake
+E64 v5,64.0,512.0,54.22,236.37,Unknown
+E64-16as v4,0.25,512.0,0.21,0.92,Unknown
+E64-16ds v4,0.25,504.0,0.21,0.92,Unknown
+E64-16s v3,0.25,432.0,0.21,0.92,Unknown
+E64-16s v4,0.25,504.0,0.21,0.92,Unknown
+E64-32as v4,0.5,512.0,0.42,1.85,Unknown
+E64-32ds v4,0.5,504.0,0.42,1.85,Unknown
+E64-32s v3,0.5,432.0,0.42,1.85,Unknown
+E64-32s v4,0.5,504.0,0.42,1.85,Unknown
+E64a v4,64.0,512.0,30.35,108.35,EPYC 2nd Gen
+E64as v4,64.0,512.0,30.35,108.35,EPYC 2nd Gen
+E64d v4,64.0,504.0,40.89,253.91,Cascade Lake
+E64ds v4,64.0,504.0,40.89,253.91,Cascade Lake
+E64i v3 1,64.0,432.0,45.62,235.86,Broadwell
+E64is v3 1,64.0,432.0,45.62,235.86,Broadwell
+E64s v3,64.0,432.0,45.62,235.86,Broadwell
+E64s v4,64.0,504.0,40.89,253.91,Cascade Lake
+E8 v3,8.0,64.0,5.7,29.48,Broadwell
+E8 v4,8.0,64.0,5.11,31.74,Cascade Lake
+E8 v5,8.0,64.0,6.78,29.55,Unknown
+E8-2as v4,0.25,64.0,0.21,0.92,Unknown
+E8-2ds v4,0.25,64.0,0.21,0.92,Unknown
+E8-2s v3,0.25,64.0,0.21,0.92,Unknown
+E8-2s v4,0.25,64.0,0.21,0.92,Unknown
+E8-4as v4,0.5,64.0,0.42,1.85,Unknown
+E8-4ds v4,0.5,64.0,0.42,1.85,Unknown
+E8-4s v3,0.5,64.0,0.42,1.85,Unknown
+E8-4s v4,0.5,64.0,0.42,1.85,Unknown
+E80ids v4 1,80.0,504.0,51.12,317.38,Cascade Lake
+E80is v4 1,80.0,504.0,51.12,317.38,Cascade Lake
+E8a v4,8.0,64.0,3.79,13.54,EPYC 2nd Gen
+E8as v4,8.0,64.0,3.79,13.54,EPYC 2nd Gen
+E8d v4,8.0,64.0,5.11,31.74,Cascade Lake
+E8ds v4,8.0,64.0,5.11,31.74,Cascade Lake
+E8s v3,8.0,64.0,5.7,29.48,Broadwell
+E8s v4,8.0,64.0,5.11,31.74,Cascade Lake
+E96 v5,96.0,672.0,81.33,354.55,Unknown
+E96-24as v4,0.25,672.0,0.21,0.92,Unknown
+E96-48as v4,0.5,672.0,0.42,1.85,Unknown
+E96a v4,96.0,672.0,45.53,162.52,EPYC 2nd Gen
+E96as v4,96.0,672.0,45.53,162.52,EPYC 2nd Gen
+F1,1.0,2.0,1.9,6.01,Haswell
+F16,16.0,32.0,30.41,96.21,Haswell
+F16s,16.0,32.0,13.56,59.09,Unknown
+F16s v2,16.0,32.0,10.31,67.09,Skylake
+F1s,1.0,2.0,0.85,3.69,Unknown
+F2,2.0,4.0,3.8,12.03,Haswell
+F2s,2.0,4.0,1.69,7.39,Unknown
+F2s v2,2.0,4.0,1.29,8.39,Skylake
+F32s v2,32.0,64.0,20.63,134.19,Skylake
+F4,4.0,8.0,7.6,24.05,Haswell
+F48s v2,48.0,96.0,30.94,201.28,Skylake
+F4s,4.0,8.0,3.39,14.77,Unknown
+F4s v2,4.0,8.0,2.58,16.77,Skylake
+F64s v2,64.0,128.0,41.25,268.38,Skylake
+F72s v2,72.0,144.0,46.41,301.93,Skylake
+F8,8.0,16.0,15.2,48.1,Haswell
+F8s,8.0,16.0,6.78,29.55,Unknown
+F8s v2,8.0,16.0,5.16,33.55,Skylake
+G1,2.0,28.0,3.8,12.03,Haswell
+G2,4.0,56.0,7.6,24.05,Haswell
+G3,8.0,112.0,15.2,48.1,Haswell
+G4,16.0,224.0,30.41,96.21,Haswell
+G5,32.0,448.0,60.82,192.41,Haswell
+Gs1,2.0,28.0,1.69,7.39,Unknown
+Gs2,4.0,56.0,3.39,14.77,Unknown
+Gs3,8.0,112.0,6.78,29.55,Unknown
+Gs4,16.0,224.0,13.56,59.09,Unknown
+Gs4-4,0.25,224.0,0.21,0.92,Unknown
+Gs4-8,0.5,224.0,0.42,1.85,Unknown
+Gs5,32.0,448.0,27.11,118.18,Unknown
+Gs5-16,0.5,448.0,0.42,1.85,Unknown
+Gs5-8,0.25,448.0,0.21,0.92,Unknown
+H16,16.0,112.0,30.41,96.21,Haswell
+H16 Promo,16.0,112.0,30.41,96.21,Haswell
+H16m,16.0,224.0,30.41,96.21,Haswell
+H16m Promo,16.0,224.0,30.41,96.21,Haswell
+H16mr,16.0,224.0,30.41,96.21,Haswell
+H16mr Promo,16.0,224.0,30.41,96.21,Haswell
+H16r,16.0,112.0,30.41,96.21,Haswell
+H16r Promo,16.0,112.0,30.41,96.21,Haswell
+H8,8.0,56.0,15.2,48.1,Haswell
+H8 Promo,8.0,56.0,15.2,48.1,Haswell
+H8m,8.0,112.0,15.2,48.1,Haswell
+H8m Promo,8.0,112.0,15.2,48.1,Haswell
+HB120-16rs v3,0.1333333333,448.0,0.06,0.27,EPYC 3rd Gen
+HB120-32rs v3,0.2666666667,448.0,0.12,0.54,EPYC 3rd Gen
+HB120-64rs v3,0.5333333333,448.0,0.24,1.08,EPYC 3rd Gen
+HB120-96rs v3,0.8,448.0,0.36,1.62,EPYC 3rd Gen
+HB120rs v2,120.0,480.0,56.91,203.16,EPYC 2nd Gen
+HB120rs v3,120.0,448.0,53.45,242.32,EPYC 3rd Gen
+L16s,16.0,128.0,30.41,96.21,Haswell
+L16s v2,16.0,128.0,13.16,40.85,EPYC 1st Gen
+L32s,32.0,256.0,60.82,192.41,Haswell
+L32s v2,32.0,256.0,26.32,81.7,EPYC 1st Gen
+L48s v2,48.0,384.0,39.49,122.55,EPYC 1st Gen
+L4s,4.0,32.0,7.6,24.05,Haswell
+L64s v2,64.0,512.0,52.65,163.4,EPYC 1st Gen
+L80s v2,80.0,640.0,65.81,204.25,EPYC 1st Gen
+L8s,8.0,64.0,15.2,48.1,Haswell
+L8s v2,8.0,64.0,6.58,20.43,EPYC 1st Gen
+M128 1,128.0,2048.0,81.79,507.82,Cascade Lake
+M128-32ms,0.25,3800.0,0.21,0.92,Unknown
+M128-64ms,0.5,3800.0,0.42,1.85,Unknown
+M128dms v2,128.0,3892.0,81.79,507.82,Cascade Lake
+M128ds v2,128.0,2048.0,81.79,507.82,Cascade Lake
+M128m 1,128.0,3892.0,81.79,507.82,Cascade Lake
+M128ms,128.0,3892.0,81.79,507.82,Cascade Lake
+M128ms v2,128.0,3892.0,81.79,507.82,Cascade Lake
+M128s,128.0,2048.0,81.79,507.82,Cascade Lake
+M128s v2,128.0,2048.0,81.79,507.82,Cascade Lake
+M16-4ms,0.25,438.0,0.21,0.92,Unknown
+M16-8ms,0.5,438.0,0.42,1.85,Unknown
+M16ms,16.0,438.0,10.22,63.48,Cascade Lake
+M192idms v2,192.0,4096.0,122.68,761.72,Cascade Lake
+M192ids v2,192.0,2048.0,122.68,761.72,Cascade Lake
+M192ims v2,192.0,4096.0,122.68,761.72,Cascade Lake
+M192is v2,192.0,2048.0,122.68,761.72,Cascade Lake
+M208ms v2,208.0,5700.0,134.08,872.23,Skylake
+M208s v2,208.0,2850.0,134.08,872.23,Skylake
+M32-16ms,0.5,875.0,0.42,1.85,Unknown
+M32-8ms,0.25,875.0,0.21,0.92,Unknown
+M32dms v2,32.0,875.0,20.45,126.95,Cascade Lake
+M32ls,32.0,256.0,20.45,126.95,Cascade Lake
+M32ms,32.0,875.0,20.45,126.95,Cascade Lake
+M32ms v2,32.0,875.0,20.45,126.95,Cascade Lake
+M32ts,32.0,192.0,20.45,126.95,Cascade Lake
+M416ms v2,416.0,11400.0,268.16,1744.47,Skylake
+M416s v2,416.0,5700.0,268.16,1744.47,Skylake
+M64 1,64.0,1024.0,40.89,253.91,Cascade Lake
+M64-16ms,0.25,1750.0,0.21,0.92,Unknown
+M64-32ms,0.5,1750.0,0.42,1.85,Unknown
+M64dms v2,64.0,1792.0,40.89,253.91,Cascade Lake
+M64ds v2,64.0,1024.0,40.89,253.91,Cascade Lake
+M64ls,64.0,512.0,40.89,253.91,Cascade Lake
+M64m 1,64.0,1792.0,40.89,253.91,Cascade Lake
+M64ms,64.0,1792.0,40.89,253.91,Cascade Lake
+M64ms v2,64.0,1792.0,40.89,253.91,Cascade Lake
+M64s,64.0,1024.0,40.89,253.91,Cascade Lake
+M64s v2,64.0,1024.0,40.89,253.91,Cascade Lake
+M8-2ms,0.25,219.0,0.21,0.92,Unknown
+M8-4ms,0.5,219.0,0.42,1.85,Unknown
+M8ms,8.0,219.0,5.11,31.74,Cascade Lake
+NC12,12.0,112.0,10.17,44.32,Unknown
+NC12 Promo,12.0,112.0,10.17,44.32,Unknown
+NC12s v2,12.0,224.0,10.17,44.32,Unknown
+NC12s v3,12.0,224.0,10.17,44.32,Unknown
+NC16as T4 v3,16.0,112.0,13.56,59.09,Unknown
+NC24,24.0,224.0,20.33,88.64,Unknown
+NC24 Promo,24.0,224.0,20.33,88.64,Unknown
+NC24r,24.0,224.0,20.33,88.64,Unknown
+NC24r Promo,24.0,224.0,20.33,88.64,Unknown
+NC24rs v2,24.0,448.0,20.33,88.64,Unknown
+NC24rs v3,24.0,448.0,20.33,88.64,Unknown
+NC24s v2,24.0,448.0,20.33,88.64,Unknown
+NC24s v3,24.0,448.0,20.33,88.64,Unknown
+NC4as T4 v3,4.0,28.0,3.39,14.77,Unknown
+NC6,6.0,56.0,5.08,22.16,Unknown
+NC6 Promo,6.0,56.0,5.08,22.16,Unknown
+NC64as T4 v3,64.0,448.0,54.22,236.37,Unknown
+NC6s v2,6.0,112.0,5.08,22.16,Unknown
+NC6s v3,6.0,112.0,5.08,22.16,Unknown
+NC8as T4 v3,8.0,56.0,6.78,29.55,Unknown
+ND12s,12.0,224.0,10.17,44.32,Unknown
+ND24rs,24.0,448.0,20.33,88.64,Unknown
+ND24s,24.0,448.0,20.33,88.64,Unknown
+ND40rs v2,40.0,672.0,33.89,147.73,Unknown
+ND6s,6.0,112.0,5.08,22.16,Unknown
+NP10s,10.0,192.0,8.47,36.93,Unknown
+NP20s,20.0,384.0,16.94,73.87,Unknown
+NP40s,40.0,768.0,33.89,147.73,Unknown
+NV12,12.0,112.0,10.17,44.32,Unknown
+NV12s v3,12.0,112.0,10.17,44.32,Unknown
+NV24,24.0,224.0,20.33,88.64,Unknown
+NV24s v3,24.0,224.0,20.33,88.64,Unknown
+NV48s v3,48.0,448.0,40.67,177.28,Unknown
+NV6,6.0,56.0,5.08,22.16,Unknown
+S192,192.0,2048.0,136.86,707.58,Broadwell
+S192m,192.0,4096.0,136.86,707.58,Broadwell
+S192xm,192.0,6144.0,136.86,707.58,Broadwell
+S224,224.0,3072.0,143.12,888.68,Cascade Lake
+S224m,224.0,6144.0,143.12,888.68,Cascade Lake
+S224om,224.0,6144.0,143.12,888.68,Cascade Lake
+S224oo,224.0,4608.0,143.12,888.68,Cascade Lake
+S224oom,224.0,9216.0,143.12,888.68,Cascade Lake
+S224ooo,224.0,7680.0,143.12,888.68,Cascade Lake
+S384,384.0,4096.0,273.73,1415.17,Broadwell
+S384m,384.0,6144.0,273.73,1415.17,Broadwell
+S384xm,384.0,8192.0,273.73,1415.17,Broadwell
+S384xxm,384.0,12000.0,273.73,1415.17,Broadwell
+S448,448.0,6144.0,286.25,1777.35,Cascade Lake
+S448m,448.0,12288.0,286.25,1777.35,Cascade Lake
+S448om,448.0,12288.0,286.25,1777.35,Cascade Lake
+S448oo,448.0,9216.0,286.25,1777.35,Cascade Lake
+S448oom,448.0,18432.0,286.25,1777.35,Cascade Lake
+S448ooo,448.0,15360.0,286.25,1777.35,Cascade Lake
+S576m,576.0,12000.0,410.59,2122.75,Broadwell
+S672,672.0,9216.0,429.37,2666.03,Cascade Lake
+S672m,672.0,18432.0,429.37,2666.03,Cascade Lake
+S672om,672.0,18432.0,429.37,2666.03,Cascade Lake
+S672oo,672.0,13824.0,429.37,2666.03,Cascade Lake
+S672oom,672.0,27648.0,429.37,2666.03,Cascade Lake
+S672ooo,672.0,23040.0,429.37,2666.03,Cascade Lake
+S896,896.0,12288.0,572.5,3554.71,Cascade Lake
+S896m,896.0,24576.0,572.5,3554.71,Cascade Lake
+S896om,896.0,24576.0,572.5,3554.71,Cascade Lake
+S896oo,896.0,18432.0,572.5,3554.71,Cascade Lake
+S896oom,896.0,36864.0,572.5,3554.71,Cascade Lake
+S896ooo,896.0,30720.0,572.5,3554.71,Cascade Lake
+S96,96.0,768.0,68.43,353.79,Broadwell

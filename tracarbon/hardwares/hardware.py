@@ -6,6 +6,10 @@ from pydantic import BaseModel
 
 from tracarbon.hardwares.gpu import GPUInfo
 
+__all__ = [
+    "HardwareInfo",
+]
+
 
 class HardwareInfo(BaseModel):
     """
