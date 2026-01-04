@@ -37,8 +37,8 @@ pip install 'tracarbon[datadog,prometheus,kubernetes]'
 | **Cloud Provider** |                                                                                              **Description**                                                                                              |
 | ------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | AWS                | ✅ Use the hardware's usage with the EC2 instances carbon emissions datasets of [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/ccf-coefficients/blob/main/data/aws-instances.csv). |
-| GCP                |                                                                                          ❌ Not yet implemented.                                                                                          |
-| Azure              |                                                                                          ❌ Not yet implemented.                                                                                          |
+| GCP                | ✅ Use the hardware's usage with the GCP instances carbon emissions datasets of [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/ccf-coefficients/blob/main/data/gcp-instances.csv). |
+| Azure              | ✅ Use the hardware's usage with the Azure instances carbon emissions datasets of [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/ccf-coefficients/blob/main/data/azure-instances.csv). |
 
 ### 🎮 GPU: power tracking
 
@@ -65,6 +65,8 @@ pip install 'tracarbon[datadog,prometheus,kubernetes]'
 | Worldwide    | Get the latest co2g/kwh in near real-time using the CO2Signal or ElectricityMaps APIs. See [here](http://api.electricitymap.org/v3/zones) for the list of available zones. | [CO2Signal API](https://www.co2signal.com) or [ElectricityMaps](https://static.electricitymaps.com/api/docs/index.html)                                       |
 | Europe       |                                 Static file created from the European Environment Agency Emission for the co2g/kwh in European countries.                                  | [EEA website](https://www.eea.europa.eu/en/analysis/maps-and-charts/co2-emission-intensity-15) |
 | AWS          |                                                               Static file of the AWS Grid emissions factors.                                                               | [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/cloud-carbon-coefficients/blob/main/data/grid-emissions-factors-aws.csv)                |
+| GCP          |                                                               Static file of the GCP Grid emissions factors (2024 yearly data).                                                               | [GoogleCloudPlatform/region-carbon-info](https://github.com/GoogleCloudPlatform/region-carbon-info/blob/main/data/yearly/2024.csv)                |
+| Azure        |                                                               Static file of the Azure Grid emissions factors.                                                             | [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/cloud-carbon-coefficients/blob/main/data/grid-emissions-factors-azure.csv)              |
 
 ### ⚙️ Configuration
 

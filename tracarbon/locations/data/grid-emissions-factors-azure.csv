@@ -1,0 +1,25 @@
+Region,Location,CO2e (metric ton/kWh),Source
+Central US,Iowa,0.000472230,EPA
+East US,Virginia,0.000415755,EPA
+East US 2,Virginia,0.000415755,EPA
+East US 3,Georgia,0.000415755,EPA
+North Central US,Illinois,0.000440187,EPA
+South Central US,Texas,0.000396293,EPA
+West Central US,Wyoming,0.000350861,EPA
+West US,California,0.000350861,EPA
+West US 2,Washington,0.000350861,EPA
+West US 3,Arizona,0.000350861,EPA
+East Asia,Hong Kong,0.000810000,carbonfootprint.com
+Southeast Asia,Singapore,0.000408500,EMA Singapore
+North Europe,Ireland,0.000316000,EEA
+West Europe,Netherlands,0.000390000,EEA
+Central India,Pune,0.000708000,carbonfootprint.com
+South India,Chennai,0.000708000,carbonfootprint.com
+West India,Mumbai,0.000708000,carbonfootprint.com
+UK South,London,0.000228000,EEA
+UK West,Cardiff,0.000228000,EEA
+France Central,Paris,0.000067000,EEA
+Finland Central,Helsinki,0.000077000,EEA
+Germany West Central,Frankfurt,0.000402000,EEA
+Belgium Central,Brussels,0.000154000,EEA
+Sweden Central,Gavle,0.000009000,EEA

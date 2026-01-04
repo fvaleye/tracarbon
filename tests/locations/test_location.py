@@ -6,6 +6,8 @@ from tracarbon.hardwares import CloudProviders
 from tracarbon.locations import AWSLocation
 from tracarbon.locations import Country
 from tracarbon.locations import Location
+from tracarbon.locations.country import AzureLocation
+from tracarbon.locations.country import GCPLocation
 
 
 @pytest.mark.asyncio
@@ -88,3 +90,61 @@ def test_aws_location_should_return_ok_if_region_exists():
     assert location.name == "AWS(eu-west-1)"
     assert location.co2g_kwh == 316.0
     assert location.co2g_kwh_source.value == "file"
+
+
+def test_gcp_location_should_return_an_error_if_region_not_exists():
+    region_name = "unknown-region"
+
+    with pytest.raises(CloudProviderRegionIsMissing) as exception:
+        GCPLocation(region_name=region_name)
+    assert exception.value.args[0] == f"The region [{region_name}] is not in the GCP grid emissions factors file."
+
+
+def test_gcp_location_should_return_ok_if_region_exists():
+    region_name = "europe-west1"
+
+    location = GCPLocation(region_name=region_name)
+
+    assert location.name == "GCP(europe-west1)"
+    assert location.co2g_kwh > 100
+    assert location.co2g_kwh < 110
+    assert location.co2g_kwh_source.value == "file"
+
+
+def test_gcp_location_us_central1():
+    region_name = "us-central1"
+
+    location = GCPLocation(region_name=region_name)
+
+    assert location.name == "GCP(us-central1)"
+    assert location.co2g_kwh > 400
+    assert location.co2g_kwh < 420
+
+
+def test_azure_location_should_return_an_error_if_region_not_exists():
+    region_name = "unknown-region"
+
+    with pytest.raises(CloudProviderRegionIsMissing) as exception:
+        AzureLocation(region_name=region_name)
+    assert exception.value.args[0] == f"The region [{region_name}] is not in the Azure grid emissions factors file."
+
+
+def test_azure_location_should_return_ok_if_region_exists():
+    region_name = "West Europe"
+
+    location = AzureLocation(region_name=region_name)
+
+    assert location.name == "Azure(West Europe)"
+    assert location.co2g_kwh > 380
+    assert location.co2g_kwh < 400
+    assert location.co2g_kwh_source.value == "file"
+
+
+def test_azure_location_east_us():
+    region_name = "East US"
+
+    location = AzureLocation(region_name=region_name)
+
+    assert location.name == "Azure(East US)"
+    assert location.co2g_kwh > 410
+    assert location.co2g_kwh < 420

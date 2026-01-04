@@ -7,10 +7,16 @@ from tracarbon import AWSEC2EnergyConsumption
 from tracarbon import EnergyConsumption
 from tracarbon import LinuxEnergyConsumption
 from tracarbon import TracarbonException
+from tracarbon.exceptions import AzureSensorException
+from tracarbon.exceptions import GCPSensorException
 from tracarbon.hardwares import EnergyUsage
 from tracarbon.hardwares import HardwareInfo
 from tracarbon.hardwares import WindowsEnergyConsumption
 from tracarbon.hardwares.cloud_providers import AWS
+from tracarbon.hardwares.cloud_providers import GCP
+from tracarbon.hardwares.cloud_providers import Azure
+from tracarbon.hardwares.sensors import AzureEnergyConsumption
+from tracarbon.hardwares.sensors import GCPEnergyConsumption
 
 
 @pytest.mark.darwin
@@ -151,3 +157,111 @@ async def test_get_platform_should_return_the_platform_energy_consumption_window
     with pytest.raises(TracarbonException) as exception:
         await WindowsEnergyConsumption().get_energy_usage()
         assert exception.value.args[0] == "This Windows hardware is not yet supported."
+
+
+def test_is_gcp_should_return_false_on_exception():
+    assert GCP.is_gcp() is False
+
+
+def test_is_gcp_should_return_true(mocker):
+    mock_response = mocker.Mock()
+    mock_response.status_code = 200
+    mocker.patch.object(requests, "get", return_value=mock_response)
+
+    assert GCP.is_gcp() is True
+
+
+def test_gcp_from_metadata(mocker):
+    mock_machine_response = mocker.Mock()
+    mock_machine_response.text = "projects/123456/machineTypes/n2-standard-4"
+
+    mock_zone_response = mocker.Mock()
+    mock_zone_response.text = "projects/123456/zones/us-central1-a"
+
+    mocker.patch.object(
+        requests,
+        "get",
+        side_effect=[mock_machine_response, mock_zone_response],
+    )
+
+    gcp = GCP.from_metadata()
+
+    assert gcp.instance_type == "n2-standard-4"
+    assert gcp.region_name == "us-central1"
+
+
+@pytest.mark.asyncio
+async def test_gcp_sensor_should_return_energy_consumption(mocker):
+    gcp_sensor = GCPEnergyConsumption(instance_type="n2-standard-4")
+
+    assert gcp_sensor.vcpus == 4.0
+    assert gcp_sensor.memory_gb == 16.0
+    assert gcp_sensor.min_watts > 0
+    assert gcp_sensor.max_watts > gcp_sensor.min_watts
+
+    mocker.patch.object(HardwareInfo, "get_cpu_usage", return_value=50)
+    from tracarbon.hardwares.gpu import GPUInfo
+
+    mocker.patch.object(GPUInfo, "get_gpu_power_usage_or_none", return_value=None)
+
+    energy_usage = await gcp_sensor.get_energy_usage()
+
+    expected_power = gcp_sensor.min_watts + (gcp_sensor.max_watts - gcp_sensor.min_watts) * 0.5
+    assert abs(energy_usage.host_energy_usage - expected_power) < 0.01
+
+
+def test_gcp_sensor_should_return_error_when_instance_type_is_missing():
+    instance_type = "unknown-instance-type"
+
+    with pytest.raises(GCPSensorException):
+        GCPEnergyConsumption(instance_type=instance_type)
+
+
+def test_is_azure_should_return_false_on_exception():
+    assert Azure.is_azure() is False
+
+
+def test_is_azure_should_return_true(mocker):
+    mock_response = mocker.Mock()
+    mock_response.status_code = 200
+    mocker.patch.object(requests, "get", return_value=mock_response)
+
+    assert Azure.is_azure() is True
+
+
+def test_azure_from_metadata(mocker):
+    mock_response = mocker.Mock()
+    mock_response.json.return_value = {"compute": {"vmSize": "Standard_D2s_v3", "location": "eastus"}}
+    mocker.patch.object(requests, "get", return_value=mock_response)
+
+    azure = Azure.from_metadata()
+
+    assert azure.instance_type == "Standard_D2s_v3"
+    assert azure.region_name == "eastus"
+
+
+@pytest.mark.asyncio
+async def test_azure_sensor_should_return_energy_consumption(mocker):
+    azure_sensor = AzureEnergyConsumption(instance_type="D2 v3")
+
+    assert azure_sensor.vcpus == 2.0
+    assert azure_sensor.memory_gb == 8.0
+    assert azure_sensor.min_watts > 0
+    assert azure_sensor.max_watts > azure_sensor.min_watts
+
+    mocker.patch.object(HardwareInfo, "get_cpu_usage", return_value=50)
+    from tracarbon.hardwares.gpu import GPUInfo
+
+    mocker.patch.object(GPUInfo, "get_gpu_power_usage_or_none", return_value=None)
+
+    energy_usage = await azure_sensor.get_energy_usage()
+
+    expected_power = azure_sensor.min_watts + (azure_sensor.max_watts - azure_sensor.min_watts) * 0.5
+    assert abs(energy_usage.host_energy_usage - expected_power) < 0.01
+
+
+def test_azure_sensor_should_return_error_when_instance_type_is_missing():
+    instance_type = "unknown-instance-type"
+
+    with pytest.raises(AzureSensorException):
+        AzureEnergyConsumption(instance_type=instance_type)

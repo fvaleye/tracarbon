@@ -10,13 +10,35 @@ from pydantic import BaseModel
 from pydantic import ConfigDict
 
 from tracarbon.exceptions import AWSSensorException
+from tracarbon.exceptions import AzureSensorException
+from tracarbon.exceptions import GCPSensorException
 from tracarbon.exceptions import TracarbonException
 from tracarbon.hardwares.amd_rapl import AMDRAPL
+from tracarbon.hardwares.cloud_providers import AWS
+from tracarbon.hardwares.cloud_providers import GCP
+from tracarbon.hardwares.cloud_providers import Azure
 from tracarbon.hardwares.cloud_providers import CloudProviders
 from tracarbon.hardwares.energy import EnergyUsage
 from tracarbon.hardwares.gpu import GPUInfo
 from tracarbon.hardwares.hardware import HardwareInfo
 from tracarbon.hardwares.rapl import RAPL
+
+__all__ = [
+    "Sensor",
+    "EnergyConsumption",
+    "MacEnergyConsumption",
+    "LinuxEnergyConsumption",
+    "WindowsEnergyConsumption",
+    "AWSEC2EnergyConsumption",
+    "CloudEnergyConsumption",
+    "GCPEnergyConsumption",
+    "AzureEnergyConsumption",
+    "RAPL",
+    "AMDRAPL",
+    "EnergyUsage",
+    "HardwareInfo",
+    "GPUInfo",
+]
 
 
 class Sensor(ABC, BaseModel):
@@ -55,7 +77,12 @@ class EnergyConsumption(Sensor):
         # Cloud Providers
         cloud_provider = CloudProviders.auto_detect()
         if cloud_provider:
-            return AWSEC2EnergyConsumption(instance_type=cloud_provider.instance_type)
+            if isinstance(cloud_provider, AWS):
+                return AWSEC2EnergyConsumption(instance_type=cloud_provider.instance_type)
+            if isinstance(cloud_provider, GCP):
+                return GCPEnergyConsumption(instance_type=cloud_provider.instance_type)
+            if isinstance(cloud_provider, Azure):
+                return AzureEnergyConsumption(instance_type=cloud_provider.instance_type)
 
         # Platform
         if platform == "Darwin":
@@ -179,7 +206,7 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
     def __init__(self, instance_type: str, **data: Any) -> None:
         resource_file = importlib.resources.files("tracarbon.hardwares.data").joinpath("aws-instances.csv")
         try:
-            with resource_file.open("r") as csvfile:
+            with resource_file.open("r", encoding="utf-8") as csvfile:
                 reader = csv.reader(csvfile)
 
                 for row in reader:
@@ -244,3 +271,119 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
             memory_energy_usage=memory_watts,
             gpu_energy_usage=gpu_watts,
         )
+
+
+class CloudEnergyConsumption(EnergyConsumption):
+    """
+    Base class for cloud provider energy consumption.
+    Uses linear interpolation between min and max watts based on CPU usage.
+    """
+
+    min_watts: float
+    max_watts: float
+    vcpus: float
+    memory_gb: float
+
+    @classmethod
+    def _get_csv_filename(cls) -> str:
+        """Get the CSV filename for this cloud provider."""
+        raise NotImplementedError
+
+    @classmethod
+    def _get_provider_name(cls) -> str:
+        """Get the provider name for logging."""
+        raise NotImplementedError
+
+    @classmethod
+    def _get_exception_class(cls) -> type[Exception]:
+        """Get the exception class for this cloud provider."""
+        raise NotImplementedError
+
+    def __init__(self, instance_type: str, **data: Any) -> None:
+        resource_file = importlib.resources.files("tracarbon.hardwares.data").joinpath(self._get_csv_filename())
+        exception_class = self._get_exception_class()
+        provider_name = self._get_provider_name()
+        try:
+            with resource_file.open("r", encoding="utf-8") as csvfile:
+                reader = csv.reader(csvfile)
+                next(reader)  # Skip header
+                for row in reader:
+                    if row[0] == instance_type:
+                        data["vcpus"] = float(row[1])
+                        data["memory_gb"] = float(row[2])
+                        data["min_watts"] = float(row[3])
+                        data["max_watts"] = float(row[4])
+                        super().__init__(**data)
+                        return
+            raise exception_class(
+                f"The {provider_name} instance type [{instance_type}] is missing from the {provider_name.lower()} instances file."
+            )
+        except exception_class:
+            raise
+        except Exception as exception:
+            logger.exception(f"Error in the {provider_name}Sensor")
+            raise exception_class(exception) from exception
+
+    async def get_energy_usage(self) -> EnergyUsage:
+        """
+        Run the sensor and generate energy usage using linear interpolation.
+
+        :return: the generated energy usage.
+        """
+        provider_name = self._get_provider_name()
+        cpu_usage = HardwareInfo.get_cpu_usage() / 100.0  # Convert to 0-1 range
+
+        # Linear interpolation: power = min_watts + (max_watts - min_watts) * cpu_usage
+        cpu_watts = self.min_watts + (self.max_watts - self.min_watts) * cpu_usage
+        logger.debug(f"{provider_name} CPU: {cpu_watts:.2f}W (usage: {cpu_usage*100:.1f}%)")
+
+        gpu_watts = GPUInfo.get_gpu_power_usage_or_none() or 0.0
+        if gpu_watts > 0:
+            logger.debug(f"{provider_name} GPU: {gpu_watts:.2f}W")
+
+        total_watts = cpu_watts + gpu_watts
+        logger.debug(f"{provider_name} Total: {total_watts:.2f}W")
+
+        return EnergyUsage(
+            host_energy_usage=total_watts,
+            cpu_energy_usage=cpu_watts,
+            gpu_energy_usage=gpu_watts if gpu_watts > 0 else None,
+        )
+
+
+class GCPEnergyConsumption(CloudEnergyConsumption):
+    """The GCP Compute Engine Energy Consumption."""
+
+    @classmethod
+    def _get_csv_filename(cls) -> str:
+        return "gcp-instances.csv"
+
+    @classmethod
+    def _get_provider_name(cls) -> str:
+        return "GCP"
+
+    @classmethod
+    def _get_exception_class(cls) -> type[Exception]:
+        return GCPSensorException
+
+    def __init__(self, instance_type: str, **data: Any) -> None:
+        super().__init__(instance_type=instance_type, **data)
+
+
+class AzureEnergyConsumption(CloudEnergyConsumption):
+    """The Azure VM Energy Consumption."""
+
+    @classmethod
+    def _get_csv_filename(cls) -> str:
+        return "azure-instances.csv"
+
+    @classmethod
+    def _get_provider_name(cls) -> str:
+        return "Azure"
+
+    @classmethod
+    def _get_exception_class(cls) -> type[Exception]:
+        return AzureSensorException
+
+    def __init__(self, instance_type: str, **data: Any) -> None:
+        super().__init__(instance_type=instance_type, **data)
