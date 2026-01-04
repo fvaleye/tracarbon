@@ -2,7 +2,7 @@
 
 ![example workflow](https://github.com/fvaleye/tracarbon/actions/workflows/build.yml/badge.svg)
 [![pypi](https://img.shields.io/pypi/v/tracarbon.svg?style=flat-square)](https://pypi.org/project/tracarbon/)
-[![doc](https://img.shields.io/badge/docs-python-blue.svg?style=for-the-badge)](https://fvaleye.github.io/tracarbon)
+[![doc](https://img.shields.io/badge/docs-python-blue.svg?style=flat-square)](https://fvaleye.github.io/tracarbon)
 [![licence](https://img.shields.io/badge/license-Apache--2.0-green)](https://github.com/fvaleye/tracarbon/blob/main/LICENSE.txt)
 
 ## 📌 Overview
