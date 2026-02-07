@@ -1,3 +1,4 @@
+import functools
 import platform
 import re
 import shutil
@@ -10,6 +11,14 @@ from loguru import logger
 from pydantic import BaseModel
 
 from tracarbon.exceptions import HardwareNoGPUDetectedException
+
+_RE_POWER_W = re.compile(r"Power\s*\(W\):\s*([\d.]+)", re.IGNORECASE)
+_RE_POWER_USAGE_W = re.compile(r"POWER[^:]*:\s*([\d.]+)\s*W", re.IGNORECASE)
+
+
+@functools.lru_cache(maxsize=8)
+def _compile_power_pattern(label: str, unit: str) -> re.Pattern:
+    return re.compile(rf"{label}:\s*([\d.]+)\s*{unit}", re.IGNORECASE)
 
 
 class NvidiaGPU(BaseModel):
@@ -102,17 +111,125 @@ class AMDGPU(BaseModel):
         if return_code == 0:
             total_power = 0.0
             output_str = gpu_output.decode()
-            # Parse power values from rocm-smi or amd-smi output
-            # rocm-smi format: "Average Graphics Package Power (W): 45.0"
-            # amd-smi format: "POWER_USAGE: 65.0 W" or similar
-            # Match both formats: "Power (W): 45.0" and "POWER_USAGE: 65.0 W"
-            power_matches = re.findall(r"Power\s*\(W\):\s*([\d.]+)", output_str, re.IGNORECASE)
-            power_matches += re.findall(r"POWER[^:]*:\s*([\d.]+)\s*W", output_str, re.IGNORECASE)
+            power_matches = _RE_POWER_W.findall(output_str)
+            power_matches += _RE_POWER_USAGE_W.findall(output_str)
             for power_str in power_matches:
                 total_power += float(power_str)
             if total_power > 0:
                 return total_power
         raise HardwareNoGPUDetectedException("No AMD GPU detected or unable to read power.")
+
+
+class AppleSiliconPowerMetrics(BaseModel):
+    """
+    Apple Silicon power metrics using powermetrics.
+    Parses CPU, GPU, and ANE power from powermetrics output.
+    Note: powermetrics requires sudo privileges.
+    """
+
+    @classmethod
+    def _run_powermetrics(cls, samplers: str) -> Tuple[bytes, int]:
+        """
+        Run powermetrics with the given samplers.
+        Tries without sudo first, falls back to sudo -n if needed.
+
+        :param samplers: comma-separated sampler names (e.g. "cpu_power,gpu_power")
+        :return: result of the shell command and returncode
+        """
+        powermetrics_path = shutil.which("powermetrics")
+        if powermetrics_path is None:
+            raise HardwareNoGPUDetectedException("powermetrics not found in PATH.")
+
+        result = subprocess.run(
+            [powermetrics_path, "--samplers", samplers, "-i", "1", "-n", "1"],
+            capture_output=True,
+            timeout=10,
+        )
+
+        if (
+            result.returncode != 0
+            and result.stderr
+            and (b"superuser" in result.stderr.lower() or b"root" in result.stderr.lower())
+        ):
+            sudo_path = shutil.which("sudo")
+            if sudo_path:
+                result = subprocess.run(
+                    [sudo_path, "-n", powermetrics_path, "--samplers", samplers, "-i", "1", "-n", "1"],
+                    capture_output=True,
+                    timeout=10,
+                )
+
+        return result.stdout, result.returncode
+
+    @classmethod
+    def _parse_power_mw(cls, output: str, label: str) -> Optional[float]:
+        """
+        Parse a power value from powermetrics output.
+        Handles both mW and W units, returns watts.
+
+        :param output: the powermetrics output string
+        :param label: the label to search for (e.g. "CPU Power", "GPU Power")
+        :return: power in watts, or None if not found
+        """
+        match = _compile_power_pattern(label, "mW").search(output)
+        if match:
+            return float(match.group(1)) / 1000.0
+        match = _compile_power_pattern(label, "W").search(output)
+        if match:
+            return float(match.group(1))
+        return None
+
+    @classmethod
+    def launch_shell_command(cls) -> Tuple[bytes, int]:
+        """
+        Launch powermetrics to query CPU and GPU power.
+
+        :return: result of the shell command and returncode
+        """
+        return cls._run_powermetrics("cpu_power,gpu_power")
+
+    @classmethod
+    def get_power_breakdown(cls) -> Tuple[Optional[float], Optional[float], Optional[float]]:
+        """
+        Get CPU, GPU, and ANE power in watts from powermetrics.
+
+        :return: tuple of (cpu_power, gpu_power, ane_power) in watts, None if unavailable
+        """
+        output, return_code = cls.launch_shell_command()
+        if return_code != 0:
+            raise HardwareNoGPUDetectedException("powermetrics failed to run.")
+
+        output_str = output.decode()
+        cpu_power = cls._parse_power_mw(output_str, "CPU Power")
+        gpu_power = cls._parse_power_mw(output_str, "GPU Power")
+        ane_power = cls._parse_power_mw(output_str, "ANE Power")
+
+        return cpu_power, gpu_power, ane_power
+
+    @classmethod
+    def get_combined_power(cls) -> Optional[float]:
+        """
+        Get the combined power (CPU + GPU + ANE) in watts.
+        Falls back to summing individual components if Combined Power line is not found.
+
+        :return: combined power in watts, or None if unavailable
+        """
+        output, return_code = cls.launch_shell_command()
+        if return_code != 0:
+            return None
+
+        output_str = output.decode()
+
+        combined = cls._parse_power_mw(output_str, r"Combined Power \(CPU \+ GPU \+ ANE\)")
+        if combined is not None:
+            return combined
+
+        cpu = cls._parse_power_mw(output_str, "CPU Power")
+        gpu = cls._parse_power_mw(output_str, "GPU Power")
+        ane = cls._parse_power_mw(output_str, "ANE Power")
+
+        parts = [p for p in (cpu, gpu, ane) if p is not None]
+        return sum(parts) if parts else None
 
 
 class AppleSiliconGPU(BaseModel):
@@ -125,37 +242,11 @@ class AppleSiliconGPU(BaseModel):
     def launch_shell_command(cls) -> Tuple[bytes, int]:
         """
         Launch powermetrics to query GPU power.
-        Tries without sudo first, falls back to sudo if needed.
+        Delegates to AppleSiliconPowerMetrics.
 
         :return: result of the shell command and returncode
         """
-        powermetrics_path = shutil.which("powermetrics")
-        if powermetrics_path is None:
-            raise HardwareNoGPUDetectedException("powermetrics not found in PATH.")
-
-        # Try without sudo first
-        result = subprocess.run(
-            [powermetrics_path, "--samplers", "gpu_power", "-i", "1", "-n", "1"],
-            capture_output=True,
-            timeout=10,
-        )
-
-        # If permission denied, try with sudo
-        # Error messages: "powermetrics must be invoked as the superuser" or "requires root"
-        if (
-            result.returncode != 0
-            and result.stderr
-            and (b"superuser" in result.stderr.lower() or b"root" in result.stderr.lower())
-        ):
-            sudo_path = shutil.which("sudo")
-            if sudo_path:
-                result = subprocess.run(
-                    [sudo_path, "-n", powermetrics_path, "--samplers", "gpu_power", "-i", "1", "-n", "1"],
-                    capture_output=True,
-                    timeout=10,
-                )
-
-        return result.stdout, result.returncode
+        return AppleSiliconPowerMetrics._run_powermetrics("gpu_power")
 
     @classmethod
     def get_gpu_power_usage(cls) -> float:
@@ -167,15 +258,9 @@ class AppleSiliconGPU(BaseModel):
         gpu_output, return_code = cls.launch_shell_command()
         if return_code == 0:
             output_str = gpu_output.decode()
-            # Parse "GPU Power: X mW" from powermetrics output
-            match = re.search(r"GPU\s*Power:\s*([\d.]+)\s*mW", output_str, re.IGNORECASE)
-            if match:
-                # Convert mW to W
-                return float(match.group(1)) / 1000.0
-            # Also try parsing watts directly
-            match = re.search(r"GPU\s*Power:\s*([\d.]+)\s*W", output_str, re.IGNORECASE)
-            if match:
-                return float(match.group(1))
+            gpu_power = AppleSiliconPowerMetrics._parse_power_mw(output_str, "GPU Power")
+            if gpu_power is not None:
+                return gpu_power
         raise HardwareNoGPUDetectedException("Apple Silicon GPU power not available.")
 
 
