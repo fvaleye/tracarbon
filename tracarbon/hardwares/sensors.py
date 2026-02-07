@@ -19,6 +19,7 @@ from tracarbon.hardwares.cloud_providers import GCP
 from tracarbon.hardwares.cloud_providers import Azure
 from tracarbon.hardwares.cloud_providers import CloudProviders
 from tracarbon.hardwares.energy import EnergyUsage
+from tracarbon.hardwares.gpu import AppleSiliconPowerMetrics
 from tracarbon.hardwares.gpu import GPUInfo
 from tracarbon.hardwares.hardware import HardwareInfo
 from tracarbon.hardwares.rapl import RAPL
@@ -38,6 +39,7 @@ __all__ = [
     "EnergyUsage",
     "HardwareInfo",
     "GPUInfo",
+    "AppleSiliconPowerMetrics",
 ]
 
 
@@ -105,17 +107,45 @@ class EnergyConsumption(Sensor):
 
 class MacEnergyConsumption(EnergyConsumption):
     """
-    Energy Consumption of the Mac, working only if it's plugged into plugged-in wall adapter, in watts.
+    Energy Consumption of a Mac in watts.
+
+    Uses powermetrics as the primary sensor for Apple Silicon, providing
+    per-component power breakdown (CPU, GPU, ANE). Works on battery and plugged in.
+
+    Falls back to ioreg AdapterPower if powermetrics is not available (requires sudo).
+    The ioreg fallback only works when plugged into a wall adapter.
     """
 
     shell_command: str = """ioreg -rw0 -a -c AppleSmartBattery | plutil -extract '0.BatteryData.AdapterPower' raw -"""
+    _active_sensor: str = ""
 
     async def get_energy_usage(self) -> EnergyUsage:
         """
         Run the sensor and generate energy usage.
 
+        Tries powermetrics first for per-component breakdown (CPU, GPU, ANE),
+        falls back to ioreg AdapterPower + separate GPU query.
+
         :return: the generated energy usage.
         """
+        try:
+            cpu_power, gpu_power, ane_power = AppleSiliconPowerMetrics.get_power_breakdown()
+            if cpu_power is not None or gpu_power is not None:
+                if self._active_sensor != "powermetrics":
+                    logger.info("Using powermetrics for energy measurement (CPU + GPU + ANE)")
+                    self._active_sensor = "powermetrics"
+                host_power = sum(p for p in (cpu_power, gpu_power, ane_power) if p is not None)
+                return EnergyUsage(
+                    host_energy_usage=host_power,
+                    cpu_energy_usage=cpu_power,
+                    gpu_energy_usage=gpu_power,
+                )
+        except Exception:
+            logger.debug("powermetrics not available, falling back to ioreg")
+
+        if self._active_sensor != "ioreg":
+            logger.info("Using ioreg AdapterPower for energy measurement (plugged-in only)")
+            self._active_sensor = "ioreg"
         proc = await asyncio.create_subprocess_shell(self.shell_command, stdout=asyncio.subprocess.PIPE)
         result, _ = await proc.communicate()
 
@@ -335,7 +365,7 @@ class CloudEnergyConsumption(EnergyConsumption):
 
         # Linear interpolation: power = min_watts + (max_watts - min_watts) * cpu_usage
         cpu_watts = self.min_watts + (self.max_watts - self.min_watts) * cpu_usage
-        logger.debug(f"{provider_name} CPU: {cpu_watts:.2f}W (usage: {cpu_usage*100:.1f}%)")
+        logger.debug(f"{provider_name} CPU: {cpu_watts:.2f}W (usage: {cpu_usage * 100:.1f}%)")
 
         gpu_watts = GPUInfo.get_gpu_power_usage_or_none() or 0.0
         if gpu_watts > 0:

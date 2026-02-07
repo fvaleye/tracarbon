@@ -6,6 +6,7 @@ from tracarbon.exceptions import HardwareNoGPUDetectedException
 from tracarbon.exceptions import TracarbonException
 from tracarbon.hardwares.gpu import AMDGPU
 from tracarbon.hardwares.gpu import AppleSiliconGPU
+from tracarbon.hardwares.gpu import AppleSiliconPowerMetrics
 from tracarbon.hardwares.gpu import GPUInfo
 from tracarbon.hardwares.gpu import NvidiaGPU
 
@@ -273,3 +274,92 @@ GPU Power: 3.5 W
     gpu_usage = GPUInfo.get_gpu_power_usage()
 
     assert gpu_usage == 3.5
+
+
+def test_powermetrics_get_power_breakdown_all_components(mocker):
+    powermetrics_output = b"""
+*** Processor Information ***
+
+CPU Power: 5200 mW
+GPU Power: 1800 mW
+ANE Power: 300 mW
+Combined Power (CPU + GPU + ANE): 7300 mW
+"""
+    mocker.patch.object(AppleSiliconPowerMetrics, "launch_shell_command", return_value=(powermetrics_output, 0))
+
+    cpu, gpu, ane = AppleSiliconPowerMetrics.get_power_breakdown()
+
+    assert cpu == 5.2
+    assert gpu == 1.8
+    assert ane == 0.3
+
+
+def test_powermetrics_get_power_breakdown_watts(mocker):
+    powermetrics_output = b"""
+CPU Power: 8.5 W
+GPU Power: 3.2 W
+ANE Power: 0.5 W
+"""
+    mocker.patch.object(AppleSiliconPowerMetrics, "launch_shell_command", return_value=(powermetrics_output, 0))
+
+    cpu, gpu, ane = AppleSiliconPowerMetrics.get_power_breakdown()
+
+    assert cpu == 8.5
+    assert gpu == 3.2
+    assert ane == 0.5
+
+
+def test_powermetrics_get_power_breakdown_no_ane(mocker):
+    powermetrics_output = b"""
+CPU Power: 4000 mW
+GPU Power: 1500 mW
+"""
+    mocker.patch.object(AppleSiliconPowerMetrics, "launch_shell_command", return_value=(powermetrics_output, 0))
+
+    cpu, gpu, ane = AppleSiliconPowerMetrics.get_power_breakdown()
+
+    assert cpu == 4.0
+    assert gpu == 1.5
+    assert ane is None
+
+
+def test_powermetrics_get_power_breakdown_fails(mocker):
+    mocker.patch.object(AppleSiliconPowerMetrics, "launch_shell_command", return_value=(b"error", 1))
+
+    with pytest.raises(HardwareNoGPUDetectedException):
+        AppleSiliconPowerMetrics.get_power_breakdown()
+
+
+def test_powermetrics_get_combined_power_from_combined_line(mocker):
+    powermetrics_output = b"""
+CPU Power: 5200 mW
+GPU Power: 1800 mW
+ANE Power: 300 mW
+Combined Power (CPU + GPU + ANE): 7300 mW
+"""
+    mocker.patch.object(AppleSiliconPowerMetrics, "launch_shell_command", return_value=(powermetrics_output, 0))
+
+    combined = AppleSiliconPowerMetrics.get_combined_power()
+
+    assert combined == 7.3
+
+
+def test_powermetrics_get_combined_power_fallback_to_sum(mocker):
+    powermetrics_output = b"""
+CPU Power: 4000 mW
+GPU Power: 2000 mW
+ANE Power: 500 mW
+"""
+    mocker.patch.object(AppleSiliconPowerMetrics, "launch_shell_command", return_value=(powermetrics_output, 0))
+
+    combined = AppleSiliconPowerMetrics.get_combined_power()
+
+    assert combined == 6.5
+
+
+def test_powermetrics_get_combined_power_returns_none_on_failure(mocker):
+    mocker.patch.object(AppleSiliconPowerMetrics, "launch_shell_command", return_value=(b"error", 1))
+
+    combined = AppleSiliconPowerMetrics.get_combined_power()
+
+    assert combined is None
