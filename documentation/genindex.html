@@ -46,7 +46,7 @@
     <link rel="search" title="Search" href="search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.9.1" />
+  <meta name="docsearch:version" content="0.10.0" />
   </head>
   
   
@@ -378,10 +378,16 @@
       </ul></li>
       <li><a href="api_reference.html#tracarbon.hardwares.amd_rapl.AMDRAPLResult">AMDRAPLResult (class in tracarbon.hardwares.amd_rapl)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#tracarbon.hardwares.gpu.AppleSiliconGPU">AppleSiliconGPU (class in tracarbon.hardwares.gpu)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#tracarbon.hardwares.gpu.AppleSiliconPowerMetrics">AppleSiliconPowerMetrics (class in tracarbon.hardwares.gpu)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.AppleSiliconPowerMetrics">(class in tracarbon.hardwares.sensors)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#tracarbon.hardwares.sensors.AWSEC2EnergyConsumption">AWSEC2EnergyConsumption (class in tracarbon.hardwares.sensors)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.locations.country.AWSLocation">AWSLocation (class in tracarbon.locations.country)</a>
@@ -460,6 +466,8 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#tracarbon.locations.location.EmissionFactorType">EmissionFactorType (class in tracarbon.locations.location)</a>
+</li>
       <li><a href="api_reference.html#tracarbon.hardwares.sensors.EnergyConsumption">EnergyConsumption (class in tracarbon.hardwares.sensors)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.general_metrics.EnergyConsumptionGenerator">EnergyConsumptionGenerator (class in tracarbon.general_metrics)</a>
@@ -534,6 +542,12 @@
 
       <ul>
         <li><a href="api_reference.html#tracarbon.locations.country.CloudLocation.get_co2g_kwh">(tracarbon.locations.country.CloudLocation method)</a>
+</li>
+      </ul></li>
+      <li><a href="api_reference.html#tracarbon.hardwares.gpu.AppleSiliconPowerMetrics.get_combined_power">get_combined_power() (tracarbon.hardwares.gpu.AppleSiliconPowerMetrics class method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.AppleSiliconPowerMetrics.get_combined_power">(tracarbon.hardwares.sensors.AppleSiliconPowerMetrics class method)</a>
 </li>
       </ul></li>
       <li><a href="api_reference.html#tracarbon.hardwares.hardware.HardwareInfo.get_cpu_usage">get_cpu_usage() (tracarbon.hardwares.hardware.HardwareInfo static method)</a>
@@ -660,6 +674,12 @@
       </ul></li>
       <li><a href="api_reference.html#tracarbon.hardwares.containers.Kubernetes.get_pods_usage">get_pods_usage() (tracarbon.hardwares.containers.Kubernetes method)</a>
 </li>
+      <li><a href="api_reference.html#tracarbon.hardwares.gpu.AppleSiliconPowerMetrics.get_power_breakdown">get_power_breakdown() (tracarbon.hardwares.gpu.AppleSiliconPowerMetrics class method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.AppleSiliconPowerMetrics.get_power_breakdown">(tracarbon.hardwares.sensors.AppleSiliconPowerMetrics class method)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#tracarbon.hardwares.rapl.RAPL.get_rapl_files_list">get_rapl_files_list() (tracarbon.hardwares.rapl.RAPL method)</a>
 
       <ul>
@@ -755,7 +775,11 @@
       <ul>
         <li><a href="api_reference.html#tracarbon.hardwares.gpu.AppleSiliconGPU.launch_shell_command">(tracarbon.hardwares.gpu.AppleSiliconGPU class method)</a>
 </li>
+        <li><a href="api_reference.html#tracarbon.hardwares.gpu.AppleSiliconPowerMetrics.launch_shell_command">(tracarbon.hardwares.gpu.AppleSiliconPowerMetrics class method)</a>
+</li>
         <li><a href="api_reference.html#tracarbon.hardwares.gpu.NvidiaGPU.launch_shell_command">(tracarbon.hardwares.gpu.NvidiaGPU class method)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.AppleSiliconPowerMetrics.launch_shell_command">(tracarbon.hardwares.sensors.AppleSiliconPowerMetrics class method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -837,6 +861,8 @@
 </li>
         <li><a href="api_reference.html#tracarbon.hardwares.gpu.AppleSiliconGPU.model_config">(tracarbon.hardwares.gpu.AppleSiliconGPU attribute)</a>
 </li>
+        <li><a href="api_reference.html#tracarbon.hardwares.gpu.AppleSiliconPowerMetrics.model_config">(tracarbon.hardwares.gpu.AppleSiliconPowerMetrics attribute)</a>
+</li>
         <li><a href="api_reference.html#tracarbon.hardwares.gpu.GPUInfo.model_config">(tracarbon.hardwares.gpu.GPUInfo attribute)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.hardwares.gpu.NvidiaGPU.model_config">(tracarbon.hardwares.gpu.NvidiaGPU attribute)</a>
@@ -848,6 +874,8 @@
         <li><a href="api_reference.html#tracarbon.hardwares.rapl.RAPLResult.model_config">(tracarbon.hardwares.rapl.RAPLResult attribute)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.hardwares.sensors.AMDRAPL.model_config">(tracarbon.hardwares.sensors.AMDRAPL attribute)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.AppleSiliconPowerMetrics.model_config">(tracarbon.hardwares.sensors.AppleSiliconPowerMetrics attribute)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.hardwares.sensors.AWSEC2EnergyConsumption.model_config">(tracarbon.hardwares.sensors.AWSEC2EnergyConsumption attribute)</a>
 </li>
@@ -891,7 +919,11 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#tracarbon.hardwares.sensors.LinuxEnergyConsumption.model_post_init">model_post_init() (tracarbon.hardwares.sensors.LinuxEnergyConsumption method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.sensors.MacEnergyConsumption.model_post_init">(tracarbon.hardwares.sensors.MacEnergyConsumption method)</a>
 </li>
+      </ul></li>
       <li>
     module
 
