@@ -95,6 +95,7 @@ def run_metrics(
         co2signal_api_key=tracarbon_builder.configuration.co2signal_api_key,
         co2signal_url=tracarbon_builder.configuration.co2signal_url,
         country_code_alpha_iso_2=country_code_alpha_iso_2,
+        emission_factor_type=tracarbon_builder.configuration.emission_factor_type,
     )
     metric_generators: List[MetricGenerator] = [
         EnergyConsumptionGenerator(location=location),

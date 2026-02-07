@@ -2,6 +2,7 @@ import csv
 import importlib.resources
 from typing import Any
 from typing import Optional
+from urllib.parse import urlparse
 
 import orjson
 import requests
@@ -16,6 +17,7 @@ from tracarbon.hardwares import GCP
 from tracarbon.hardwares import Azure
 from tracarbon.hardwares import CloudProviders
 from tracarbon.locations.location import CarbonIntensitySource
+from tracarbon.locations.location import EmissionFactorType
 from tracarbon.locations.location import Location
 
 __all__ = [
@@ -72,13 +74,15 @@ class Country(Location):
         co2signal_api_key: Optional[str] = None,
         co2signal_url: Optional[str] = None,
         country_code_alpha_iso_2: Optional[str] = None,
+        emission_factor_type: Optional[str] = None,
     ) -> "Country":
         """
         Get the current location automatically: on cloud provider or a country.
 
         :param country_code_alpha_iso_2: the alpha iso 2 country name.
-        :param co2signal_api_key: api key for fetching CO2 Signal API.
-        :param co2signal_url: api url for fetching CO2 Signal API endpoint.
+        :param co2signal_api_key: api key for fetching CO2 Signal API or Electricity Maps API.
+        :param co2signal_url: api url for fetching the carbon intensity API endpoint.
+        :param emission_factor_type: the emission factor type (lifecycle or direct) for Electricity Maps API.
         :return: the country
         """
         # Cloud Providers
@@ -95,11 +99,22 @@ class Country(Location):
         if not country_code_alpha_iso_2:
             country_code_alpha_iso_2 = cls.get_current_country()
         if co2signal_api_key:
+            is_electricity_maps = False
+            if co2signal_url:
+                host = urlparse(co2signal_url).hostname or ""
+                is_electricity_maps = host == "electricitymaps.com" or host.endswith(".electricitymaps.com")
+            source = (
+                CarbonIntensitySource.ElectricityMapsAPI if is_electricity_maps else CarbonIntensitySource.CO2SignalAPI
+            )
+            factor_type = (
+                EmissionFactorType(emission_factor_type) if emission_factor_type else EmissionFactorType.LIFECYCLE
+            )
             return cls(
                 co2signal_api_key=co2signal_api_key,
                 co2signal_url=co2signal_url,
                 name=country_code_alpha_iso_2,
-                co2g_kwh_source=CarbonIntensitySource.CO2SignalAPI,
+                co2g_kwh_source=source,
+                emission_factor_type=factor_type,
             )
         return cls.from_eu_file(country_code_alpha_iso_2=country_code_alpha_iso_2)
 
@@ -108,7 +123,7 @@ class Country(Location):
     )  # type: ignore
     async def get_latest_co2g_kwh(self) -> float:
         """
-        Get the latest CO2g_kwh for the Location from https://www.co2signal.com/.
+        Get the latest CO2g_kwh for the Location from Electricity Maps API or CO2 Signal API.
 
         :return: the latest CO2g_kwh
         """
@@ -118,7 +133,12 @@ class Country(Location):
         logger.info(f"Request the latest carbon intensity in Co2g/kwh for your country {self.name}.")
         if not self.co2signal_api_key:
             raise CO2SignalAPIKeyIsMissing()
-        url = f"{self.co2signal_url}{self.name}"
+
+        if self.co2g_kwh_source == CarbonIntensitySource.ElectricityMapsAPI:
+            url = f"{self.co2signal_url}?zone={self.name}&emissionFactorType={self.emission_factor_type.value}"
+        else:
+            url = f"{self.co2signal_url}{self.name}"
+
         response = {}
         try:
             response = await self.request(

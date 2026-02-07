@@ -15,6 +15,12 @@ from pydantic import BaseModel
 class CarbonIntensitySource(str, Enum):
     FILE = "file"
     CO2SignalAPI = "CO2SignalAPI"
+    ElectricityMapsAPI = "ElectricityMapsAPI"
+
+
+class EmissionFactorType(str, Enum):
+    LIFECYCLE = "lifecycle"
+    DIRECT = "direct"
 
 
 class Location(ABC, BaseModel):
@@ -27,6 +33,7 @@ class Location(ABC, BaseModel):
     co2signal_api_key: Optional[str] = None
     co2signal_url: Optional[str] = None
     co2g_kwh: float = 0.0
+    emission_factor_type: EmissionFactorType = EmissionFactorType.LIFECYCLE
 
     @classmethod
     async def request(cls, url: str, headers: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
