@@ -51,7 +51,7 @@ class Tracarbon:
         self.start()
         return self
 
-    def __exit__(self, type, value, traceback) -> None:  # type: ignore
+    def __exit__(self, type, value, traceback) -> None:
         self.stop()
 
     def start(self) -> None:

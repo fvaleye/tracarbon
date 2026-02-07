@@ -105,7 +105,7 @@ class Country(Location):
 
     @cached(
         ttl=3600,
-    )  # type: ignore
+    )
     async def get_latest_co2g_kwh(self) -> float:
         """
         Get the latest CO2g_kwh for the Location from https://www.co2signal.com/.
@@ -161,7 +161,7 @@ class AWSLocation(Country):
                     f"The region [{region_name}] is not in the AWS grid emissions factors file."
                 )
 
-    @cached()  # type: ignore
+    @cached()
     async def get_latest_co2g_kwh(self) -> float:
         """
         Get the latest co2g_kwh for AWS.
@@ -235,7 +235,7 @@ class CloudLocation(Country):
                 f"The region [{region_name}] is not in the {provider_name} grid emissions factors file."
             )
 
-    @cached()  # type: ignore
+    @cached()
     async def get_latest_co2g_kwh(self) -> float:
         """
         Get the latest co2g_kwh for this cloud provider.
