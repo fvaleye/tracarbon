@@ -105,6 +105,7 @@ class TracarbonBuilder(BaseModel):
             self.location = Country.get_location(
                 co2signal_api_key=self.configuration.co2signal_api_key,
                 co2signal_url=self.configuration.co2signal_url,
+                emission_factor_type=self.configuration.emission_factor_type,
             )
         if not self.exporter:
             self.exporter = StdoutExporter(metric_generators=[CarbonEmissionGenerator(location=self.location)])

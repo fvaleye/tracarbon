@@ -50,6 +50,7 @@ class TracarbonConfiguration(BaseModel):
     interval_in_seconds: int
     co2signal_api_key: str
     co2signal_url: str
+    emission_factor_type: str
 
     def __init__(
         self,
@@ -57,7 +58,8 @@ class TracarbonConfiguration(BaseModel):
         interval_in_seconds: int = 60,
         log_level: str = "INFO",
         co2signal_api_key: str = "",
-        co2signal_url: str = "https://api.co2signal.com/v1/latest?countryCode=",
+        co2signal_url: str = "https://api.electricitymaps.com/v3/carbon-intensity/latest",
+        emission_factor_type: str = "lifecycle",
         env_file_path: Optional[str] = None,
         **data: Any,
     ) -> None:
@@ -70,5 +72,6 @@ class TracarbonConfiguration(BaseModel):
             interval_in_seconds=os.environ.get("TRACARBON_INTERVAL_IN_SECONDS", interval_in_seconds),
             co2signal_api_key=os.environ.get("TRACARBON_CO2SIGNAL_API_KEY", co2signal_api_key),
             co2signal_url=os.environ.get("TRACARBON_CO2SIGNAL_URL", co2signal_url),
+            emission_factor_type=os.environ.get("TRACARBON_EMISSION_FACTOR_TYPE", emission_factor_type),
             **data,
         )

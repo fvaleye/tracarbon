@@ -2,6 +2,7 @@ import pytest
 
 from tracarbon.locations import CarbonIntensitySource
 from tracarbon.locations import Country
+from tracarbon.locations.location import EmissionFactorType
 
 
 @pytest.mark.asyncio
@@ -80,3 +81,84 @@ async def test_france_location_should_return_taux_co2():
     assert country.name == "fr"
     assert country.co2g_kwh == co2_expected
     assert country.co2g_kwh_source == CarbonIntensitySource.FILE
+
+
+@pytest.mark.asyncio
+async def test_electricity_maps_api_v3_lifecycle(mocker):
+    co2_expected = 67.0
+    response = {
+        "zone": "FR",
+        "carbonIntensity": co2_expected,
+        "datetime": "2025-01-15T12:00:00.000Z",
+        "updatedAt": "2025-01-15T11:51:02.892Z",
+        "createdAt": "2025-01-15T11:54:01.319Z",
+        "emissionFactorType": "lifecycle",
+        "isEstimated": False,
+        "estimationMethod": None,
+    }
+    mocker.patch.object(Country, "request", return_value=response)
+
+    country = Country(
+        name="FR",
+        co2signal_api_key="API_KEY",
+        co2signal_url="https://api.electricitymaps.com/v3/carbon-intensity/latest",
+        co2g_kwh_source=CarbonIntensitySource.ElectricityMapsAPI,
+        emission_factor_type=EmissionFactorType.LIFECYCLE,
+    )
+
+    result = await country.get_latest_co2g_kwh()
+
+    assert result == co2_expected
+    assert country.co2g_kwh_source == CarbonIntensitySource.ElectricityMapsAPI
+    assert country.emission_factor_type == EmissionFactorType.LIFECYCLE
+
+
+@pytest.mark.asyncio
+async def test_electricity_maps_api_v3_direct(mocker):
+    co2_expected = 42.0
+    response = {
+        "zone": "FR",
+        "carbonIntensity": co2_expected,
+        "datetime": "2025-01-15T12:00:00.000Z",
+        "updatedAt": "2025-01-15T11:51:02.892Z",
+        "createdAt": "2025-01-15T11:54:01.319Z",
+        "emissionFactorType": "direct",
+        "isEstimated": False,
+        "estimationMethod": None,
+    }
+    mocker.patch.object(Country, "request", return_value=response)
+
+    country = Country(
+        name="FR",
+        co2signal_api_key="API_KEY",
+        co2signal_url="https://api.electricitymaps.com/v3/carbon-intensity/latest",
+        co2g_kwh_source=CarbonIntensitySource.ElectricityMapsAPI,
+        emission_factor_type=EmissionFactorType.DIRECT,
+    )
+
+    result = await country.get_latest_co2g_kwh()
+
+    assert result == co2_expected
+    assert country.emission_factor_type == EmissionFactorType.DIRECT
+
+
+def test_get_location_detects_electricity_maps_api():
+    country = Country.get_location(
+        co2signal_api_key="API_KEY",
+        co2signal_url="https://api.electricitymaps.com/v3/carbon-intensity/latest",
+        country_code_alpha_iso_2="FR",
+        emission_factor_type="lifecycle",
+    )
+
+    assert country.co2g_kwh_source == CarbonIntensitySource.ElectricityMapsAPI
+    assert country.emission_factor_type == EmissionFactorType.LIFECYCLE
+
+
+def test_get_location_detects_co2signal_api():
+    country = Country.get_location(
+        co2signal_api_key="API_KEY",
+        co2signal_url="https://api.co2signal.com/v1/latest?countryCode=",
+        country_code_alpha_iso_2="FR",
+    )
+
+    assert country.co2g_kwh_source == CarbonIntensitySource.CO2SignalAPI
