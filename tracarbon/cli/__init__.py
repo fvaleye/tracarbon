@@ -53,7 +53,7 @@ def get_exporter(
         raise exception
     return selected_exporter(
         metric_generators=metric_generators, metric_prefix_name=tracarbon_builder.configuration.metric_prefix_name
-    )  # type: ignore
+    )
 
 
 def add_containers_generator(location: Country) -> List[MetricGenerator]:

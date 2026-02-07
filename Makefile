@@ -29,7 +29,7 @@ complexity: ## Run complexity checks
 .PHONY: test-unit
 test-unit: ## Run unit test
 	$(info --- 🐍 Run Python test-unit ---)
-	@uv run python -m pytest
+	@uv run python -m pytest -n auto
 
 .PHONY: check-data
 check-data: ## Check data of Tracarbon

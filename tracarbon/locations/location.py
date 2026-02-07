@@ -56,7 +56,7 @@ class Location(ABC, BaseModel):
                     raise exception
 
     @abstractmethod
-    @cached()  # type: ignore
+    @cached()
     async def get_latest_co2g_kwh(self) -> float:
         """
         Get the latest co2g_kwh for France.
