@@ -21,7 +21,7 @@ def list_exporters(displayed: bool = True) -> List[str]:
     """
     List all the exporters available.
     """
-    exporters = [cls.get_name() for cls in Exporter.__subclasses__()]
+    exporters = [cls.get_name() for cls in Exporter.__subclasses__()]  # ty: ignore[call-abstract-method]
     if displayed:
         logger.info(f"Available Exporters: {exporters}")
     return exporters
@@ -47,7 +47,7 @@ def get_exporter(
         raise ValueError(f"This exporter is not available in the list: {exporters}")
 
     try:
-        selected_exporter = next(cls for cls in Exporter.__subclasses__() if cls.get_name() == exporter_name)
+        selected_exporter = next(cls for cls in Exporter.__subclasses__() if cls.get_name() == exporter_name)  # ty: ignore[call-abstract-method]
     except Exception as exception:
         logger.exception("This exporter initiation failed.")
         raise exception
