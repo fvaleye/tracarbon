@@ -2089,7 +2089,7 @@ requires-dist = [
     { name = "aiocache", specifier = ">=0.12.1,<0.13.0" },
     { name = "aiofiles", specifier = ">=23.2,<26.0" },
     { name = "aiohttp", specifier = ">=3.9.3,<4.0.0" },
-    { name = "asyncer", specifier = ">=0.0.5,<0.0.13" },
+    { name = "asyncer", specifier = ">=0.0.5,<0.0.14" },
     { name = "autodoc-pydantic", marker = "extra == 'dev'", specifier = "==2.2.0" },
     { name = "bandit", marker = "extra == 'dev'", specifier = ">=1.7.9,<2.0.0" },
     { name = "datadog", marker = "extra == 'datadog'", specifier = ">=0.44,<0.53" },
@@ -2121,7 +2121,7 @@ requires-dist = [
     { name = "tracarbon", extras = ["kubernetes"], marker = "extra == 'all'" },
     { name = "tracarbon", extras = ["prometheus"], marker = "extra == 'all'" },
     { name = "ty", marker = "extra == 'dev'", specifier = ">=0.0.1a6" },
-    { name = "typer", specifier = ">=0.7,<0.22" },
+    { name = "typer", specifier = ">=0.7,<0.24" },
     { name = "uv", marker = "extra == 'dev'" },
 ]
 provides-extras = ["datadog", "prometheus", "kubernetes", "dev", "all"]
