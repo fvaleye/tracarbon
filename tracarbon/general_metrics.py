@@ -39,11 +39,11 @@ class EnergyConsumptionGenerator(MetricGenerator):
 
         for usage_type in UsageType:
 
-            async def energy_consumption_by_usage_type() -> Optional[float]:
+            async def energy_consumption_by_usage_type(ut=usage_type) -> Optional[float]:
                 """
                 Get the energy usage.
                 """
-                return energy_usage.get_energy_usage_on_type(usage_type=usage_type)
+                return energy_usage.get_energy_usage_on_type(usage_type=ut)
 
             if self.location is None:
                 raise ValueError("Location must be set")
@@ -89,11 +89,11 @@ class CarbonEmissionGenerator(MetricGenerator):
 
         for usage_type in UsageType:
 
-            async def get_carbon_emission_by_usage_type() -> Optional[float]:
+            async def get_carbon_emission_by_usage_type(ut=usage_type) -> Optional[float]:
                 """
                 Get the carbon usage.
                 """
-                return carbon_usage.get_carbon_usage_on_type(usage_type=usage_type)
+                return carbon_usage.get_carbon_usage_on_type(usage_type=ut)
 
             if self.location is None:
                 raise ValueError("Location must be set")
@@ -138,28 +138,30 @@ if KUBERNETES_INSTALLED:
             for pod in self.kubernetes.get_pods_usage():
                 for container in pod.containers:
 
-                    async def get_pod_memory_energy_consumption() -> Optional[float]:
+                    async def get_pod_memory_energy_consumption(c=container) -> Optional[float]:
                         """
                         Get the memory energy consumption of the pod.
                         """
                         if energy_usage.memory_energy_usage is None:
                             return None
-                        return container.memory_usage * energy_usage.memory_energy_usage
+                        return c.memory_usage * energy_usage.memory_energy_usage
 
-                    async def get_pod_cpu_energy_consumption() -> Optional[float]:
+                    async def get_pod_cpu_energy_consumption(c=container) -> Optional[float]:
                         """
                         Get the CPU energy consumption of the pod.
                         """
                         if energy_usage.cpu_energy_usage is None:
                             return None
-                        return container.cpu_usage * energy_usage.cpu_energy_usage
+                        return c.cpu_usage * energy_usage.cpu_energy_usage
 
-                    async def get_pod_total_energy_consumption() -> Optional[float]:
+                    async def get_pod_total_energy_consumption(
+                        _mem=get_pod_memory_energy_consumption, _cpu=get_pod_cpu_energy_consumption
+                    ) -> Optional[float]:
                         """
                         Get the total energy consumption of the pod.
                         """
-                        memory = await get_pod_memory_energy_consumption()
-                        cpu = await get_pod_cpu_energy_consumption()
+                        memory = await _mem()
+                        cpu = await _cpu()
                         if memory is None or cpu is None:
                             return None
                         return memory + cpu
@@ -226,28 +228,30 @@ if KUBERNETES_INSTALLED:
             for pod in self.kubernetes.get_pods_usage():
                 for container in pod.containers:
 
-                    async def get_cpu_pod_carbon_emission() -> Optional[float]:
+                    async def get_cpu_pod_carbon_emission(c=container) -> Optional[float]:
                         """
                         Get the CPU carbon emission of the pod.
                         """
                         if carbon_usage.cpu_carbon_usage is None:
                             return None
-                        return container.cpu_usage * carbon_usage.cpu_carbon_usage
+                        return c.cpu_usage * carbon_usage.cpu_carbon_usage
 
-                    async def get_memory_pod_carbon_emission() -> Optional[float]:
+                    async def get_memory_pod_carbon_emission(c=container) -> Optional[float]:
                         """
                         Get the memory carbon emission of the pod.
                         """
                         if carbon_usage.memory_carbon_usage is None:
                             return None
-                        return container.memory_usage * carbon_usage.memory_carbon_usage
+                        return c.memory_usage * carbon_usage.memory_carbon_usage
 
-                    async def get_total_pod_carbon_emission() -> Optional[float]:
+                    async def get_total_pod_carbon_emission(
+                        _cpu=get_cpu_pod_carbon_emission, _mem=get_memory_pod_carbon_emission
+                    ) -> Optional[float]:
                         """
                         Get the total carbon emission of the pod.
                         """
-                        cpu = await get_cpu_pod_carbon_emission()
-                        memory = await get_memory_pod_carbon_emission()
+                        cpu = await _cpu()
+                        memory = await _mem()
                         if cpu is None or memory is None:
                             return None
                         return cpu + memory

@@ -86,6 +86,28 @@ async def test_energy_consumption_metric(mocker):
 
 
 @pytest.mark.asyncio
+async def test_energy_consumption_metric_names_are_unique(mocker):
+    location_name = "fr"
+    energy_usage = EnergyUsage(
+        host_energy_usage=16.0, cpu_energy_usage=12.0, memory_energy_usage=4.0, gpu_energy_usage=0.5
+    )
+    mocker.patch.object(EnergyConsumption, "from_platform", return_value=MacEnergyConsumption())
+    mocker.patch.object(Country, "get_current_country", return_value=location_name)
+    mocker.patch.object(MacEnergyConsumption, "get_energy_usage", return_value=energy_usage)
+    location = Country(name=location_name, co2g_kwh=51.1)
+    energy_consumption_generator = EnergyConsumptionGenerator(location=location)
+
+    metrics = [metric async for metric in energy_consumption_generator.generate()]
+
+    values_by_name = {m.name: await m.value() for m in metrics}
+    assert values_by_name["energy_consumption_host"] != values_by_name["energy_consumption_cpu"]
+    assert values_by_name["energy_consumption_host"] == 16.0
+    assert values_by_name["energy_consumption_cpu"] == 12.0
+    assert values_by_name["energy_consumption_memory"] == 4.0
+    assert values_by_name["energy_consumption_gpu"] == 0.5
+
+
+@pytest.mark.asyncio
 async def test_energy_consumption_kubernetes_generator(mocker):
     location_name = "fr"
     memory_total = 101200121856
