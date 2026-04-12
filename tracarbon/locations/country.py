@@ -1,7 +1,6 @@
 import csv
 import importlib.resources
 from typing import Any
-from typing import Optional
 from urllib.parse import urlparse
 
 import orjson
@@ -71,10 +70,10 @@ class Country(Location):
     @classmethod
     def get_location(
         cls,
-        co2signal_api_key: Optional[str] = None,
-        co2signal_url: Optional[str] = None,
-        country_code_alpha_iso_2: Optional[str] = None,
-        emission_factor_type: Optional[str] = None,
+        co2signal_api_key: str | None = None,
+        co2signal_url: str | None = None,
+        country_code_alpha_iso_2: str | None = None,
+        emission_factor_type: str | None = None,
     ) -> "Country":
         """
         Get the current location automatically: on cloud provider or a country.

@@ -3,7 +3,6 @@ from abc import abstractmethod
 from enum import Enum
 from typing import Any
 from typing import Dict
-from typing import Optional
 
 import aiohttp
 import orjson
@@ -30,13 +29,13 @@ class Location(ABC, BaseModel):
 
     name: str
     co2g_kwh_source: CarbonIntensitySource = CarbonIntensitySource.FILE
-    co2signal_api_key: Optional[str] = None
-    co2signal_url: Optional[str] = None
+    co2signal_api_key: str | None = None
+    co2signal_url: str | None = None
     co2g_kwh: float = 0.0
     emission_factor_type: EmissionFactorType = EmissionFactorType.LIFECYCLE
 
     @classmethod
-    async def request(cls, url: str, headers: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
+    async def request(cls, url: str, headers: Dict[str, str] | None = None) -> Dict[str, Any]:
         """
         Launch an async request.
 

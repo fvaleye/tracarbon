@@ -1,7 +1,6 @@
 import os
 from typing import Any
 from typing import Dict
-from typing import Optional
 
 from loguru import logger
 from pydantic import Field
@@ -21,8 +20,8 @@ if PROMETHEUS_INSTALLED:
         """
 
         prometheus_metrics: Dict[str, Gauge] = Field(default_factory=dict)
-        address: Optional[str] = None
-        port: Optional[int] = None
+        address: str | None = None
+        port: int | None = None
 
         def __init__(self, **data: Any) -> None:
             super().__init__(**data)
@@ -52,7 +51,8 @@ if PROMETHEUS_INSTALLED:
                 if metric_value:
                     await self.add_metric_to_report(metric=metric, value=metric_value)
                     logger.info(
-                        f"Sending metric[{metric_name}] with value [{metric_value}] and labels{metric.format_tags()} to Prometheus."
+                        f"Sending metric[{metric_name}] with value [{metric_value}] "
+                        f"and labels{metric.format_tags()} to Prometheus."
                     )
                     self.prometheus_metrics[metric_name].labels(*[tag.value for tag in metric.tags]).set(metric_value)
 

@@ -1,2 +1,2 @@
-from tracarbon.locations.country import *
-from tracarbon.locations.location import *
+from tracarbon.locations.country import *  # noqa: F403
+from tracarbon.locations.location import *  # noqa: F403

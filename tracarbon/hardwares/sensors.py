@@ -346,7 +346,8 @@ class CloudEnergyConsumption(EnergyConsumption):
                         super().__init__(**data)
                         return
             raise exception_class(
-                f"The {provider_name} instance type [{instance_type}] is missing from the {provider_name.lower()} instances file."
+                f"The {provider_name} instance type [{instance_type}] "
+                f"is missing from the {provider_name.lower()} instances file."
             )
         except exception_class:
             raise

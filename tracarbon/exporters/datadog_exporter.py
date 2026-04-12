@@ -1,6 +1,5 @@
 import os
 from typing import Any
-from typing import Optional
 
 from loguru import logger
 
@@ -17,9 +16,9 @@ if DATADOG_INSTALLED:
         Datadog exporter for the metrics.
         """
 
-        api_key: Optional[str] = None
-        app_key: Optional[str] = None
-        stats: Optional[ThreadStats] = None
+        api_key: str | None = None
+        app_key: str | None = None
+        stats: ThreadStats | None = None
         disable_buffering: bool = False
         datadog_flush_interval: int = 10
 
@@ -52,7 +51,8 @@ if DATADOG_INSTALLED:
                     await self.add_metric_to_report(metric=metric, value=metric_value)
                     metric_name = metric.format_name(metric_prefix_name=self.metric_prefix_name)
                     logger.info(
-                        f"Sending metric[{metric_name}] with value [{metric_value}] and tags{metric.format_tags()} to Datadog."
+                        f"Sending metric[{metric_name}] with value [{metric_value}] "
+                        f"and tags{metric.format_tags()} to Datadog."
                     )
                     if self.stats is None:
                         raise RuntimeError("DatadogExporter stats not initialized")

@@ -10,7 +10,6 @@ from typing import Awaitable
 from typing import Callable
 from typing import Dict
 from typing import List
-from typing import Optional
 
 from asyncer import asyncify
 from loguru import logger
@@ -40,7 +39,7 @@ class Metric(BaseModel):
     value: Callable[[], Awaitable[float]]
     tags: List[Tag] = Field(default_factory=list)
 
-    def format_name(self, metric_prefix_name: Optional[str] = None, separator: str = ".") -> str:
+    def format_name(self, metric_prefix_name: str | None = None, separator: str = ".") -> str:
         """
         Format the name of the metric with a prefix and separator.
 
@@ -67,8 +66,8 @@ class MetricReport(BaseModel):
 
     exporter_name: str
     metric: "Metric"
-    average_interval_in_seconds: Optional[float] = None
-    last_report_time: Optional[datetime] = None
+    average_interval_in_seconds: float | None = None
+    last_report_time: datetime | None = None
     total: float = 0.0
     average: float = 0.0
     minimum: float = sys.float_info.max
@@ -85,7 +84,7 @@ class MetricGenerator(BaseModel):
 
     metrics: List[Metric]
     platform: str = HardwareInfo.get_platform()
-    location: Optional[Location] = None
+    location: Location | None = None
 
     async def generate(self) -> AsyncGenerator[Metric, None]:
         """
@@ -99,9 +98,9 @@ class Exporter(BaseModel, metaclass=ABCMeta):
     """The Exporter interface."""
 
     metric_generators: List[MetricGenerator]
-    event: Optional[Event] = None
+    event: Event | None = None
     stopped: bool = False
-    metric_prefix_name: Optional[str] = None
+    metric_prefix_name: str | None = None
     metric_report: Dict[str, MetricReport] = Field(default_factory=dict)
 
     model_config = ConfigDict(arbitrary_types_allowed=True)

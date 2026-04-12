@@ -2,7 +2,6 @@ import pytest
 
 from tracarbon.builder import TracarbonBuilder
 from tracarbon.builder import TracarbonConfiguration
-from tracarbon.builder import TracarbonReport
 from tracarbon.exporters import StdoutExporter
 from tracarbon.general_metrics import CarbonEmissionGenerator
 from tracarbon.locations import Country
@@ -20,8 +19,8 @@ def test_builder_without_configuration(mocker):
     tracarbon = builder.build()
 
     assert tracarbon.configuration == TracarbonConfiguration()
-    assert type(tracarbon.exporter) == type(expected_exporter)
-    assert type(tracarbon.exporter.metric_generators[0]) == type(expected_exporter.metric_generators[0])
+    assert type(tracarbon.exporter) is type(expected_exporter)
+    assert type(tracarbon.exporter.metric_generators[0]) is type(expected_exporter.metric_generators[0])
     assert tracarbon.location == Country(name=location, co2g_kwh=74.0)
 
 

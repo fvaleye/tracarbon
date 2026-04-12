@@ -1,7 +1,6 @@
 from datetime import datetime
 from enum import Enum
 from typing import ClassVar
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -39,12 +38,12 @@ class EnergyUsage(BaseModel):
     """
 
     host_energy_usage: float = 0.0
-    cpu_energy_usage: Optional[float] = None
-    memory_energy_usage: Optional[float] = None
-    gpu_energy_usage: Optional[float] = None
+    cpu_energy_usage: float | None = None
+    memory_energy_usage: float | None = None
+    gpu_energy_usage: float | None = None
     unit: EnergyUsageUnit = EnergyUsageUnit.WATT
 
-    def get_energy_usage_on_type(self, usage_type: UsageType) -> Optional[float]:
+    def get_energy_usage_on_type(self, usage_type: UsageType) -> float | None:
         """
         Get the energy usage based on the type.
 
@@ -93,7 +92,7 @@ class Power(BaseModel):
     SECONDS_TO_HOURS_FACTOR: ClassVar[int] = 3600
 
     @staticmethod
-    def watts_to_watt_hours(watts: float, previous_energy_measurement_time: Optional[datetime] = None) -> float:
+    def watts_to_watt_hours(watts: float, previous_energy_measurement_time: datetime | None = None) -> float:
         """
         Convert current watts to watt-hours W/h using the previous energy measurement.
 

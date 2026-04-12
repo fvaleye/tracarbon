@@ -24,7 +24,8 @@ class StdoutExporter(Exporter):
                     if metric_value is not None:
                         await self.add_metric_to_report(metric=metric, value=metric_value)
                         logger.info(
-                            f"Metric name[{metric.format_name(metric_prefix_name=self.metric_prefix_name)}], value[{metric_value}], tags{metric.format_tags()}"
+                            f"Metric name[{metric.format_name(metric_prefix_name=self.metric_prefix_name)}], "
+                            f"value[{metric_value}], tags{metric.format_tags()}"
                         )
                     else:
                         logger.debug(f"Skipping metric '{metric.name}' with None value")

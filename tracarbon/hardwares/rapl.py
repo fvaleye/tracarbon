@@ -4,7 +4,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict
 from typing import List
-from typing import Optional
 
 import aiofiles
 from loguru import logger
@@ -58,7 +57,7 @@ class RAPL(BaseModel):
         """
         if not self.is_rapl_compatible():
             raise ValueError(f"Path f{self.path} doest not exists for reading RAPL energy measurements")
-        logger.debug(f"The hardware is RAPL compatible.")
+        logger.debug("The hardware is RAPL compatible.")
         intel_rapl_regex = re.compile("intel-rapl")
         for directory_path, directory_names, _filenames in os.walk(self.path, topdown=True):
             for directory in directory_names:
@@ -84,12 +83,12 @@ class RAPL(BaseModel):
                 self.get_rapl_files_list()
             for file_path in self.file_list:
                 name_prefix = Path(file_path).name.replace("intel-rapl", "")
-                async with aiofiles.open(f"{file_path}/name", "r") as rapl_name:
+                async with aiofiles.open(f"{file_path}/name") as rapl_name:
                     name = await rapl_name.read()
                     name = f"{name_prefix}-{name}"
-                    async with aiofiles.open(f"{file_path}/energy_uj", "r") as rapl_energy:
+                    async with aiofiles.open(f"{file_path}/energy_uj") as rapl_energy:
                         energy_uj = float(await rapl_energy.read())
-                    async with aiofiles.open(f"{file_path}/max_energy_range_uj", "r") as rapl_max_energy:
+                    async with aiofiles.open(f"{file_path}/max_energy_range_uj") as rapl_max_energy:
                         max_energy_uj = float(await rapl_max_energy.read())
                     rapl_results.append(
                         RAPLResult(
@@ -100,7 +99,7 @@ class RAPL(BaseModel):
                         )
                     )
         except Exception as exception:
-            logger.exception(f"The RAPL read encountered an issue.")
+            logger.exception("The RAPL read encountered an issue.")
             raise HardwareRAPLException(exception) from exception
         logger.debug(f"The RAPL results: {rapl_results}.")
         return rapl_results
@@ -125,7 +124,9 @@ class RAPL(BaseModel):
             energy_uj = rapl_result.energy_uj
             if previous_rapl_result.energy_uj > rapl_result.energy_uj:
                 logger.debug(
-                    f"Wrap-around detected in RAPL {rapl_result.name}. The current RAPL energy value ({rapl_result.energy_uj}) is lower than previous value ({previous_rapl_result.energy_uj})."
+                    f"Wrap-around detected in RAPL {rapl_result.name}. "
+                    f"The current RAPL energy value ({rapl_result.energy_uj}) "
+                    f"is lower than previous value ({previous_rapl_result.energy_uj})."
                 )
                 energy_uj = energy_uj + rapl_result.max_energy_uj
             watts = Power.watts_from_microjoules((energy_uj - previous_rapl_result.energy_uj) / time_difference_seconds)

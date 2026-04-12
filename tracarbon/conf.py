@@ -1,7 +1,6 @@
 import os
 import sys
 from typing import Any
-from typing import Optional
 
 from dotenv import load_dotenv
 from pydantic import BaseModel
@@ -31,7 +30,10 @@ def logger_configuration(level: str) -> None:
     """
     from loguru import logger
 
-    log_format = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <cyan><level>{level: <8}</level></cyan> <level>{message}</level>"
+    log_format = (
+        "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
+        "<cyan><level>{level: <8}</level></cyan> <level>{message}</level>"
+    )
     logger_config = {
         "handlers": [
             {"sink": sys.stderr, "format": log_format, "level": level},
@@ -60,7 +62,7 @@ class TracarbonConfiguration(BaseModel):
         co2signal_api_key: str = "",
         co2signal_url: str = "https://api.electricitymaps.com/v3/carbon-intensity/latest",
         emission_factor_type: str = "lifecycle",
-        env_file_path: Optional[str] = None,
+        env_file_path: str | None = None,
         **data: Any,
     ) -> None:
         load_dotenv(env_file_path)
