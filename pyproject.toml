@@ -5,7 +5,7 @@ version = "0.10.0"
 description = "Tracarbon is a Python library that tracks your device's energy consumption and calculates your carbon emissions."
 readme = "README.md"
 license = "Apache-2.0"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 keywords = ["energy", "sustainability", "energy-consumption", "electricity-consumption", "energy-efficiency", "carbon-footprint", "carbon-emissions"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -85,6 +85,7 @@ exclude_dirs = ["tests", "scripts", ".venv"]
 [tool.ruff]
 fix = true
 line-length = 120
+target-version = "py310"
 
 [tool.ruff.lint]
 select = ["I", "S", "B"]
