@@ -23,8 +23,6 @@ jobs:
       - name: Check Python
         run: |
           make init
-          pip install pre-commit
-          pre-commit install
           make format
 
       - name: Check Data
