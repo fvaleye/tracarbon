@@ -146,12 +146,22 @@ class MacEnergyConsumption(EnergyConsumption):
         if self._active_sensor != "ioreg":
             logger.info("Using ioreg AdapterPower for energy measurement (plugged-in only)")
             self._active_sensor = "ioreg"
-        proc = await asyncio.create_subprocess_shell(self.shell_command, stdout=asyncio.subprocess.PIPE)
+        proc = await asyncio.create_subprocess_shell(
+            self.shell_command,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
         result, _ = await proc.communicate()
 
         gpu_power = GPUInfo.get_gpu_power_usage_or_none()
 
-        return EnergyUsage(host_energy_usage=float(result), gpu_energy_usage=gpu_power)
+        try:
+            host_power = float(result)
+        except ValueError:
+            logger.debug(f"ioreg AdapterPower unavailable (no battery or unplugged): {result!r}")
+            host_power = 0.0
+
+        return EnergyUsage(host_energy_usage=host_power, gpu_energy_usage=gpu_power)
 
 
 class LinuxEnergyConsumption(EnergyConsumption):

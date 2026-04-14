@@ -16,6 +16,7 @@ from loguru import logger
 from pydantic import BaseModel
 from pydantic import ConfigDict
 from pydantic import Field
+from pydantic import PrivateAttr
 
 from tracarbon.hardwares.hardware import HardwareInfo
 from tracarbon.locations import Location
@@ -102,6 +103,7 @@ class Exporter(BaseModel, metaclass=ABCMeta):
     stopped: bool = False
     metric_prefix_name: str | None = None
     metric_report: Dict[str, MetricReport] = Field(default_factory=dict)
+    _timer: Timer | None = PrivateAttr(default=None)
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -130,6 +132,7 @@ class Exporter(BaseModel, metaclass=ABCMeta):
             if self.event and not self.stopped and not self.event.is_set():
                 timer = Timer(interval_in_seconds, _run, [])
                 timer.daemon = True
+                self._timer = timer
                 timer.start()
 
         self.metric_report = dict()
@@ -144,6 +147,9 @@ class Exporter(BaseModel, metaclass=ABCMeta):
         self.stopped = True
         if self.event:
             self.event.set()
+        if self._timer is not None:
+            self._timer.cancel()
+            self._timer = None
 
     async def _launch_all(self) -> None:
         """
