@@ -1,7 +1,6 @@
 from datetime import datetime
 from enum import Enum
 from typing import Any
-from typing import Optional
 
 from loguru import logger
 from pydantic import BaseModel
@@ -31,12 +30,12 @@ class CarbonUsage(BaseModel):
     """
 
     host_carbon_usage: float = 0.0
-    cpu_carbon_usage: Optional[float] = None
-    memory_carbon_usage: Optional[float] = None
-    gpu_carbon_usage: Optional[float] = None
+    cpu_carbon_usage: float | None = None
+    memory_carbon_usage: float | None = None
+    gpu_carbon_usage: float | None = None
     unit: CarbonUsageUnit = CarbonUsageUnit.CO2_G
 
-    def get_carbon_usage_on_type(self, usage_type: UsageType) -> Optional[float]:
+    def get_carbon_usage_on_type(self, usage_type: UsageType) -> float | None:
         """
         Get the carbon usage based on the type.
 
@@ -81,7 +80,7 @@ class CarbonEmission(Sensor):
 
     location: Location
     energy_consumption: EnergyConsumption
-    previous_energy_consumption_time: Optional[datetime] = None
+    previous_energy_consumption_time: datetime | None = None
 
     def __init__(self, **data: Any) -> None:
         if "location" not in data:

@@ -5,7 +5,7 @@ version = "0.10.0"
 description = "Tracarbon is a Python library that tracks your device's energy consumption and calculates your carbon emissions."
 readme = "README.md"
 license = "Apache-2.0"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 keywords = ["energy", "sustainability", "energy-consumption", "electricity-consumption", "energy-efficiency", "carbon-footprint", "carbon-emissions"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -32,7 +32,7 @@ prometheus = ["prometheus-client>=0.16,<0.25"]
 kubernetes = ["kubernetes>=26.1,<36.0"]
 dev = [
     "ty>=0.0.1a6",
-    "ruff>=0.11.13,<0.16.0",
+    "ruff>=0.15.10,<0.16.0",
     "pytest>=8.4.0,<9.0.0",
     "pytest-mock>=3.14.0,<4.0.0",
     "pytest-asyncio>=0.24.0,<1.3.0",
@@ -85,10 +85,11 @@ exclude_dirs = ["tests", "scripts", ".venv"]
 [tool.ruff]
 fix = true
 line-length = 120
+target-version = "py310"
 
 [tool.ruff.lint]
-select = ["I", "S", "B"]
-ignore = ["B023", "S603"]
+select = ["I", "S", "B", "E", "F", "UP", "ASYNC"]
+ignore = ["S603", "UP006", "UP007", "UP035"]
 
 [tool.ruff.lint.per-file-ignores]  # Don’t apply ruff rules to our tests
 "**/tests/*" = ["S"]

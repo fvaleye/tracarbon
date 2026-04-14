@@ -1,6 +1,5 @@
 import time
 from typing import List
-from typing import Optional
 
 import typer
 from loguru import logger
@@ -30,7 +29,7 @@ def list_exporters(displayed: bool = True) -> List[str]:
 def get_exporter(
     exporter_name: str,
     metric_generators: List[MetricGenerator],
-    tracarbon_builder: Optional[TracarbonBuilder] = None,
+    tracarbon_builder: TracarbonBuilder | None = None,
 ) -> Exporter:
     """
     Get the exporter based on the name with its metrics.
@@ -77,7 +76,7 @@ def add_containers_generator(location: Country) -> List[MetricGenerator]:
 
 def run_metrics(
     exporter_name: str,
-    country_code_alpha_iso_2: Optional[str] = None,
+    country_code_alpha_iso_2: str | None = None,
     running: bool = True,
     containers: bool = False,
 ) -> None:
@@ -132,7 +131,7 @@ def run_metrics(
 @app.command()
 def run(
     exporter_name: str = "Stdout",
-    country_code_alpha_iso_2: Optional[str] = None,
+    country_code_alpha_iso_2: str | None = None,
     containers: bool = False,
 ) -> None:
     """

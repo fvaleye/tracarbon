@@ -1,3 +1,4 @@
+import asyncio
 import atexit
 import os
 from datetime import datetime
@@ -5,6 +6,7 @@ from datetime import timezone
 from typing import Any
 
 import aiofiles
+import aiofiles.os
 import orjson
 
 from tracarbon.exporters.exporter import Exporter
@@ -85,33 +87,38 @@ class JSONExporter(Exporter):
 
     async def launch(self, metric_generator: MetricGenerator) -> None:
         """
-        Launch the Stdout exporter with the metrics.
+        Append each metric value as a JSON object inside a growing JSON array file.
 
-        :param metric_generator: the metric generator
+        :param metric_generator: produces metrics to serialize
         """
-        # Ensure we can append to an existing closed array from a previous run
-        self._strip_trailing_closing_bracket()
+        await asyncio.to_thread(self._strip_trailing_closing_bracket)
         async for metric in metric_generator.generate():
             metric_value = await metric.value()
-            if metric_value is not None:
-                await self.add_metric_to_report(metric=metric, value=metric_value)
-                file_exists = os.path.isfile(self.path)
-                async with aiofiles.open(self.path, "a+") as file:
-                    if file_exists and os.path.getsize(self.path) > 0:
-                        await file.write(f",{os.linesep}")
-                    else:
-                        await file.write(f"[{os.linesep}")
-                    option = orjson.OPT_INDENT_2 if self.indent >= 2 else 0
-                    json_bytes = orjson.dumps(
-                        {
-                            "timestamp": str(datetime.now(timezone.utc)),
-                            "metric_name": metric.format_name(metric_prefix_name=self.metric_prefix_name),
-                            "metric_value": metric_value,
-                            "metric_tags": metric.format_tags(),
-                        },
-                        option=option,
-                    )
-                    await file.write(json_bytes.decode("utf-8"))
+            if metric_value is None:
+                continue
+            await self.add_metric_to_report(metric=metric, value=metric_value)
+            try:
+                path_stat = await aiofiles.os.stat(self.path)
+            except FileNotFoundError:
+                prior_byte_length = 0
+            else:
+                prior_byte_length = path_stat.st_size
+            async with aiofiles.open(self.path, "a+") as file:
+                if prior_byte_length > 0:
+                    await file.write(f",{os.linesep}")
+                else:
+                    await file.write(f"[{os.linesep}")
+                indent_opt = orjson.OPT_INDENT_2 if self.indent >= 2 else 0
+                payload = orjson.dumps(
+                    {
+                        "timestamp": str(datetime.now(timezone.utc)),
+                        "metric_name": metric.format_name(metric_prefix_name=self.metric_prefix_name),
+                        "metric_value": metric_value,
+                        "metric_tags": metric.format_tags(),
+                    },
+                    option=indent_opt,
+                )
+                await file.write(payload.decode("utf-8"))
 
     @classmethod
     def get_name(cls) -> str:

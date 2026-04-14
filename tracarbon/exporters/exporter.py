@@ -10,13 +10,13 @@ from typing import Awaitable
 from typing import Callable
 from typing import Dict
 from typing import List
-from typing import Optional
 
 from asyncer import asyncify
 from loguru import logger
 from pydantic import BaseModel
 from pydantic import ConfigDict
 from pydantic import Field
+from pydantic import PrivateAttr
 
 from tracarbon.hardwares.hardware import HardwareInfo
 from tracarbon.locations import Location
@@ -40,7 +40,7 @@ class Metric(BaseModel):
     value: Callable[[], Awaitable[float]]
     tags: List[Tag] = Field(default_factory=list)
 
-    def format_name(self, metric_prefix_name: Optional[str] = None, separator: str = ".") -> str:
+    def format_name(self, metric_prefix_name: str | None = None, separator: str = ".") -> str:
         """
         Format the name of the metric with a prefix and separator.
 
@@ -67,8 +67,8 @@ class MetricReport(BaseModel):
 
     exporter_name: str
     metric: "Metric"
-    average_interval_in_seconds: Optional[float] = None
-    last_report_time: Optional[datetime] = None
+    average_interval_in_seconds: float | None = None
+    last_report_time: datetime | None = None
     total: float = 0.0
     average: float = 0.0
     minimum: float = sys.float_info.max
@@ -85,7 +85,7 @@ class MetricGenerator(BaseModel):
 
     metrics: List[Metric]
     platform: str = HardwareInfo.get_platform()
-    location: Optional[Location] = None
+    location: Location | None = None
 
     async def generate(self) -> AsyncGenerator[Metric, None]:
         """
@@ -99,10 +99,11 @@ class Exporter(BaseModel, metaclass=ABCMeta):
     """The Exporter interface."""
 
     metric_generators: List[MetricGenerator]
-    event: Optional[Event] = None
+    event: Event | None = None
     stopped: bool = False
-    metric_prefix_name: Optional[str] = None
+    metric_prefix_name: str | None = None
     metric_report: Dict[str, MetricReport] = Field(default_factory=dict)
+    _timer: Timer | None = PrivateAttr(default=None)
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -131,6 +132,7 @@ class Exporter(BaseModel, metaclass=ABCMeta):
             if self.event and not self.stopped and not self.event.is_set():
                 timer = Timer(interval_in_seconds, _run, [])
                 timer.daemon = True
+                self._timer = timer
                 timer.start()
 
         self.metric_report = dict()
@@ -145,6 +147,9 @@ class Exporter(BaseModel, metaclass=ABCMeta):
         self.stopped = True
         if self.event:
             self.event.set()
+        if self._timer is not None:
+            self._timer.cancel()
+            self._timer = None
 
     async def _launch_all(self) -> None:
         """

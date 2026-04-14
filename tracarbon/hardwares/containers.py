@@ -1,7 +1,6 @@
 from typing import Any
 from typing import Iterator
 from typing import List
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -64,7 +63,7 @@ if KUBERNETES_INSTALLED:
         Kubernetes client.
         """
 
-        namespaces: Optional[List[str]] = None
+        namespaces: List[str] | None = None
         api: CustomObjectsApi
         group: str = "metrics.k8s.io"
         version: str = "v1beta1"
@@ -89,7 +88,7 @@ if KUBERNETES_INSTALLED:
             """
             self.namespaces = [item.metadata.name for item in CoreV1Api().list_namespace().items]
 
-        def get_pods_usage(self, namespace: Optional[str] = None) -> Iterator[Pod]:
+        def get_pods_usage(self, namespace: str | None = None) -> Iterator[Pod]:
             """
             Get Pods with usage.
 

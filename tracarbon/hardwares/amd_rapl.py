@@ -1,10 +1,8 @@
 import os
 import re
 from datetime import datetime
-from pathlib import Path
 from typing import Dict
 from typing import List
-from typing import Optional
 
 import aiofiles
 from loguru import logger
@@ -46,31 +44,31 @@ class AMDRAPL(BaseModel):
     """
 
     hwmon_base_path: str = "/sys/class/hwmon"
-    amd_energy_path: Optional[str] = None
+    amd_energy_path: str | None = None
     rapl_results: Dict[str, AMDRAPLResult] = Field(default_factory=dict)
     energy_files: List[str] = Field(default_factory=list)
 
-    async def _find_amd_energy_hwmon(self) -> Optional[str]:
+    async def _find_amd_energy_hwmon(self) -> str | None:
         """
         Find the HWMON device that corresponds to amd_energy driver.
 
         :return: Path to the amd_energy HWMON device, or None if not found
         """
-        if not os.path.exists(self.hwmon_base_path):
+        if not os.path.exists(self.hwmon_base_path):  # noqa: ASYNC240
             return None
 
         for hwmon_dir in os.listdir(self.hwmon_base_path):
             hwmon_path = os.path.join(self.hwmon_base_path, hwmon_dir)
             name_file = os.path.join(hwmon_path, "name")
 
-            if os.path.exists(name_file):
+            if os.path.exists(name_file):  # noqa: ASYNC240
                 try:
-                    async with aiofiles.open(name_file, "r") as f:
+                    async with aiofiles.open(name_file) as f:
                         name = (await f.read()).strip()
                         if name == "amd_energy":
                             logger.debug(f"Found amd_energy HWMON at {hwmon_path}")
                             return hwmon_path
-                except (IOError, PermissionError) as e:
+                except (OSError, PermissionError) as e:
                     logger.debug(f"Could not read {name_file}: {e}")
                     continue
 
@@ -82,7 +80,7 @@ class AMDRAPL(BaseModel):
 
         :return: True if AMD energy HWMON interface is available
         """
-        if self.amd_energy_path and os.path.exists(self.amd_energy_path):
+        if self.amd_energy_path and os.path.exists(self.amd_energy_path):  # noqa: ASYNC240
             return True
 
         self.amd_energy_path = await self._find_amd_energy_hwmon()
@@ -130,10 +128,10 @@ class AMDRAPL(BaseModel):
                 input_file = os.path.join(self.amd_energy_path, f"energy{energy_index}_input")
                 label_file = os.path.join(self.amd_energy_path, f"energy{energy_index}_label")
 
-                async with aiofiles.open(label_file, "r") as f:
+                async with aiofiles.open(label_file) as f:
                     label = (await f.read()).strip()
 
-                async with aiofiles.open(input_file, "r") as f:
+                async with aiofiles.open(input_file) as f:
                     energy_uj = float((await f.read()).strip())
 
                 # Create a unique name combining index and label

@@ -1,6 +1,5 @@
 from typing import Any
 from typing import AsyncGenerator
-from typing import Optional
 
 from tracarbon.conf import KUBERNETES_INSTALLED
 from tracarbon.emissions import CarbonEmission
@@ -22,7 +21,7 @@ class EnergyConsumptionGenerator(MetricGenerator):
 
     energy_consumption: EnergyConsumption
 
-    def __init__(self, location: Optional[Location] = None, **data: Any) -> None:
+    def __init__(self, location: Location | None = None, **data: Any) -> None:
         if "energy_consumption" not in data:
             data["energy_consumption"] = EnergyConsumption.from_platform()
         if not location:
@@ -39,11 +38,11 @@ class EnergyConsumptionGenerator(MetricGenerator):
 
         for usage_type in UsageType:
 
-            async def energy_consumption_by_usage_type() -> Optional[float]:
+            async def energy_consumption_by_usage_type(ut=usage_type) -> float | None:
                 """
                 Get the energy usage.
                 """
-                return energy_usage.get_energy_usage_on_type(usage_type=usage_type)
+                return energy_usage.get_energy_usage_on_type(usage_type=ut)
 
             if self.location is None:
                 raise ValueError("Location must be set")
@@ -64,9 +63,9 @@ class CarbonEmissionGenerator(MetricGenerator):
     """
 
     carbon_emission: CarbonEmission
-    co2signal_api_key: Optional[str] = None
+    co2signal_api_key: str | None = None
 
-    def __init__(self, location: Optional[Location] = None, **data: Any) -> None:
+    def __init__(self, location: Location | None = None, **data: Any) -> None:
         if not location:
             location = Country.get_location()
         if "carbon_emission" not in data:
@@ -89,11 +88,11 @@ class CarbonEmissionGenerator(MetricGenerator):
 
         for usage_type in UsageType:
 
-            async def get_carbon_emission_by_usage_type() -> Optional[float]:
+            async def get_carbon_emission_by_usage_type(ut=usage_type) -> float | None:
                 """
                 Get the carbon usage.
                 """
-                return carbon_usage.get_carbon_usage_on_type(usage_type=usage_type)
+                return carbon_usage.get_carbon_usage_on_type(usage_type=ut)
 
             if self.location is None:
                 raise ValueError("Location must be set")
@@ -138,28 +137,30 @@ if KUBERNETES_INSTALLED:
             for pod in self.kubernetes.get_pods_usage():
                 for container in pod.containers:
 
-                    async def get_pod_memory_energy_consumption() -> Optional[float]:
+                    async def get_pod_memory_energy_consumption(c=container) -> float | None:
                         """
                         Get the memory energy consumption of the pod.
                         """
                         if energy_usage.memory_energy_usage is None:
                             return None
-                        return container.memory_usage * energy_usage.memory_energy_usage
+                        return c.memory_usage * energy_usage.memory_energy_usage
 
-                    async def get_pod_cpu_energy_consumption() -> Optional[float]:
+                    async def get_pod_cpu_energy_consumption(c=container) -> float | None:
                         """
                         Get the CPU energy consumption of the pod.
                         """
                         if energy_usage.cpu_energy_usage is None:
                             return None
-                        return container.cpu_usage * energy_usage.cpu_energy_usage
+                        return c.cpu_usage * energy_usage.cpu_energy_usage
 
-                    async def get_pod_total_energy_consumption() -> Optional[float]:
+                    async def get_pod_total_energy_consumption(
+                        _mem=get_pod_memory_energy_consumption, _cpu=get_pod_cpu_energy_consumption
+                    ) -> float | None:
                         """
                         Get the total energy consumption of the pod.
                         """
-                        memory = await get_pod_memory_energy_consumption()
-                        cpu = await get_pod_cpu_energy_consumption()
+                        memory = await _mem()
+                        cpu = await _cpu()
                         if memory is None or cpu is None:
                             return None
                         return memory + cpu
@@ -199,7 +200,7 @@ if KUBERNETES_INSTALLED:
 
         carbon_emission: CarbonEmission
         kubernetes: Kubernetes
-        co2signal_api_key: Optional[str] = None
+        co2signal_api_key: str | None = None
 
         def __init__(self, location: Location, **data: Any) -> None:
             if "carbon_emission" not in data:
@@ -226,28 +227,30 @@ if KUBERNETES_INSTALLED:
             for pod in self.kubernetes.get_pods_usage():
                 for container in pod.containers:
 
-                    async def get_cpu_pod_carbon_emission() -> Optional[float]:
+                    async def get_cpu_pod_carbon_emission(c=container) -> float | None:
                         """
                         Get the CPU carbon emission of the pod.
                         """
                         if carbon_usage.cpu_carbon_usage is None:
                             return None
-                        return container.cpu_usage * carbon_usage.cpu_carbon_usage
+                        return c.cpu_usage * carbon_usage.cpu_carbon_usage
 
-                    async def get_memory_pod_carbon_emission() -> Optional[float]:
+                    async def get_memory_pod_carbon_emission(c=container) -> float | None:
                         """
                         Get the memory carbon emission of the pod.
                         """
                         if carbon_usage.memory_carbon_usage is None:
                             return None
-                        return container.memory_usage * carbon_usage.memory_carbon_usage
+                        return c.memory_usage * carbon_usage.memory_carbon_usage
 
-                    async def get_total_pod_carbon_emission() -> Optional[float]:
+                    async def get_total_pod_carbon_emission(
+                        _cpu=get_cpu_pod_carbon_emission, _mem=get_memory_pod_carbon_emission
+                    ) -> float | None:
                         """
                         Get the total carbon emission of the pod.
                         """
-                        cpu = await get_cpu_pod_carbon_emission()
-                        memory = await get_memory_pod_carbon_emission()
+                        cpu = await _cpu()
+                        memory = await _mem()
                         if cpu is None or memory is None:
                             return None
                         return cpu + memory

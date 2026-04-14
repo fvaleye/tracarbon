@@ -1,15 +1,14 @@
 .DEFAULT_GOAL := help
 
 .PHONY: init
-init: ## Init the requirements
+init: ## Sync the venv from uv.lock
 	$(info --- 🖥 Init dependencies ---)
-	@uv venv
-	@uv pip install -e '.[all,dev]'
+	@uv sync --all-extras --frozen
 
 .PHONY: format
 format: ## Format the code
 	$(info --- 🐍 Check Python format ---)
-	pre-commit run -a
+	@uv run pre-commit run -a
 
 .PHONY: typecheck
 typecheck: ## Run type checking with ty

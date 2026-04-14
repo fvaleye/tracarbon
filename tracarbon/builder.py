@@ -1,6 +1,5 @@
 import datetime
 from typing import Dict
-from typing import Optional
 
 from pydantic import BaseModel
 from pydantic import ConfigDict
@@ -20,8 +19,8 @@ class TracarbonReport(BaseModel):
     Tracarbon report to store running statistics.
     """
 
-    start_time: Optional[datetime.datetime] = None
-    end_time: Optional[datetime.datetime] = None
+    start_time: datetime.datetime | None = None
+    end_time: datetime.datetime | None = None
     metric_report: Dict[str, MetricReport] = Field(default_factory=dict)
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -75,8 +74,8 @@ class TracarbonBuilder(BaseModel):
     Tracarbon builder for building Tracarbon.
     """
 
-    exporter: Optional[Exporter] = None
-    location: Optional[Location] = None
+    exporter: Exporter | None = None
+    location: Location | None = None
     configuration: TracarbonConfiguration = TracarbonConfiguration()
 
     def with_location(self, location: Location) -> "TracarbonBuilder":

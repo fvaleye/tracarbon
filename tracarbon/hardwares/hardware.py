@@ -1,5 +1,4 @@
 import platform
-from typing import Optional
 
 import psutil
 from pydantic import BaseModel
@@ -36,7 +35,7 @@ class HardwareInfo(BaseModel):
         return psutil.cpu_count(logical=logical)
 
     @staticmethod
-    def get_cpu_usage(interval: Optional[float] = None) -> float:
+    def get_cpu_usage(interval: float | None = None) -> float:
         """
         Get the CPU load percentage usage.
 

@@ -86,6 +86,27 @@ async def test_mac_energy_consumption_fallback_to_ioreg(mocker):
     assert energy_usage.cpu_energy_usage is None
 
 
+@pytest.mark.asyncio
+async def test_mac_energy_consumption_ioreg_parse_failure_returns_zero(mocker):
+    mocker.patch.object(
+        AppleSiliconPowerMetrics,
+        "get_power_breakdown",
+        side_effect=Exception("powermetrics not available"),
+    )
+    property_list_error = b"<stdin>: Property List error: Cannot parse a NULL or zero-length data\n"
+    mocker.patch(
+        "tracarbon.hardwares.sensors.asyncio.create_subprocess_shell",
+        return_value=mocker.AsyncMock(communicate=mocker.AsyncMock(return_value=(property_list_error, None))),
+    )
+    mocker.patch.object(GPUInfo, "get_gpu_power_usage_or_none", return_value=None)
+
+    mac_sensor = MacEnergyConsumption()
+    energy_usage = await mac_sensor.get_energy_usage()
+
+    assert energy_usage.host_energy_usage == 0.0
+    assert energy_usage.gpu_energy_usage is None
+
+
 def test_get_platform_should_raise_exception():
     with pytest.raises(TracarbonException) as exception:
         EnergyConsumption.from_platform(platform="unknown")

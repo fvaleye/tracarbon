@@ -4,7 +4,6 @@ import re
 import shutil
 import subprocess
 from abc import ABC
-from typing import Optional
 from typing import Tuple
 
 from loguru import logger
@@ -162,7 +161,7 @@ class AppleSiliconPowerMetrics(BaseModel):
         return result.stdout, result.returncode
 
     @classmethod
-    def _parse_power_mw(cls, output: str, label: str) -> Optional[float]:
+    def _parse_power_mw(cls, output: str, label: str) -> float | None:
         """
         Parse a power value from powermetrics output.
         Handles both mW and W units, returns watts.
@@ -189,7 +188,7 @@ class AppleSiliconPowerMetrics(BaseModel):
         return cls._run_powermetrics("cpu_power,gpu_power")
 
     @classmethod
-    def get_power_breakdown(cls) -> Tuple[Optional[float], Optional[float], Optional[float]]:
+    def get_power_breakdown(cls) -> Tuple[float | None, float | None, float | None]:
         """
         Get CPU, GPU, and ANE power in watts from powermetrics.
 
@@ -207,7 +206,7 @@ class AppleSiliconPowerMetrics(BaseModel):
         return cpu_power, gpu_power, ane_power
 
     @classmethod
-    def get_combined_power(cls) -> Optional[float]:
+    def get_combined_power(cls) -> float | None:
         """
         Get the combined power (CPU + GPU + ANE) in watts.
         Falls back to summing individual components if Combined Power line is not found.
@@ -305,7 +304,7 @@ class GPUInfo(ABC, BaseModel):
         return 0.0
 
     @classmethod
-    def get_gpu_power_usage_or_none(cls) -> Optional[float]:
+    def get_gpu_power_usage_or_none(cls) -> float | None:
         """
         Get the GPU power usage in watts, or None if no GPU is available.
 
