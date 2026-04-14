@@ -30,7 +30,12 @@ def test_prometheus_exporter(mocker):
         tags=[Tag(key="test", value="tags")],
     )
     metric_generators = [MetricGenerator(metrics=[memory_metric])]
-    exporter = PrometheusExporter(quit=True, metric_generators=metric_generators, metric_prefix_name="tracarbon")
+    exporter = PrometheusExporter(
+        quit=True,
+        metric_generators=metric_generators,
+        metric_prefix_name="tracarbon",
+        address="127.0.0.1",
+    )
     exporter.start(interval_in_seconds=interval_in_seconds)
     exporter.stop()
 
