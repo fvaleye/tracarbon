@@ -37,7 +37,7 @@ class Metric(BaseModel):
     """
 
     name: str
-    value: Callable[[], Awaitable[float]]
+    value: Callable[[], Awaitable[float | None]]
     tags: List[Tag] = Field(default_factory=list)
 
     def format_name(self, metric_prefix_name: str | None = None, separator: str = ".") -> str:
