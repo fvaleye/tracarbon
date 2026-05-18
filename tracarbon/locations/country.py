@@ -1,5 +1,6 @@
 import csv
 import importlib.resources
+import os
 from typing import Any
 from urllib.parse import urlparse
 
@@ -50,17 +51,26 @@ class Country(Location):
         raise CountryIsMissing(f"The country [{country_code_alpha_iso_2}] is not in the co2 emission file.")
 
     @classmethod
-    def get_current_country(cls, url: str = "https://ipinfo.io/json", timeout: int = 300) -> str:
+    def get_current_country(
+        cls,
+        url: str = "https://ipinfo.io/json",
+        timeout: int = 10,
+        token: str | None = None,
+    ) -> str:
         """
         Get the client's country using an internet access.
 
         :param url: the url to fetch the country from IP
-        :param timeout: the timeout for the request
+        :param timeout: the timeout in seconds for the request
+        :param token: an ipinfo.io API token to lift the anonymous rate limit,
+            falling back to the TRACARBON_IPINFO_TOKEN environment variable
         :return: the client's country alpha_iso_2 name.
         """
+        token = token or os.environ.get("TRACARBON_IPINFO_TOKEN")
+        headers = {"Authorization": f"Bearer {token}"} if token else None
         try:
             logger.debug(f"Send request to this url: {url}, timeout {timeout}s")
-            text = requests.get(url, timeout=timeout).text
+            text = requests.get(url, timeout=timeout, headers=headers).text
             content_json = orjson.loads(text)
             return content_json["country"]
         except Exception as exception:

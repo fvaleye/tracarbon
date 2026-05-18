@@ -79,6 +79,7 @@ The environment variables can be set from an environment file `.env`.
 | TRACARBON_METRIC_PREFIX_NAME  | The prefix to use in all the metrics name.                                                                                                                                                                                                                                       |
 | TRACARBON_INTERVAL_IN_SECONDS | The interval in seconds to wait between the metrics evaluation.                                                                                                                                                                                                                  |
 | TRACARBON_LOG_LEVEL           | The level to use for displaying the logs.                                                                                                                                                                                                                                        |
+| TRACARBON_IPINFO_TOKEN        | An optional [ipinfo.io](https://ipinfo.io) API token used for country detection from the IP address, lifting the anonymous rate limit.                                                                                                                                           |
 
 ## 🔎 Usage
 
