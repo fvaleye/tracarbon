@@ -5,19 +5,39 @@ from tracarbon.exceptions import CountryIsMissing
 from tracarbon.hardwares import CloudProviders
 from tracarbon.locations import AWSLocation
 from tracarbon.locations import Country
-from tracarbon.locations import Location
 from tracarbon.locations.country import AzureLocation
 from tracarbon.locations.country import GCPLocation
 
 
-@pytest.mark.asyncio
-async def get_current_country(mocker):
-    location_expected = "fr"
+def test_get_current_country_returns_country_code(mocker):
+    response = mocker.Mock(text='{"country": "fr"}')
+    get = mocker.patch("tracarbon.locations.country.requests.get", return_value=response)
 
-    mocker.patch.object(Location, "request", location_expected)
-    location = Location.get_current_country()
+    country = Country.get_current_country()
 
-    assert location_expected == location
+    assert country == "fr"
+    assert get.call_args.kwargs["timeout"] == 10
+    assert get.call_args.kwargs["headers"] is None
+
+
+def test_get_current_country_uses_explicit_ipinfo_token(mocker):
+    response = mocker.Mock(text='{"country": "be"}')
+    get = mocker.patch("tracarbon.locations.country.requests.get", return_value=response)
+
+    country = Country.get_current_country(token="secret")
+
+    assert country == "be"
+    assert get.call_args.kwargs["headers"] == {"Authorization": "Bearer secret"}
+
+
+def test_get_current_country_reads_ipinfo_token_from_environment(mocker, monkeypatch):
+    monkeypatch.setenv("TRACARBON_IPINFO_TOKEN", "env-token")
+    response = mocker.Mock(text='{"country": "de"}')
+    get = mocker.patch("tracarbon.locations.country.requests.get", return_value=response)
+
+    Country.get_current_country()
+
+    assert get.call_args.kwargs["headers"] == {"Authorization": "Bearer env-token"}
 
 
 def test_country_location(mocker):

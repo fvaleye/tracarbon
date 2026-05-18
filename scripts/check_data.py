@@ -12,9 +12,12 @@ def check_content_length(url: str, expected_content_length: str) -> bool:
     if not is_valid_url(url):
         raise ValueError(f"Invalid or unsafe URL scheme for URL: {url}")
 
-    site = urllib.request.urlopen(url)  # noqa: S310
-    if site.getheader("Content-Length") != expected_content_length:
-        raise ValueError(f"This url content changed {url}")
+    with urllib.request.urlopen(url, timeout=30) as site:  # noqa: S310
+        actual_content_length = str(len(site.read()))
+    if actual_content_length != expected_content_length:
+        raise ValueError(
+            f"This url content changed {url}: expected {expected_content_length} bytes, got {actual_content_length}"
+        )
     return True
 
 
