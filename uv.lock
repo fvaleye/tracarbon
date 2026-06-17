@@ -647,7 +647,7 @@ name = "exceptiongroup"
 version = "1.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/50/79/66800aadf48771f6b62f7eb014e352e5d06856655206165d775e675a02c9/exceptiongroup-1.3.1.tar.gz", hash = "sha256:8b412432c6055b0b7d14c310000ae93352ed6754f70fa8f7c34141f91c4e3219", size = 30371, upload-time = "2025-11-21T23:01:54.787Z" }
 wheels = [
@@ -2216,7 +2216,7 @@ wheels = [
 
 [[package]]
 name = "tracarbon"
-version = "0.10.0"
+version = "0.10.1"
 source = { editable = "." }
 dependencies = [
     { name = "aiocache" },
@@ -2230,6 +2230,7 @@ dependencies = [
     { name = "psutil" },
     { name = "pydantic" },
     { name = "python-dotenv" },
+    { name = "requests" },
     { name = "typer" },
 ]
 
@@ -2283,8 +2284,8 @@ requires-dist = [
     { name = "datadog", marker = "extra == 'datadog'", specifier = ">=0.44,<0.53" },
     { name = "datadog", marker = "extra == 'dev'", specifier = ">=0.44,<0.53" },
     { name = "ec2-metadata", specifier = ">=2.14.0,<4.0.0" },
-    { name = "kubernetes", marker = "extra == 'dev'", specifier = ">=26.1,<36.0" },
-    { name = "kubernetes", marker = "extra == 'kubernetes'", specifier = ">=26.1,<36.0" },
+    { name = "kubernetes", marker = "extra == 'dev'", specifier = ">=26.1,<37.0" },
+    { name = "kubernetes", marker = "extra == 'kubernetes'", specifier = ">=26.1,<37.0" },
     { name = "loguru", specifier = ">=0.6,<0.8" },
     { name = "msgpack", specifier = ">=1.1.1,<2.0.0" },
     { name = "orjson", specifier = ">=3.10,<4" },
@@ -2293,15 +2294,16 @@ requires-dist = [
     { name = "prometheus-client", marker = "extra == 'prometheus'", specifier = ">=0.16,<0.26" },
     { name = "psutil", specifier = ">=5.9.8" },
     { name = "pydantic", specifier = ">=1.10.7,<3.0.0" },
-    { name = "pydata-sphinx-theme", marker = "extra == 'dev'", specifier = ">=0.14.4,<0.18.0" },
+    { name = "pydata-sphinx-theme", marker = "extra == 'dev'", specifier = ">=0.14.4,<0.19.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.4.0,<10.0.0" },
-    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.24.0,<1.4.0" },
+    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.24.0,<1.5.0" },
     { name = "pytest-clarity", marker = "extra == 'dev'", specifier = ">=1.0.1,<2.0.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0.0,<8.0.0" },
     { name = "pytest-mock", marker = "extra == 'dev'", specifier = ">=3.14.0,<4.0.0" },
     { name = "pytest-xdist", marker = "extra == 'dev'", specifier = ">=3.6.1,<4.0.0" },
     { name = "python-dotenv", specifier = ">=0.21,<1.3" },
     { name = "radon", marker = "extra == 'dev'", specifier = ">=6.0.1,<7.0.0" },
+    { name = "requests", specifier = ">=2.31,<3.0.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.15.10,<0.16.0" },
     { name = "sphinx", marker = "extra == 'dev'", specifier = ">=7.4.7,<10.0.0" },
     { name = "toml", marker = "extra == 'dev'", specifier = ">=0.10.2,<0.11.0" },
@@ -2309,7 +2311,7 @@ requires-dist = [
     { name = "tracarbon", extras = ["kubernetes"], marker = "extra == 'all'" },
     { name = "tracarbon", extras = ["prometheus"], marker = "extra == 'all'" },
     { name = "ty", marker = "extra == 'dev'", specifier = ">=0.0.1a6" },
-    { name = "typer", specifier = ">=0.7,<0.26" },
+    { name = "typer", specifier = ">=0.7,<0.27" },
     { name = "uv", marker = "extra == 'dev'" },
 ]
 provides-extras = ["datadog", "prometheus", "kubernetes", "dev", "all"]
