@@ -1,3 +1,4 @@
+from functools import cache
 from typing import ClassVar
 from typing import Dict
 from typing import Optional
@@ -28,9 +29,10 @@ class CloudProviders(BaseModel):
 
         :return: if it's running on a known cloud provider
         """
-        return AWS.is_ec2() or GCP.is_gcp() or Azure.is_azure()
+        return CloudProviders.auto_detect() is not None
 
     @staticmethod
+    @cache
     def auto_detect() -> Optional["CloudProviders"]:
         """
         Autodetect the cloud provider.

@@ -15,6 +15,7 @@ from tracarbon.hardwares import WindowsEnergyConsumption
 from tracarbon.hardwares.cloud_providers import AWS
 from tracarbon.hardwares.cloud_providers import GCP
 from tracarbon.hardwares.cloud_providers import Azure
+from tracarbon.hardwares.cloud_providers import CloudProviders
 from tracarbon.hardwares.gpu import AppleSiliconPowerMetrics
 from tracarbon.hardwares.gpu import GPUInfo
 from tracarbon.hardwares.sensors import AzureEnergyConsumption
@@ -184,6 +185,22 @@ def test_is_ec2_should_return_true(mocker):
     )
 
     assert AWS.is_ec2() is True
+
+
+def test_cloud_provider_auto_detect_caches_negative_result(mocker):
+    CloudProviders.auto_detect.cache_clear()
+    is_ec2 = mocker.patch.object(AWS, "is_ec2", return_value=False)
+    is_gcp = mocker.patch.object(GCP, "is_gcp", return_value=False)
+    is_azure = mocker.patch.object(Azure, "is_azure", return_value=False)
+
+    assert CloudProviders.auto_detect() is None
+    assert CloudProviders.auto_detect() is None
+    assert CloudProviders.is_running_on_cloud_provider() is False
+
+    is_ec2.assert_called_once()
+    is_gcp.assert_called_once()
+    is_azure.assert_called_once()
+    CloudProviders.auto_detect.cache_clear()
 
 
 @pytest.mark.asyncio
