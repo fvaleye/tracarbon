@@ -93,6 +93,16 @@ async def test_get_total_uj_one_call():
     assert energy_report.memory_energy_usage is None
 
 
+def test_classify_domain():
+    rapl = RAPL()
+
+    assert rapl._classify_domain("T0-package-0") == "package"
+    assert rapl._classify_domain("T0T1-dram") == "memory"
+    assert rapl._classify_domain("T0T0-core") == "cpu"
+    assert rapl._classify_domain("T0T2-uncore") == "gpu"
+    assert rapl._classify_domain("unknown") == "unknown"
+
+
 @pytest.mark.asyncio
 @pytest.mark.linux
 @pytest.mark.darwin
