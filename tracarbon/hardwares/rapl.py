@@ -104,6 +104,25 @@ class RAPL(BaseModel):
         logger.debug(f"The RAPL results: {rapl_results}.")
         return rapl_results
 
+    def _classify_domain(self, name: str) -> str:
+        """
+        Classify the Intel RAPL energy domain from its sysfs name.
+
+        :param name: The energy domain name (e.g., "package-0", "dram")
+        :return: Classification: "package", "memory", "cpu", "gpu", or "unknown"
+        """
+        name_lower = name.lower()
+
+        if "package" in name_lower:
+            return "package"
+        if "dram" in name_lower or "ram" in name_lower:
+            return "memory"
+        if "uncore" in name_lower:
+            return "gpu"
+        if "core" in name_lower or "cpu" in name_lower:
+            return "cpu"
+        return "unknown"
+
     async def get_energy_report(self) -> EnergyUsage:
         """
         Get the energy report based on RAPL.
@@ -131,13 +150,14 @@ class RAPL(BaseModel):
                 energy_uj = energy_uj + rapl_result.max_energy_uj
             watts = Power.watts_from_microjoules((energy_uj - previous_rapl_result.energy_uj) / time_difference_seconds)
             self.rapl_results[rapl_result.name] = rapl_result
-            if "package" in rapl_result.name or "ram" in rapl_result.name:
+            domain = self._classify_domain(rapl_result.name)
+            if domain in ("package", "memory"):
                 host_energy_usage_watts += watts
-            if "core" in rapl_result.name or "cpu" in rapl_result.name:
+            if domain == "cpu":
                 cpu_energy_usage_watts += watts
-            if "ram" in rapl_result.name:
+            if domain == "memory":
                 memory_energy_usage_watts += watts
-            if "uncore" in rapl_result.name:
+            if domain == "gpu":
                 gpu_energy_usage_watts += watts
         energy_usage_report = EnergyUsage(
             host_energy_usage=host_energy_usage_watts,
