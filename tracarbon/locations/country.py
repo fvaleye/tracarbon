@@ -2,6 +2,7 @@ import csv
 import importlib.resources
 import os
 from typing import Any
+from urllib.parse import urlencode
 from urllib.parse import urlparse
 
 import orjson
@@ -33,6 +34,9 @@ class Country(Location):
     """
     Country definition.
     """
+
+    data_center_provider: str | None = None
+    data_center_region: str | None = None
 
     @classmethod
     def from_eu_file(cls, country_code_alpha_iso_2: str) -> "Country":
@@ -94,9 +98,26 @@ class Country(Location):
         :param emission_factor_type: the emission factor type (lifecycle or direct) for Electricity Maps API.
         :return: the country
         """
+        is_electricity_maps = False
+        if co2signal_url:
+            host = urlparse(co2signal_url).hostname or ""
+            is_electricity_maps = host == "electricitymaps.com" or host.endswith(".electricitymaps.com")
+        factor_type = EmissionFactorType(emission_factor_type) if emission_factor_type else EmissionFactorType.LIFECYCLE
+
         # Cloud Providers
         cloud_provider = CloudProviders.auto_detect()
         if cloud_provider:
+            provider_display_name = type(cloud_provider).__name__
+            if co2signal_api_key and is_electricity_maps:
+                return cls(
+                    co2signal_api_key=co2signal_api_key,
+                    co2signal_url=co2signal_url,
+                    name=f"{provider_display_name}({cloud_provider.region_name})",
+                    co2g_kwh_source=CarbonIntensitySource.ElectricityMapsAPI,
+                    emission_factor_type=factor_type,
+                    data_center_provider=provider_display_name.lower(),
+                    data_center_region=cloud_provider.region_name,
+                )
             if isinstance(cloud_provider, AWS):
                 return AWSLocation(region_name=cloud_provider.region_name)
             if isinstance(cloud_provider, GCP):
@@ -108,15 +129,8 @@ class Country(Location):
         if not country_code_alpha_iso_2:
             country_code_alpha_iso_2 = cls.get_current_country()
         if co2signal_api_key:
-            is_electricity_maps = False
-            if co2signal_url:
-                host = urlparse(co2signal_url).hostname or ""
-                is_electricity_maps = host == "electricitymaps.com" or host.endswith(".electricitymaps.com")
             source = (
                 CarbonIntensitySource.ElectricityMapsAPI if is_electricity_maps else CarbonIntensitySource.CO2SignalAPI
-            )
-            factor_type = (
-                EmissionFactorType(emission_factor_type) if emission_factor_type else EmissionFactorType.LIFECYCLE
             )
             return cls(
                 co2signal_api_key=co2signal_api_key,
@@ -144,7 +158,15 @@ class Country(Location):
             raise CO2SignalAPIKeyIsMissing()
 
         if self.co2g_kwh_source == CarbonIntensitySource.ElectricityMapsAPI:
-            url = f"{self.co2signal_url}?zone={self.name}&emissionFactorType={self.emission_factor_type.value}"
+            query = {
+                "emissionFactorType": self.emission_factor_type.value,
+            }
+            if self.data_center_provider and self.data_center_region:
+                query["dataCenterProvider"] = self.data_center_provider
+                query["dataCenterRegion"] = self.data_center_region
+            else:
+                query["zone"] = self.name
+            url = f"{self.co2signal_url}?{urlencode(query)}"
         else:
             url = f"{self.co2signal_url}{self.name}"
 

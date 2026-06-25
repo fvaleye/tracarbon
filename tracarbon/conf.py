@@ -60,7 +60,7 @@ class TracarbonConfiguration(BaseModel):
         interval_in_seconds: int = 60,
         log_level: str = "INFO",
         co2signal_api_key: str = "",
-        co2signal_url: str = "https://api.electricitymaps.com/v3/carbon-intensity/latest",
+        co2signal_url: str = "https://api.electricitymaps.com/v4/carbon-intensity/latest",
         emission_factor_type: str = "lifecycle",
         env_file_path: str | None = None,
         **data: Any,
