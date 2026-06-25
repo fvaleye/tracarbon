@@ -29,7 +29,26 @@ def test_prometheus_exporter(mocker):
         value=get_memory_usage,
         tags=[Tag(key="test", value="tags")],
     )
-    metric_generators = [MetricGenerator(metrics=[memory_metric])]
+
+    async def get_zero_value() -> float:
+        return 0.0
+
+    kubernetes_labels = {
+        "pod_name": "grafana-5745b58656-8q4q8",
+        "pod_namespace": "default",
+        "container_name": "grafana",
+        "platform": "Linux",
+        "containers": "kubernetes",
+        "location": "fr",
+        "source": "file",
+        "units": "co2mg",
+    }
+    kubernetes_metric = Metric(
+        name="carbon_emission_kubernetes_total",
+        value=get_zero_value,
+        tags=[Tag(key=key, value=value) for key, value in kubernetes_labels.items()],
+    )
+    metric_generators = [MetricGenerator(metrics=[memory_metric, kubernetes_metric])]
     exporter = PrometheusExporter(
         quit=True,
         metric_generators=metric_generators,
@@ -47,3 +66,8 @@ def test_prometheus_exporter(mocker):
     assert exporter.metric_report["test_metric_1"].minimum < sys.float_info.max
     assert exporter.metric_report["test_metric_1"].maximum > 0
     assert exporter.metric_report["test_metric_1"].call_count == 1
+
+    samples = exporter.prometheus_metrics["tracarbon_carbon_emission_kubernetes_total"].collect()[0].samples
+    assert samples[0].value == 0.0
+    assert samples[0].labels == kubernetes_labels
+    assert exporter.metric_report["carbon_emission_kubernetes_total"].call_count == 1

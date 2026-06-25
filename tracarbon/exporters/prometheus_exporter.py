@@ -48,7 +48,7 @@ if PROMETHEUS_INSTALLED:
                         [tag.key for tag in metric.tags],
                     )
                 metric_value = await metric.value()
-                if metric_value:
+                if metric_value is not None:
                     await self.add_metric_to_report(metric=metric, value=metric_value)
                     logger.info(
                         f"Sending metric[{metric_name}] with value [{metric_value}] "
