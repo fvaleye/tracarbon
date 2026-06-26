@@ -17,6 +17,7 @@ from tracarbon.hardwares import AWS
 from tracarbon.hardwares import GCP
 from tracarbon.hardwares import Azure
 from tracarbon.hardwares import CloudProviders
+from tracarbon.locations.location import CarbonIntensityMetadata
 from tracarbon.locations.location import CarbonIntensitySource
 from tracarbon.locations.location import EmissionFactorType
 from tracarbon.locations.location import Location
@@ -37,6 +38,27 @@ class Country(Location):
 
     data_center_provider: str | None = None
     data_center_region: str | None = None
+
+    def _update_carbon_intensity_metadata(
+        self,
+        response: dict[str, Any] | None = None,
+        fallback_used: bool = False,
+    ) -> None:
+        payload = response.get("data", response) if response else {}
+        emission_factor_type = payload.get("emissionFactorType")
+        if not emission_factor_type and self.co2g_kwh_source == CarbonIntensitySource.ElectricityMapsAPI:
+            emission_factor_type = self.emission_factor_type.value
+        self.carbon_intensity_metadata = CarbonIntensityMetadata(
+            source=self.co2g_kwh_source,
+            co2g_kwh=self.co2g_kwh,
+            zone=payload.get("zone") or (response or {}).get("countryCode") or self.name,
+            datetime=payload.get("datetime"),
+            updated_at=payload.get("updatedAt"),
+            emission_factor_type=EmissionFactorType(emission_factor_type) if emission_factor_type else None,
+            is_estimated=payload.get("isEstimated"),
+            estimation_method=payload.get("estimationMethod"),
+            fallback_used=fallback_used,
+        )
 
     @classmethod
     def from_eu_file(cls, country_code_alpha_iso_2: str) -> "Country":
@@ -151,6 +173,7 @@ class Country(Location):
         :return: the latest CO2g_kwh
         """
         if self.co2g_kwh_source == CarbonIntensitySource.FILE:
+            self._update_carbon_intensity_metadata()
             return self.co2g_kwh
 
         logger.info(f"Request the latest carbon intensity in Co2g/kwh for your country {self.name}.")
@@ -177,11 +200,14 @@ class Country(Location):
                 headers={"auth-token": self.co2signal_api_key},
             )
             logger.debug(f"Response from the {url}: {response}.")
+            raw_response = response
             if "data" in response:
                 response = response["data"]
             self.co2g_kwh = float(response["carbonIntensity"])
+            self._update_carbon_intensity_metadata(response=raw_response)
             logger.info(f"The latest carbon intensity of your country {self.name} is: {self.co2g_kwh} CO2g/kwh.")
         except Exception:
+            self._update_carbon_intensity_metadata(response=response if response else None, fallback_used=True)
             logger.error(
                 f"Failed to get the latest carbon intensity of your country {self.name} {response if response else ''}."
                 f"Please check your API configuration."
@@ -219,6 +245,7 @@ class AWSLocation(Country):
 
         :return: the latest co2g_kwh
         """
+        self._update_carbon_intensity_metadata()
         return self.co2g_kwh
 
     async def get_co2g_kwh(self) -> float:
@@ -293,6 +320,7 @@ class CloudLocation(Country):
 
         :return: the latest co2g_kwh
         """
+        self._update_carbon_intensity_metadata()
         return self.co2g_kwh
 
     async def get_co2g_kwh(self) -> float:

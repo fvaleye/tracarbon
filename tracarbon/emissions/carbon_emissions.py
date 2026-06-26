@@ -4,6 +4,7 @@ from typing import Any
 
 from loguru import logger
 from pydantic import BaseModel
+from pydantic import Field
 
 from tracarbon.hardwares import EnergyConsumption
 from tracarbon.hardwares import Power
@@ -11,6 +12,7 @@ from tracarbon.hardwares import Sensor
 from tracarbon.hardwares.energy import EnergyUsage
 from tracarbon.hardwares.energy import EnergyUsageUnit
 from tracarbon.hardwares.energy import UsageType
+from tracarbon.locations import CarbonIntensityMetadata
 from tracarbon.locations import Country
 from tracarbon.locations import Location
 
@@ -34,6 +36,7 @@ class CarbonUsage(BaseModel):
     memory_carbon_usage: float | None = None
     gpu_carbon_usage: float | None = None
     unit: CarbonUsageUnit = CarbonUsageUnit.CO2_G
+    carbon_intensity_metadata: CarbonIntensityMetadata = Field(default_factory=CarbonIntensityMetadata)
 
     def get_carbon_usage_on_type(self, usage_type: UsageType) -> float | None:
         """
@@ -152,4 +155,5 @@ class CarbonEmission(Sensor):
             memory_carbon_usage=(memory_carbon_usage if memory_carbon_usage > 0 else None),
             gpu_carbon_usage=gpu_carbon_usage if gpu_carbon_usage > 0 else None,
             unit=CarbonUsageUnit.CO2_G,
+            carbon_intensity_metadata=self.location.carbon_intensity_metadata.model_copy(),
         )
