@@ -1,4 +1,5 @@
 import os
+from contextlib import suppress
 from typing import Any
 from typing import Dict
 
@@ -25,7 +26,8 @@ if PROMETHEUS_INSTALLED:
 
         def __init__(self, **data: Any) -> None:
             super().__init__(**data)
-            prometheus_client.REGISTRY.unregister(prometheus_client.GC_COLLECTOR)
+            with suppress(KeyError):
+                prometheus_client.REGISTRY.unregister(prometheus_client.GC_COLLECTOR)
             addr = self.address if self.address else os.environ.get("PROMETHEUS_ADDRESS", "::")
             port = self.port if self.port else int(os.environ.get("PROMETHEUS_PORT", 8081))
             start_http_server(
@@ -48,7 +50,7 @@ if PROMETHEUS_INSTALLED:
                         [tag.key for tag in metric.tags],
                     )
                 metric_value = await metric.value()
-                if metric_value:
+                if metric_value is not None:
                     await self.add_metric_to_report(metric=metric, value=metric_value)
                     logger.info(
                         f"Sending metric[{metric_name}] with value [{metric_value}] "

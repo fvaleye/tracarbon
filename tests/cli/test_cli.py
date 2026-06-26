@@ -70,3 +70,24 @@ def test_run_metrics_should_be_ok(mocker, caplog):
     assert "start_time" in caplog.text
     assert "end_time" in caplog.text
     assert "Report" in caplog.text
+
+
+@pytest.mark.darwin
+def test_run_metrics_warns_when_containers_collect_no_kubernetes_metrics(mocker, caplog):
+    exporter = "Stdout"
+    mocker.patch.object(
+        Country,
+        "get_location",
+        return_value=Country(name="fr", co2g_kwh=50.0),
+    )
+    mocker.patch.object(config, "load_kube_config", return_value=None)
+    mocker.patch.object(
+        MacEnergyConsumption,
+        "get_energy_usage",
+        return_value=EnergyUsage(cpu_energy_usage=15.0, memory_energy_usage=12.0),
+    )
+    mocker.patch.object(Kubernetes, "get_pods_usage", return_value=[])
+
+    run_metrics(exporter_name=exporter, running=False, containers=True)
+
+    assert "No Kubernetes container metrics were collected." in caplog.text
