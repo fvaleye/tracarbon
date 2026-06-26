@@ -97,6 +97,25 @@ The environment variables can be set from an environment file `.env`.
 tracarbon run
 ```
 
+**Prometheus with Kubernetes containers**
+
+```sh
+tracarbon run --exporter-name Prometheus --containers
+```
+
+With the default metric prefix, container metrics are exposed with these Prometheus names:
+
+| **Metric** | **Labels** |
+| ---------- | ---------- |
+| tracarbon_energy_consumption_kubernetes_total | pod_name, pod_namespace, container_name, platform, containers, location, units |
+| tracarbon_energy_consumption_kubernetes_cpu | pod_name, pod_namespace, container_name, platform, containers, location, units |
+| tracarbon_energy_consumption_kubernetes_memory | pod_name, pod_namespace, container_name, platform, containers, location, units |
+| tracarbon_carbon_emission_kubernetes_total | pod_name, pod_namespace, container_name, platform, containers, location, source, units |
+| tracarbon_carbon_emission_kubernetes_cpu | pod_name, pod_namespace, container_name, platform, containers, location, source, units |
+| tracarbon_carbon_emission_kubernetes_memory | pod_name, pod_namespace, container_name, platform, containers, location, source, units |
+
+Zero values are exported. If Kubernetes returns no pod metrics, the CLI logs `No Kubernetes container metrics were collected.` Host metrics are still exported.
+
 **API**
 
 ```python
@@ -111,7 +130,7 @@ tracarbon.stop()
 with tracarbon:
     # Your code
 
-report = tracarbon.report() # Get the report
+report = tracarbon.report # Get the report
 ```
 
 ## 💻 Development

@@ -123,6 +123,8 @@ def run_metrics(
         logger.exception(f"Error in Tracarbon execution: {e}")
 
     if tracarbon:
+        if containers and not any("_kubernetes_" in metric_name for metric_name in tracarbon.report.metric_report):
+            logger.warning("No Kubernetes container metrics were collected.")
         logger.info(f"Tracarbon CLI exited. Tracarbon report: {tracarbon.report}")
     else:
         logger.info("Tracarbon CLI exited with errors during initialization.")
