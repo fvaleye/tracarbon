@@ -47,6 +47,7 @@ from tracarbon.hardwares.sensors import Sensor
 from tracarbon.hardwares.sensors import WindowsEnergyConsumption
 from tracarbon.locations import AWSLocation
 from tracarbon.locations import AzureLocation
+from tracarbon.locations import CarbonIntensityMetadata
 from tracarbon.locations import CarbonIntensitySource
 from tracarbon.locations import CloudLocation
 from tracarbon.locations import Country
@@ -77,6 +78,7 @@ __all__ = [
     "CO2SignalAPIKeyIsMissing",
     "CarbonEmission",
     "CarbonEmissionGenerator",
+    "CarbonIntensityMetadata",
     "CarbonIntensitySource",
     "CarbonUsage",
     "CarbonUsageUnit",

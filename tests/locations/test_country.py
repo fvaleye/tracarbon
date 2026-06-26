@@ -7,6 +7,7 @@ from tracarbon.hardwares.cloud_providers import AWS
 from tracarbon.hardwares.cloud_providers import GCP
 from tracarbon.hardwares.cloud_providers import Azure
 from tracarbon.hardwares.cloud_providers import CloudProviders
+from tracarbon.locations import CarbonIntensityMetadata
 from tracarbon.locations import CarbonIntensitySource
 from tracarbon.locations import Country
 from tracarbon.locations.location import EmissionFactorType
@@ -118,6 +119,17 @@ async def test_electricity_maps_api_v4_lifecycle(mocker):
     assert result == co2_expected
     assert country.co2g_kwh_source == CarbonIntensitySource.ElectricityMapsAPI
     assert country.emission_factor_type == EmissionFactorType.LIFECYCLE
+    assert country.carbon_intensity_metadata == CarbonIntensityMetadata(
+        source=CarbonIntensitySource.ElectricityMapsAPI,
+        co2g_kwh=co2_expected,
+        zone="FR",
+        datetime="2025-01-15T12:00:00.000Z",
+        updated_at="2025-01-15T11:51:02.892Z",
+        emission_factor_type=EmissionFactorType.LIFECYCLE,
+        is_estimated=False,
+        estimation_method=None,
+        fallback_used=False,
+    )
     parsed_url = urlparse(request.call_args.kwargs["url"])
     assert parsed_url.path == "/v4/carbon-intensity/latest"
     assert parse_qs(parsed_url.query) == {
@@ -154,6 +166,31 @@ async def test_electricity_maps_api_v4_direct(mocker):
     assert result == co2_expected
     assert country.emission_factor_type == EmissionFactorType.DIRECT
     assert parse_qs(urlparse(request.call_args.kwargs["url"]).query)["emissionFactorType"] == ["direct"]
+
+
+@pytest.mark.asyncio
+async def test_carbon_intensity_metadata_marks_api_fallback(mocker):
+    co2_expected = 74.0
+    mocker.patch.object(Country, "request", side_effect=RuntimeError("api failed"))
+    country = Country(
+        name="FR",
+        co2signal_api_key="API_KEY",
+        co2signal_url="https://api.electricitymaps.com/v4/carbon-intensity/latest",
+        co2g_kwh=co2_expected,
+        co2g_kwh_source=CarbonIntensitySource.ElectricityMapsAPI,
+        emission_factor_type=EmissionFactorType.LIFECYCLE,
+    )
+
+    result = await country.get_latest_co2g_kwh()
+
+    assert result == co2_expected
+    assert country.carbon_intensity_metadata == CarbonIntensityMetadata(
+        source=CarbonIntensitySource.ElectricityMapsAPI,
+        co2g_kwh=co2_expected,
+        zone="FR",
+        emission_factor_type=EmissionFactorType.LIFECYCLE,
+        fallback_used=True,
+    )
 
 
 @pytest.mark.asyncio

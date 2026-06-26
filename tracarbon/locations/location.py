@@ -9,6 +9,7 @@ import orjson
 from aiocache import cached
 from loguru import logger
 from pydantic import BaseModel
+from pydantic import Field
 
 
 class CarbonIntensitySource(str, Enum):
@@ -22,6 +23,22 @@ class EmissionFactorType(str, Enum):
     DIRECT = "direct"
 
 
+class CarbonIntensityMetadata(BaseModel):
+    """
+    Metadata about the carbon intensity value used for emission calculations.
+    """
+
+    source: CarbonIntensitySource = CarbonIntensitySource.FILE
+    co2g_kwh: float | None = None
+    zone: str | None = None
+    datetime: str | None = None
+    updated_at: str | None = None
+    emission_factor_type: EmissionFactorType | None = None
+    is_estimated: bool | None = None
+    estimation_method: str | None = None
+    fallback_used: bool = False
+
+
 class Location(ABC, BaseModel):
     """
     Generic Location.
@@ -33,6 +50,7 @@ class Location(ABC, BaseModel):
     co2signal_url: str | None = None
     co2g_kwh: float = 0.0
     emission_factor_type: EmissionFactorType = EmissionFactorType.LIFECYCLE
+    carbon_intensity_metadata: CarbonIntensityMetadata = Field(default_factory=CarbonIntensityMetadata)
 
     @classmethod
     async def request(cls, url: str, headers: Dict[str, str] | None = None) -> Dict[str, Any]:

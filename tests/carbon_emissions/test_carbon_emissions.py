@@ -7,6 +7,8 @@ from tracarbon import EnergyUsage
 from tracarbon import LinuxEnergyConsumption
 from tracarbon import MacEnergyConsumption
 from tracarbon import UsageType
+from tracarbon.locations import CarbonIntensityMetadata
+from tracarbon.locations import CarbonIntensitySource
 from tracarbon.locations import Country
 
 
@@ -88,3 +90,24 @@ def test_carbon_usage_with_type_and_conversion():
     assert carbon_usage.get_carbon_usage_on_type(UsageType.MEMORY) == memory_carbon_usage * 1000
     assert carbon_usage.get_carbon_usage_on_type(UsageType.GPU) == gpu_carbon_usage * 1000
     assert carbon_usage.unit == CarbonUsageUnit.CO2_MG
+
+
+@pytest.mark.asyncio
+@pytest.mark.darwin
+async def test_carbon_usage_includes_carbon_intensity_metadata(mocker):
+    co2g_per_kwh = 20.0
+    country = Country(name="fr", co2g_kwh=co2g_per_kwh)
+    mocker.patch.object(
+        MacEnergyConsumption,
+        "get_energy_usage",
+        return_value=EnergyUsage(host_energy_usage=60.0),
+    )
+    carbon_emission = CarbonEmission(location=country)
+
+    carbon_usage = await carbon_emission.get_co2_usage()
+
+    assert carbon_usage.carbon_intensity_metadata == CarbonIntensityMetadata(
+        source=CarbonIntensitySource.FILE,
+        co2g_kwh=co2g_per_kwh,
+        zone="fr",
+    )
