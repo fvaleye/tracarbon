@@ -1,8 +1,10 @@
+import os
 from typing import Any
 from typing import Iterator
 from typing import List
 
 from pydantic import BaseModel
+from pydantic import PrivateAttr
 
 from tracarbon.conf import KUBERNETES_INSTALLED
 from tracarbon.exceptions import TracarbonException
@@ -65,8 +67,10 @@ if KUBERNETES_INSTALLED:
 
         namespaces: List[str] | None = None
         api: CustomObjectsApi
+        node_name: str | None = None
         group: str = "metrics.k8s.io"
         version: str = "v1beta1"
+        _core_api: CoreV1Api = PrivateAttr(default_factory=CoreV1Api)
 
         model_config = {
             "arbitrary_types_allowed": True,
@@ -80,13 +84,24 @@ if KUBERNETES_INSTALLED:
 
             if "api" not in data:
                 data["api"] = CustomObjectsApi()
+            if not data.get("node_name"):
+                data["node_name"] = os.environ.get("TRACARBON_KUBERNETES_NODE_NAME") or os.environ.get("NODE_NAME")
             super().__init__(**data)
 
         def refresh_namespaces(self) -> None:
             """
             Refresh the names of the namespaces.
             """
-            self.namespaces = [item.metadata.name for item in CoreV1Api().list_namespace().items]
+            self.namespaces = [item.metadata.name for item in self._core_api.list_namespace().items]
+
+        def _get_node_pod_names(self, namespace: str) -> set[str] | None:
+            if not self.node_name:
+                return None
+            pods = self._core_api.list_namespaced_pod(
+                namespace=namespace,
+                field_selector=f"spec.nodeName={self.node_name}",
+            )
+            return {item.metadata.name for item in pods.items}
 
         def get_pods_usage(self, namespace: str | None = None) -> Iterator[Pod]:
             """
@@ -106,6 +121,7 @@ if KUBERNETES_INSTALLED:
                 if namespace and namespace != n:
                     continue
 
+                node_pod_names = self._get_node_pod_names(namespace=n)
                 resource = self.api.list_namespaced_custom_object(
                     group=self.group,
                     version=self.version,
@@ -113,8 +129,11 @@ if KUBERNETES_INSTALLED:
                     plural="pods",
                 )
                 for pod in resource["items"]:
+                    pod_name = pod["metadata"]["name"]
+                    if node_pod_names is not None and pod_name not in node_pod_names:
+                        continue
                     yield Pod(
-                        name=pod["metadata"]["name"],
+                        name=pod_name,
                         namespace=pod["metadata"]["namespace"],
                         containers=[
                             Container(
