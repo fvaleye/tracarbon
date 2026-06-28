@@ -4,6 +4,8 @@ from kubernetes.client import CustomObjectsApi
 from kubernetes.client import V1Namespace
 from kubernetes.client import V1NamespaceList
 from kubernetes.client import V1ObjectMeta
+from kubernetes.client import V1Pod
+from kubernetes.client import V1PodList
 
 from tracarbon import HardwareInfo
 from tracarbon.hardwares.containers import Container
@@ -103,3 +105,72 @@ def test_get_pods_usage(mocker):
     pods_usage = list(kubernetes.get_pods_usage())
 
     assert pods_usage == pods_usage_expected
+
+
+def test_get_pods_usage_filters_by_node_name(mocker):
+    return_value = {
+        "kind": "PodMetricsList",
+        "apiVersion": "metrics.k8s.io/v1beta1",
+        "metadata": {},
+        "items": [
+            {
+                "metadata": {
+                    "name": "grafana-5745b58656-8q4q8",
+                    "namespace": "default",
+                },
+                "timestamp": "2023-01-09T08:01:44Z",
+                "window": "15s",
+                "containers": [{"name": "grafana", "usage": {"cpu": "9559630n", "memory": "22244Ki"}}],
+            },
+            {
+                "metadata": {
+                    "name": "shorty-5469f85799-n4k2x",
+                    "namespace": "default",
+                },
+                "timestamp": "2023-01-09T08:01:31Z",
+                "window": "18s",
+                "containers": [{"name": "shorty", "usage": {"cpu": "14016200n", "memory": "14912Ki"}}],
+            },
+        ],
+    }
+    number_of_cores = 2
+    mocker.patch.object(HardwareInfo, "get_number_of_cores", return_value=number_of_cores)
+    memory_total = 1000000000
+    mocker.patch.object(HardwareInfo, "get_memory_total", return_value=memory_total)
+    mocker.patch.object(CustomObjectsApi, "list_namespaced_custom_object", return_value=return_value)
+    mocker.patch.object(
+        CoreV1Api,
+        "list_namespace",
+        return_value=V1NamespaceList(items=[V1Namespace(metadata=V1ObjectMeta(name="default"))]),
+    )
+    list_namespaced_pod = mocker.patch.object(
+        CoreV1Api,
+        "list_namespaced_pod",
+        return_value=V1PodList(
+            items=[
+                V1Pod(metadata=V1ObjectMeta(name="grafana-5745b58656-8q4q8")),
+            ]
+        ),
+    )
+    mocker.patch.object(config, "load_kube_config", return_value=None)
+
+    kubernetes = Kubernetes(node_name="node-a")
+    pods_usage = list(kubernetes.get_pods_usage())
+
+    assert pods_usage == [
+        Pod(
+            name="grafana-5745b58656-8q4q8",
+            namespace="default",
+            containers=[Container(name="grafana", cpu_usage=0.004779815, memory_usage=0.022244)],
+        )
+    ]
+    list_namespaced_pod.assert_called_once_with(namespace="default", field_selector="spec.nodeName=node-a")
+
+
+def test_kubernetes_uses_node_name_from_env(mocker, monkeypatch):
+    mocker.patch.object(config, "load_kube_config", return_value=None)
+    monkeypatch.setenv("NODE_NAME", "node-a")
+
+    kubernetes = Kubernetes()
+
+    assert kubernetes.node_name == "node-a"

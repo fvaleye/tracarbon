@@ -80,6 +80,7 @@ The environment variables can be set from an environment file `.env`.
 | TRACARBON_INTERVAL_IN_SECONDS | The interval in seconds to wait between the metrics evaluation.                                                                                                                                                                                                                  |
 | TRACARBON_LOG_LEVEL           | The level to use for displaying the logs.                                                                                                                                                                                                                                        |
 | TRACARBON_IPINFO_TOKEN        | An optional [ipinfo.io](https://ipinfo.io) API token used for country detection from the IP address, lifting the anonymous rate limit.                                                                                                                                           |
+| TRACARBON_KUBERNETES_NODE_NAME | The Kubernetes node name used to scope container metrics to the node being measured. Falls back to `NODE_NAME` when unset.                                                                                                                                                       |
 
 ## 🔎 Usage
 
@@ -115,6 +116,8 @@ With the default metric prefix, container metrics are exposed with these Prometh
 | tracarbon_carbon_emission_kubernetes_memory | pod_name, pod_namespace, container_name, platform, containers, location, source, units |
 
 Zero values are exported. If Kubernetes returns no pod metrics, the CLI logs `No Kubernetes container metrics were collected.` Host metrics are still exported.
+
+When running in Kubernetes, deploy Tracarbon per node and set `NODE_NAME` from `spec.nodeName` with the Downward API so container metrics are scoped to the measured node.
 
 **API**
 
