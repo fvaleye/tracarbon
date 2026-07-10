@@ -51,7 +51,7 @@ class HardwareInfo(BaseModel):
 
         :return: the memory used in percentage
         """
-        return psutil.virtual_memory().used
+        return psutil.virtual_memory().percent
 
     @staticmethod
     def get_memory_total() -> float:

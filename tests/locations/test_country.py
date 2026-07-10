@@ -194,6 +194,20 @@ async def test_carbon_intensity_metadata_marks_api_fallback(mocker):
 
 
 @pytest.mark.asyncio
+async def test_carbon_intensity_api_failure_without_fallback_raises(mocker):
+    mocker.patch.object(Country, "request", side_effect=RuntimeError("api failed"))
+    country = Country(
+        name="FR",
+        co2signal_api_key="API_KEY",
+        co2signal_url="https://api.electricitymaps.com/v4/carbon-intensity/latest",
+        co2g_kwh_source=CarbonIntensitySource.ElectricityMapsAPI,
+    )
+
+    with pytest.raises(RuntimeError, match="api failed"):
+        await country.get_latest_co2g_kwh()
+
+
+@pytest.mark.asyncio
 async def test_electricity_maps_api_v4_data_center(mocker):
     co2_expected = 35.0
     request = mocker.patch.object(Country, "request", return_value={"carbonIntensity": co2_expected})

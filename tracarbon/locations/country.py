@@ -2,6 +2,7 @@ import csv
 import importlib.resources
 import os
 from typing import Any
+from typing import cast
 from urllib.parse import urlencode
 from urllib.parse import urlparse
 
@@ -173,6 +174,8 @@ class Country(Location):
         :return: the latest CO2g_kwh
         """
         if self.co2g_kwh_source == CarbonIntensitySource.FILE:
+            if self.co2g_kwh is None:
+                raise CountryIsMissing(f"No carbon intensity is available for {self.name}.")
             self._update_carbon_intensity_metadata()
             return self.co2g_kwh
 
@@ -207,6 +210,8 @@ class Country(Location):
             self._update_carbon_intensity_metadata(response=raw_response)
             logger.info(f"The latest carbon intensity of your country {self.name} is: {self.co2g_kwh} CO2g/kwh.")
         except Exception:
+            if self.co2g_kwh is None:
+                raise
             self._update_carbon_intensity_metadata(response=response if response else None, fallback_used=True)
             logger.error(
                 f"Failed to get the latest carbon intensity of your country {self.name} {response if response else ''}."
@@ -246,7 +251,7 @@ class AWSLocation(Country):
         :return: the latest co2g_kwh
         """
         self._update_carbon_intensity_metadata()
-        return self.co2g_kwh
+        return cast(float, self.co2g_kwh)
 
     async def get_co2g_kwh(self) -> float:
         """
@@ -254,7 +259,7 @@ class AWSLocation(Country):
 
         :return: the co2g/kwh value
         """
-        return self.co2g_kwh
+        return cast(float, self.co2g_kwh)
 
 
 class CloudLocation(Country):
@@ -321,7 +326,7 @@ class CloudLocation(Country):
         :return: the latest co2g_kwh
         """
         self._update_carbon_intensity_metadata()
-        return self.co2g_kwh
+        return cast(float, self.co2g_kwh)
 
     async def get_co2g_kwh(self) -> float:
         """
@@ -329,7 +334,7 @@ class CloudLocation(Country):
 
         :return: the co2g/kwh value
         """
-        return self.co2g_kwh
+        return cast(float, self.co2g_kwh)
 
 
 class GCPLocation(CloudLocation):
