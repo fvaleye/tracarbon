@@ -5,8 +5,28 @@ from tracarbon.exceptions import CountryIsMissing
 from tracarbon.hardwares import CloudProviders
 from tracarbon.locations import AWSLocation
 from tracarbon.locations import Country
+from tracarbon.locations import Location
 from tracarbon.locations.country import AzureLocation
 from tracarbon.locations.country import GCPLocation
+
+
+@pytest.mark.asyncio
+async def test_request_raises_for_http_error(mocker):
+    response = mocker.MagicMock()
+    response.raise_for_status.side_effect = RuntimeError("HTTP 401")
+    response.text = mocker.AsyncMock(return_value='{"error": "unauthorized"}')
+    response_context = mocker.MagicMock()
+    response_context.__aenter__ = mocker.AsyncMock(return_value=response)
+    response_context.__aexit__ = mocker.AsyncMock(return_value=None)
+    session = mocker.MagicMock()
+    session.get.return_value = response_context
+    session_context = mocker.MagicMock()
+    session_context.__aenter__ = mocker.AsyncMock(return_value=session)
+    session_context.__aexit__ = mocker.AsyncMock(return_value=None)
+    mocker.patch("tracarbon.locations.location.aiohttp.ClientSession", return_value=session_context)
+
+    with pytest.raises(RuntimeError, match="HTTP 401"):
+        await Location.request("https://example.com")
 
 
 def test_get_current_country_returns_country_code(mocker):

@@ -48,7 +48,7 @@ class Location(ABC, BaseModel):
     co2g_kwh_source: CarbonIntensitySource = CarbonIntensitySource.FILE
     co2signal_api_key: str | None = None
     co2signal_url: str | None = None
-    co2g_kwh: float = 0.0
+    co2g_kwh: float | None = None
     emission_factor_type: EmissionFactorType = EmissionFactorType.LIFECYCLE
     carbon_intensity_metadata: CarbonIntensityMetadata = Field(default_factory=CarbonIntensityMetadata)
 
@@ -66,6 +66,7 @@ class Location(ABC, BaseModel):
             async with session.get(url, headers=headers) as response:
                 try:
                     logger.info(f"Sending request to the url: {url}.")
+                    response.raise_for_status()
                     text = await response.text()
                     return orjson.loads(text)
                 except Exception as exception:

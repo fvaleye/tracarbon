@@ -27,8 +27,8 @@ def test_get_cpu_usage(mocker):
 
 def test_get_memory_usage(mocker):
     memory_usage_expected = 30.0
-    Memory = namedtuple("Memory", "used")
-    return_value = Memory(used=memory_usage_expected)
+    Memory = namedtuple("Memory", "percent")
+    return_value = Memory(percent=memory_usage_expected)
     mocker.patch.object(psutil, "virtual_memory", return_value=return_value)
 
     memory_usage = HardwareInfo.get_memory_usage()

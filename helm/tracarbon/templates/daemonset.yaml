@@ -24,6 +24,10 @@ spec:
            - {{ . }}
         {{ end }}
         env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
         {{- if .Values.tracarbon.co2signal_api_key }}
         - name: TRACARBON_CO2SIGNAL_API_KEY
           value: '{{ .Values.tracarbon.co2signal_api_key }}'
@@ -58,7 +62,7 @@ spec:
         {{- end }}
       securityContext:
         runAsUser: {{ .Values.userID }}
-        runAsGroup: {{ .Values.userGroup }}
+        runAsGroup: {{ .Values.groupID }}
       serviceAccountName: {{ template "tracarbon.name" . }}
       tolerations:
       - operator: "Exists"

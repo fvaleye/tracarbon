@@ -69,6 +69,10 @@ include-package-data = true
 where = ["."]
 include = ["tracarbon*"]
 
+[tool.setuptools.package-data]
+"tracarbon.hardwares.data" = ["*.csv"]
+"tracarbon.locations.data" = ["*.csv", "*.json"]
+
 [project.scripts]
 tracarbon = "tracarbon.cli:main"
 
