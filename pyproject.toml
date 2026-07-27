@@ -28,7 +28,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-datadog = ["datadog>=0.44,<0.53"]
+datadog = ["datadog>=0.44,<0.54"]
 prometheus = ["prometheus-client>=0.16,<0.26"]
 kubernetes = ["kubernetes>=26.1,<37.0"]
 dev = [
@@ -43,7 +43,7 @@ dev = [
     "sphinx>=7.4.7,<10.0.0",
     "pydata-sphinx-theme>=0.14.4,<0.20.0",
     "toml>=0.10.2,<0.11.0",
-    "datadog>=0.44,<0.53",
+    "datadog>=0.44,<0.54",
     "prometheus-client>=0.16,<0.26",
     "bandit>=1.7.9,<2.0.0",
     "radon>=6.0.1,<7.0.0",
