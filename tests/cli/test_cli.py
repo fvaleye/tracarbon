@@ -1,6 +1,7 @@
 import pytest
 from kubernetes import config
 
+from tracarbon import CarbonEmission
 from tracarbon import Country
 from tracarbon import EnergyUsage
 from tracarbon import Kubernetes
@@ -44,6 +45,7 @@ def test_run_metrics_should_be_ok(mocker, caplog):
 
     assert "Metric name[test.carbon_emission_host]" in caplog.text
     assert "Metric name[test.energy_consumption_host]" in caplog.text
+    assert "Total CO2 emitted:" in caplog.text
     assert "units:co2g" in caplog.text
     assert "units:watts" in caplog.text
 
@@ -70,6 +72,21 @@ def test_run_metrics_should_be_ok(mocker, caplog):
     assert "start_time" in caplog.text
     assert "end_time" in caplog.text
     assert "Report" in caplog.text
+
+
+@pytest.mark.darwin
+def test_run_metrics_reports_an_unavailable_total_when_carbon_measurement_fails(mocker, caplog):
+    mocker.patch.object(
+        Country,
+        "get_location",
+        return_value=Country(name="fr", co2g_kwh=50.0),
+    )
+    mocker.patch.object(MacEnergyConsumption, "get_energy_usage", return_value=EnergyUsage(host_energy_usage=60.0))
+    mocker.patch.object(CarbonEmission, "get_co2_usage", side_effect=RuntimeError("measurement failed"))
+
+    run_metrics(exporter_name="Stdout", running=False)
+
+    assert "Total CO2 emitted: unavailable" in caplog.text
 
 
 @pytest.mark.darwin

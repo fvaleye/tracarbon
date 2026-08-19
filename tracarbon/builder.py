@@ -10,6 +10,7 @@ from tracarbon.exporters import Exporter
 from tracarbon.exporters import MetricReport
 from tracarbon.exporters import StdoutExporter
 from tracarbon.general_metrics import CarbonEmissionGenerator
+from tracarbon.hardwares import UsageType
 from tracarbon.locations import Country
 from tracarbon.locations import Location
 
@@ -23,6 +24,16 @@ class TracarbonReport(BaseModel):
     end_time: datetime.datetime | None = None
     metric_report: Dict[str, MetricReport] = Field(default_factory=dict)
     model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    @property
+    def total_co2g(self) -> float | None:
+        """
+        Get the CO2 grams the host emitted since Tracarbon started.
+
+        :return: the total CO2 grams, or None if no host carbon emission was reported
+        """
+        host_carbon_emission = self.metric_report.get(f"carbon_emission_{UsageType.HOST.value}")
+        return host_carbon_emission.total if host_carbon_emission else None
 
 
 class Tracarbon:
@@ -60,13 +71,16 @@ class Tracarbon:
         self.report.start_time = datetime.datetime.now()
         self.exporter.start(interval_in_seconds=self.configuration.interval_in_seconds)
 
-    def stop(self) -> None:
+    def stop(self) -> float | None:
         """
         Stop Tracarbon.
+
+        :return: the total CO2 grams the host emitted since Tracarbon started
         """
         self.report.metric_report = self.exporter.metric_report
         self.report.end_time = datetime.datetime.now()
         self.exporter.stop()
+        return self.report.total_co2g
 
 
 class TracarbonBuilder(BaseModel):
