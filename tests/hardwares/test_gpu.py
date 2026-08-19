@@ -1,4 +1,5 @@
 import shutil
+import subprocess
 
 import pytest
 
@@ -42,6 +43,26 @@ def test_get_nvidia_gpu_power_usage_should_throw_error():
 def test_get_nvidia_gpu_power_usage_with_non_zero_return_code(mocker):
     mocker.patch.object(shutil, "which", return_value="/usr/bin/nvidia-smi")
     mocker.patch.object(NvidiaGPU, "launch_shell_command", return_value=(b"error", 1))
+
+    with pytest.raises(HardwareNoGPUDetectedException) as exception:
+        NvidiaGPU.get_gpu_power_usage()
+    assert "No Nvidia GPU detected" in exception.value.args[0]
+
+
+def test_get_nvidia_gpu_power_usage_skips_a_gpu_without_power_telemetry(mocker):
+    gpu_power_usage_returned = b"226.50 W\n[N/A]\n185.00 W"
+    gpu_usage_expected = 411.50
+    mocker.patch.object(shutil, "which", return_value="/usr/bin/nvidia-smi")
+    mocker.patch.object(NvidiaGPU, "launch_shell_command", return_value=(gpu_power_usage_returned, 0))
+
+    gpu_usage = NvidiaGPU.get_gpu_power_usage()
+
+    assert gpu_usage == gpu_usage_expected
+
+
+def test_get_nvidia_gpu_power_usage_when_no_gpu_reports_power(mocker):
+    mocker.patch.object(shutil, "which", return_value="/usr/bin/nvidia-smi")
+    mocker.patch.object(NvidiaGPU, "launch_shell_command", return_value=(b"[N/A]", 0))
 
     with pytest.raises(HardwareNoGPUDetectedException) as exception:
         NvidiaGPU.get_gpu_power_usage()
@@ -274,6 +295,20 @@ GPU Power: 3.5 W
     gpu_usage = GPUInfo.get_gpu_power_usage()
 
     assert gpu_usage == 3.5
+
+
+def test_get_gpu_power_usage_survives_a_probe_raising_an_unexpected_error(mocker):
+    mocker.patch("tracarbon.hardwares.gpu.platform.system", return_value="Darwin")
+    mocker.patch.object(
+        AppleSiliconGPU,
+        "get_gpu_power_usage",
+        side_effect=subprocess.TimeoutExpired(cmd="powermetrics", timeout=10),
+    )
+    mocker.patch.object(shutil, "which", return_value=None)
+
+    gpu_usage = GPUInfo.get_gpu_power_usage()
+
+    assert gpu_usage == 0.0
 
 
 def test_powermetrics_get_power_breakdown_all_components(mocker):
