@@ -32,7 +32,7 @@ def get_release_version() -> str:
 # -- Project information -----------------------------------------------------
 
 project = "tracarbon"
-copyright = "2023 Tracarbon contributors"
+copyright = "2023-2026 Tracarbon contributors"
 author = "Florian Valeye"
 version = get_release_version()
 
