@@ -286,21 +286,27 @@ class GPUInfo(ABC, BaseModel):
         if platform_name == "Darwin":
             try:
                 return AppleSiliconGPU.get_gpu_power_usage()
-            except Exception as exception:
+            except HardwareNoGPUDetectedException as exception:
                 logger.debug(f"Apple Silicon GPU not available: {exception}")
+            except Exception as exception:
+                logger.opt(exception=exception).warning("Apple Silicon GPU probe failed")
 
         # Try NVIDIA (works on Linux, Windows, and Intel Macs)
         try:
             return NvidiaGPU.get_gpu_power_usage()
-        except Exception as exception:
+        except HardwareNoGPUDetectedException as exception:
             logger.debug(f"NVIDIA GPU not available: {exception}")
+        except Exception as exception:
+            logger.opt(exception=exception).warning("NVIDIA GPU probe failed")
 
         # Try AMD (Linux)
         if platform_name == "Linux":
             try:
                 return AMDGPU.get_gpu_power_usage()
-            except Exception as exception:
+            except HardwareNoGPUDetectedException as exception:
                 logger.debug(f"AMD GPU not available: {exception}")
+            except Exception as exception:
+                logger.opt(exception=exception).warning("AMD GPU probe failed")
 
         # No GPU found - return 0.0 (graceful fallback)
         logger.debug("No GPU detected, returning 0.0W")

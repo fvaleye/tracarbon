@@ -2,6 +2,7 @@ import shutil
 import subprocess
 
 import pytest
+from loguru import logger
 
 from tracarbon.exceptions import HardwareNoGPUDetectedException
 from tracarbon.exceptions import TracarbonException
@@ -52,7 +53,6 @@ def test_get_nvidia_gpu_power_usage_with_non_zero_return_code(mocker):
 def test_get_nvidia_gpu_power_usage_skips_a_gpu_without_power_telemetry(mocker):
     gpu_power_usage_returned = b"226.50 W\n[N/A]\n185.00 W"
     gpu_usage_expected = 411.50
-    mocker.patch.object(shutil, "which", return_value="/usr/bin/nvidia-smi")
     mocker.patch.object(NvidiaGPU, "launch_shell_command", return_value=(gpu_power_usage_returned, 0))
 
     gpu_usage = NvidiaGPU.get_gpu_power_usage()
@@ -61,7 +61,6 @@ def test_get_nvidia_gpu_power_usage_skips_a_gpu_without_power_telemetry(mocker):
 
 
 def test_get_nvidia_gpu_power_usage_when_no_gpu_reports_power(mocker):
-    mocker.patch.object(shutil, "which", return_value="/usr/bin/nvidia-smi")
     mocker.patch.object(NvidiaGPU, "launch_shell_command", return_value=(b"[N/A]", 0))
 
     with pytest.raises(HardwareNoGPUDetectedException) as exception:
@@ -306,9 +305,18 @@ def test_get_gpu_power_usage_survives_a_probe_raising_an_unexpected_error(mocker
     )
     mocker.patch.object(shutil, "which", return_value=None)
 
-    gpu_usage = GPUInfo.get_gpu_power_usage()
+    probe_failure_records = []
+    handler_id = logger.add(lambda message: probe_failure_records.append(message.record), level="WARNING")
+    try:
+        gpu_usage = GPUInfo.get_gpu_power_usage()
+    finally:
+        logger.remove(handler_id)
 
     assert gpu_usage == 0.0
+    assert len(probe_failure_records) == 1
+    assert probe_failure_records[0]["message"] == "Apple Silicon GPU probe failed"
+    assert probe_failure_records[0]["level"].name == "WARNING"
+    assert probe_failure_records[0]["exception"] is not None
 
 
 def test_powermetrics_get_power_breakdown_all_components(mocker):
