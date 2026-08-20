@@ -128,13 +128,16 @@ configuration = TracarbonConfiguration() # Your configuration
 tracarbon = TracarbonBuilder(configuration=configuration).build()
 tracarbon.start()
 # Your code
-tracarbon.stop()
+total_co2g = tracarbon.stop() # The CO2 grams emitted while it was running
 
 with tracarbon:
     # Your code
 
 report = tracarbon.report # Get the report
+print(report.total_co2g)
 ```
+
+`total_co2g` is `None` when no host carbon emission metric was collected. The total reflects collected samples.
 
 ## 💻 Development
 
