@@ -53,15 +53,18 @@ class NvidiaGPU(BaseModel):
         """
         gpu_output, return_code = cls.launch_shell_command()
         if return_code == 0:
-            total_power = 0.0
+            powers = []
             for line in gpu_output.decode().strip().split("\n"):
                 line = line.strip()
-                if line:
-                    # Parse decimal number
-                    power_str = line.split()[0]
-                    total_power += float(power_str)
-            return total_power
-        raise HardwareNoGPUDetectedException("No Nvidia GPU detected.")
+                if not line:
+                    continue
+                try:
+                    powers.append(float(line.split()[0]))
+                except ValueError:
+                    logger.debug(f"Ignoring an Nvidia GPU reporting no power telemetry: {line}")
+            if powers:
+                return sum(powers)
+        raise HardwareNoGPUDetectedException("No Nvidia GPU detected or unable to read power.")
 
 
 class AMDGPU(BaseModel):
@@ -283,21 +286,27 @@ class GPUInfo(ABC, BaseModel):
         if platform_name == "Darwin":
             try:
                 return AppleSiliconGPU.get_gpu_power_usage()
-            except HardwareNoGPUDetectedException:
-                logger.debug("Apple Silicon GPU not available")
+            except HardwareNoGPUDetectedException as exception:
+                logger.debug(f"Apple Silicon GPU not available: {exception}")
+            except Exception as exception:
+                logger.opt(exception=exception).warning("Apple Silicon GPU probe failed")
 
         # Try NVIDIA (works on Linux, Windows, and Intel Macs)
         try:
             return NvidiaGPU.get_gpu_power_usage()
-        except HardwareNoGPUDetectedException:
-            logger.debug("NVIDIA GPU not available")
+        except HardwareNoGPUDetectedException as exception:
+            logger.debug(f"NVIDIA GPU not available: {exception}")
+        except Exception as exception:
+            logger.opt(exception=exception).warning("NVIDIA GPU probe failed")
 
         # Try AMD (Linux)
         if platform_name == "Linux":
             try:
                 return AMDGPU.get_gpu_power_usage()
-            except HardwareNoGPUDetectedException:
-                logger.debug("AMD GPU not available")
+            except HardwareNoGPUDetectedException as exception:
+                logger.debug(f"AMD GPU not available: {exception}")
+            except Exception as exception:
+                logger.opt(exception=exception).warning("AMD GPU probe failed")
 
         # No GPU found - return 0.0 (graceful fallback)
         logger.debug("No GPU detected, returning 0.0W")
