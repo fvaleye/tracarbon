@@ -4,6 +4,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict
 from typing import List
+from typing import Tuple
 
 import aiofiles
 from loguru import logger
@@ -11,13 +12,22 @@ from pydantic import BaseModel
 from pydantic import Field
 
 from tracarbon.exceptions import HardwareRAPLException
+from tracarbon.hardwares.energy import EnergyCounter
 from tracarbon.hardwares.energy import EnergyUsage
 from tracarbon.hardwares.energy import Power
+from tracarbon.hardwares.energy import UsageType
 
 __all__ = [
     "RAPLResult",
     "RAPL",
 ]
+
+RAPL_DOMAIN_USAGE_TYPES: Dict[str, Tuple[UsageType, ...]] = {
+    "package": (UsageType.HOST,),
+    "memory": (UsageType.HOST, UsageType.MEMORY),
+    "cpu": (UsageType.CPU,),
+    "gpu": (UsageType.GPU,),
+}
 
 
 class RAPLResult(BaseModel):
@@ -130,10 +140,7 @@ class RAPL(BaseModel):
         :return: the energy usage report of the RAPL measurements
         """
         rapl_results = await self.get_rapl_power_usage()
-        host_energy_usage_watts = 0.0
-        cpu_energy_usage_watts = 0.0
-        memory_energy_usage_watts = 0.0
-        gpu_energy_usage_watts = 0.0
+        watts_by_usage_type: Dict[UsageType, float] = dict()
         for rapl_result in rapl_results:
             previous_rapl_result = self.rapl_results.get(rapl_result.name, rapl_result)
             # Round to the nearest second to make calculation stable over small IO delays
@@ -151,19 +158,30 @@ class RAPL(BaseModel):
             watts = Power.watts_from_microjoules((energy_uj - previous_rapl_result.energy_uj) / time_difference_seconds)
             self.rapl_results[rapl_result.name] = rapl_result
             domain = self._classify_domain(rapl_result.name)
-            if domain in ("package", "memory"):
-                host_energy_usage_watts += watts
-            if domain == "cpu":
-                cpu_energy_usage_watts += watts
-            if domain == "memory":
-                memory_energy_usage_watts += watts
-            if domain == "gpu":
-                gpu_energy_usage_watts += watts
+            for usage_type in RAPL_DOMAIN_USAGE_TYPES.get(domain, ()):
+                watts_by_usage_type[usage_type] = watts_by_usage_type.get(usage_type, 0.0) + watts
         energy_usage_report = EnergyUsage(
-            host_energy_usage=host_energy_usage_watts,
-            cpu_energy_usage=(cpu_energy_usage_watts if cpu_energy_usage_watts > 0 else None),
-            memory_energy_usage=(memory_energy_usage_watts if memory_energy_usage_watts > 0 else None),
-            gpu_energy_usage=(gpu_energy_usage_watts if gpu_energy_usage_watts > 0 else None),
+            host_energy_usage=watts_by_usage_type.get(UsageType.HOST, 0.0),
+            cpu_energy_usage=watts_by_usage_type.get(UsageType.CPU) or None,
+            memory_energy_usage=watts_by_usage_type.get(UsageType.MEMORY) or None,
+            gpu_energy_usage=watts_by_usage_type.get(UsageType.GPU) or None,
         )
         logger.debug(f"The usage energy report measured with RAPL is {energy_usage_report}.")
         return energy_usage_report
+
+    async def get_energy_counter(self) -> EnergyCounter:
+        """
+        Read the cumulative energy counters RAPL exposes, without deriving a power from them.
+
+        :return: the energy the hardware consumed since the counters started
+        """
+        counter = EnergyCounter()
+        for rapl_result in await self.get_rapl_power_usage():
+            domain = self._classify_domain(rapl_result.name)
+            joules = Power.joules_from_microjoules(uj=rapl_result.energy_uj)
+            wraps_at_joules = Power.joules_from_microjoules(uj=rapl_result.max_energy_uj)
+            for usage_type in RAPL_DOMAIN_USAGE_TYPES.get(domain, ()):
+                counter.joules[usage_type] = counter.joules.get(usage_type, 0.0) + joules
+                counter.wraps_at_joules[usage_type] = counter.wraps_at_joules.get(usage_type, 0.0) + wraps_at_joules
+        logger.debug(f"The RAPL energy counters read {counter.joules}.")
+        return counter

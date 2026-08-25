@@ -8,6 +8,7 @@ __all__ = [
     "HardwareRAPLException",
     "HardwareNoGPUDetectedException",
     "CO2SignalAPIKeyIsMissing",
+    "WorkloadNotAttributable",
 ]
 
 
@@ -61,5 +62,11 @@ class HardwareNoGPUDetectedException(TracarbonException):
 
 class CO2SignalAPIKeyIsMissing(TracarbonException):
     """The C02 Signal API key is missing."""
+
+    pass
+
+
+class WorkloadNotAttributable(TracarbonException):
+    """The sensor does not report an energy that can be attributed to a workload."""
 
     pass

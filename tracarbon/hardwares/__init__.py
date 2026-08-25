@@ -4,7 +4,9 @@ from tracarbon.hardwares.cloud_providers import AWS
 from tracarbon.hardwares.cloud_providers import GCP
 from tracarbon.hardwares.cloud_providers import Azure
 from tracarbon.hardwares.cloud_providers import CloudProviders
+from tracarbon.hardwares.energy import EnergyCounter
 from tracarbon.hardwares.energy import EnergyUsageUnit
+from tracarbon.hardwares.energy import MeasurementMethod
 from tracarbon.hardwares.energy import Power
 from tracarbon.hardwares.energy import UsageType
 from tracarbon.hardwares.rapl import RAPLResult
@@ -35,6 +37,7 @@ __all__ = [
     "CloudEnergyConsumption",
     "CloudProviders",
     "EnergyConsumption",
+    "EnergyCounter",
     "EnergyUsage",
     "EnergyUsageUnit",
     "GCP",
@@ -43,6 +46,7 @@ __all__ = [
     "HardwareInfo",
     "LinuxEnergyConsumption",
     "MacEnergyConsumption",
+    "MeasurementMethod",
     "Power",
     "RAPL",
     "RAPLResult",

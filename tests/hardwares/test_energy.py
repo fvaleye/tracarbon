@@ -1,5 +1,6 @@
 import datetime
 
+from tracarbon import EnergyCounter
 from tracarbon import EnergyUsage
 from tracarbon import EnergyUsageUnit
 from tracarbon import UsageType
@@ -27,6 +28,15 @@ def test_energy_should_convert_watt_hours_to_co2g():
     )
 
     assert round(watt_hours, 3) == watt_hours_expected
+
+
+def test_power_should_convert_watt_hours_to_joules():
+    watt_hours = 0.75
+    joules_expected = 2700.0
+
+    joules = Power.joules_from_watt_hours(watt_hours=watt_hours)
+
+    assert joules == joules_expected
 
 
 def test_energy_should_convert_watts_from_microjoules():
@@ -66,3 +76,30 @@ def test_energy_usage_with_type_and_conversion():
     assert energy_usage.get_energy_usage_on_type(UsageType.MEMORY) == memory_energy_usage * 1000
     assert energy_usage.get_energy_usage_on_type(UsageType.GPU) == gpu_energy_usage * 1000
     assert energy_usage.unit == EnergyUsageUnit.MILLIWATT
+
+
+def test_a_counter_reports_the_energy_consumed_since_a_previous_reading():
+    previous = EnergyCounter(joules={UsageType.HOST: 100.0, UsageType.CPU: 40.0})
+    current = EnergyCounter(joules={UsageType.HOST: 130.0, UsageType.CPU: 55.0})
+
+    consumed = current.joules_since(previous=previous)
+
+    assert consumed == {UsageType.HOST: 30.0, UsageType.CPU: 15.0}
+
+
+def test_a_counter_that_wrapped_reports_the_energy_across_the_wrap():
+    previous = EnergyCounter(joules={UsageType.HOST: 990.0})
+    current = EnergyCounter(joules={UsageType.HOST: 10.0}, wraps_at_joules={UsageType.HOST: 1000.0})
+
+    consumed = current.joules_since(previous=previous)
+
+    assert consumed == {UsageType.HOST: 20.0}
+
+
+def test_a_counter_reports_nothing_for_a_type_the_previous_reading_did_not_have():
+    previous = EnergyCounter(joules={UsageType.HOST: 100.0})
+    current = EnergyCounter(joules={UsageType.HOST: 130.0, UsageType.GPU: 12.0})
+
+    consumed = current.joules_since(previous=previous)
+
+    assert consumed == {UsageType.HOST: 30.0}

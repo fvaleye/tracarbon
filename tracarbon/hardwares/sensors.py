@@ -18,7 +18,9 @@ from tracarbon.hardwares.cloud_providers import AWS
 from tracarbon.hardwares.cloud_providers import GCP
 from tracarbon.hardwares.cloud_providers import Azure
 from tracarbon.hardwares.cloud_providers import CloudProviders
+from tracarbon.hardwares.energy import EnergyCounter
 from tracarbon.hardwares.energy import EnergyUsage
+from tracarbon.hardwares.energy import MeasurementMethod
 from tracarbon.hardwares.gpu import AppleSiliconPowerMetrics
 from tracarbon.hardwares.gpu import GPUInfo
 from tracarbon.hardwares.hardware import HardwareInfo
@@ -104,6 +106,22 @@ class EnergyConsumption(Sensor):
         """
         pass
 
+    def measurement_method(self) -> MeasurementMethod:
+        """
+        Get how the energy of a workload running on this hardware can be measured.
+
+        :return: the measurement method of the sensor
+        """
+        return MeasurementMethod.SAMPLED
+
+    async def get_energy_counter(self) -> EnergyCounter:
+        """
+        Read the cumulative energy counters of the hardware.
+
+        :return: the energy consumed since the counters started
+        """
+        raise TracarbonException(f"{type(self).__name__} reports power, it exposes no cumulative energy counter.")
+
 
 class MacEnergyConsumption(EnergyConsumption):
     """
@@ -117,7 +135,20 @@ class MacEnergyConsumption(EnergyConsumption):
     """
 
     shell_command: str = """ioreg -rw0 -a -c AppleSmartBattery | plutil -extract '0.BatteryData.AdapterPower' raw -"""
-    _active_sensor: str = ""
+    active_sensor: str = ""
+
+    def measurement_method(self) -> MeasurementMethod:
+        """
+        Get how the energy of a workload running on this Mac can be measured.
+
+        The ioreg fallback reports what the wall adapter delivers, which tracks the battery
+        charge rather than the compute, so it cannot be attributed to a workload.
+
+        :return: the measurement method of the sensor
+        """
+        if self.active_sensor == "powermetrics":
+            return MeasurementMethod.SAMPLED
+        return MeasurementMethod.NOT_ATTRIBUTABLE
 
     async def get_energy_usage(self) -> EnergyUsage:
         """
@@ -131,9 +162,9 @@ class MacEnergyConsumption(EnergyConsumption):
         try:
             cpu_power, gpu_power, ane_power = AppleSiliconPowerMetrics.get_power_breakdown()
             if cpu_power is not None or gpu_power is not None:
-                if self._active_sensor != "powermetrics":
+                if self.active_sensor != "powermetrics":
                     logger.info("Using powermetrics for energy measurement (CPU + GPU + ANE)")
-                    self._active_sensor = "powermetrics"
+                    self.active_sensor = "powermetrics"
                 host_power = sum(p for p in (cpu_power, gpu_power, ane_power) if p is not None)
                 return EnergyUsage(
                     host_energy_usage=host_power,
@@ -143,9 +174,9 @@ class MacEnergyConsumption(EnergyConsumption):
         except Exception:
             logger.debug("powermetrics not available, falling back to ioreg")
 
-        if self._active_sensor != "ioreg":
+        if self.active_sensor != "ioreg":
             logger.info("Using ioreg AdapterPower for energy measurement (plugged-in only)")
-            self._active_sensor = "ioreg"
+            self.active_sensor = "ioreg"
         proc = await asyncio.create_subprocess_shell(
             self.shell_command,
             stdout=asyncio.subprocess.PIPE,
@@ -177,7 +208,34 @@ class LinuxEnergyConsumption(EnergyConsumption):
 
     rapl: RAPL = RAPL()
     amd_rapl: AMDRAPL = AMDRAPL()
-    _active_sensor: str = ""
+    active_sensor: str = ""
+
+    def measurement_method(self) -> MeasurementMethod:
+        """
+        Get how the energy of a workload running on this Linux host can be measured.
+
+        RAPL covers the CPU package and its memory. A discrete GPU is reported apart and never
+        reaches the host total, so a workload running on one would be measured without the
+        hardware that ran it.
+
+        :return: the measurement method of the sensor
+        """
+        if GPUInfo.get_gpu_power_usage_or_none() is not None:
+            logger.warning(
+                "A discrete GPU is present and RAPL does not count it, so no workload energy can be totalled here."
+            )
+            return MeasurementMethod.NOT_ATTRIBUTABLE
+        if self.rapl.is_rapl_compatible():
+            return MeasurementMethod.COUNTER
+        return MeasurementMethod.SAMPLED
+
+    async def get_energy_counter(self) -> EnergyCounter:
+        """
+        Read the cumulative energy counters Intel RAPL exposes.
+
+        :return: the energy consumed since the counters started
+        """
+        return await self.rapl.get_energy_counter()
 
     async def get_energy_usage(self) -> EnergyUsage:
         """
@@ -193,14 +251,14 @@ class LinuxEnergyConsumption(EnergyConsumption):
         """
         energy_usage: EnergyUsage
         if self.rapl.is_rapl_compatible():
-            if self._active_sensor != "intel_rapl":
+            if self.active_sensor != "intel_rapl":
                 logger.info("Using Intel RAPL (powercap) for energy measurement")
-                self._active_sensor = "intel_rapl"
+                self.active_sensor = "intel_rapl"
             energy_usage = await self.rapl.get_energy_report()
         elif await self.amd_rapl.is_amd_rapl_compatible():
-            if self._active_sensor != "amd_rapl":
+            if self.active_sensor != "amd_rapl":
                 logger.info("Using AMD RAPL (HWMON) for energy measurement")
-                self._active_sensor = "amd_rapl"
+                self.active_sensor = "amd_rapl"
             energy_usage = await self.amd_rapl.get_energy_report()
         else:
             raise TracarbonException(

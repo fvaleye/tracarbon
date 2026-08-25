@@ -6,6 +6,7 @@ import pytest
 from tracarbon import RAPL
 from tracarbon.hardwares import EnergyUsageUnit
 from tracarbon.hardwares import RAPLResult
+from tracarbon.hardwares import UsageType
 
 
 @pytest.mark.linux
@@ -146,3 +147,16 @@ async def test_results_with_two_packages_are_correctly_computed():
     assert round(energy_report.cpu_energy_usage, 2) == cpu_energy_usage_expected
     assert round(energy_report.memory_energy_usage, 2) == memory_energy_usage_expected
     assert energy_report.gpu_energy_usage is None
+
+
+@pytest.mark.asyncio
+async def test_get_energy_counter_sums_the_cumulative_counters_by_usage_type():
+    path = f"{pathlib.Path(__file__).parent.resolve()}/data/intel-rapl"
+    rapl_separator_for_windows = "T"
+
+    counter = await RAPL(path=path, rapl_separator=rapl_separator_for_windows).get_energy_counter()
+
+    assert counter.joules[UsageType.HOST] == pytest.approx(26939.146438)
+    assert counter.joules[UsageType.CPU] == pytest.approx(43725.162339)
+    assert counter.joules[UsageType.MEMORY] == pytest.approx(2592.372458)
+    assert counter.wraps_at_joules[UsageType.HOST] > counter.joules[UsageType.HOST]

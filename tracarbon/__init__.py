@@ -19,6 +19,7 @@ from tracarbon.exceptions import GCPSensorException
 from tracarbon.exceptions import HardwareNoGPUDetectedException
 from tracarbon.exceptions import HardwareRAPLException
 from tracarbon.exceptions import TracarbonException
+from tracarbon.exceptions import WorkloadNotAttributable
 from tracarbon.exporters import Exporter
 from tracarbon.exporters import JSONExporter
 from tracarbon.exporters import Metric
@@ -28,7 +29,9 @@ from tracarbon.exporters import StdoutExporter
 from tracarbon.exporters import Tag
 from tracarbon.general_metrics import CarbonEmissionGenerator
 from tracarbon.general_metrics import EnergyConsumptionGenerator
+from tracarbon.hardwares import EnergyCounter
 from tracarbon.hardwares import EnergyUsageUnit
+from tracarbon.hardwares import MeasurementMethod
 from tracarbon.hardwares import UsageType
 from tracarbon.hardwares.sensors import AMDRAPL
 from tracarbon.hardwares.sensors import RAPL
@@ -54,6 +57,9 @@ from tracarbon.locations import Country
 from tracarbon.locations import EmissionFactorType
 from tracarbon.locations import GCPLocation
 from tracarbon.locations import Location
+from tracarbon.workload import WorkloadTracker
+from tracarbon.workload import WorkloadUsage
+from tracarbon.workload import track
 
 if DATADOG_INSTALLED:
     from tracarbon.exporters import DatadogExporter as DatadogExporter
@@ -91,6 +97,7 @@ __all__ = [
     "EmissionFactorType",
     "EnergyConsumption",
     "EnergyConsumptionGenerator",
+    "EnergyCounter",
     "EnergyUsage",
     "EnergyUsageUnit",
     "Exporter",
@@ -106,6 +113,7 @@ __all__ = [
     "LinuxEnergyConsumption",
     "Location",
     "MacEnergyConsumption",
+    "MeasurementMethod",
     "Metric",
     "MetricGenerator",
     "MetricReport",
@@ -121,8 +129,12 @@ __all__ = [
     "TracarbonReport",
     "UsageType",
     "WindowsEnergyConsumption",
+    "WorkloadNotAttributable",
+    "WorkloadTracker",
+    "WorkloadUsage",
     "check_optional_dependency",
     "logger_configuration",
+    "track",
 ]
 
 if DATADOG_INSTALLED:

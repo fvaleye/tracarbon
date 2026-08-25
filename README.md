@@ -139,6 +139,49 @@ print(report.total_co2g)
 
 `total_co2g` is `None` when no host carbon emission metric was collected. The total reflects collected samples.
 
+**One workload**
+
+Measure what the host consumed while one block of code ran, from sync code or from inside an event loop:
+
+```python
+from tracarbon import track
+
+with track(name="llm.generate") as tracker:
+    response = your_model.generate(prompt)
+    tracker.usage.tokens = response.output_tokens
+
+async with track(name="llm.generate") as tracker:   # inside an async server
+    response = await your_model.generate(prompt)
+    tracker.usage.tokens = response.output_tokens
+
+usage = tracker.usage
+print(usage.joules, usage.joules_per_token, usage.co2g)
+span.set_attributes(usage.otel_attributes)  # tracarbon.energy.* next to the gen_ai token counts
+```
+
+This is host energy observed during the window, not a share attributed to the workload. The sensors measure the
+machine, so whatever else ran is in the number, and two blocks measured over the same window each report the whole
+machine rather than half of it each. It is worth reading when your workload is what the machine is busy with, which
+is the case for local inference on a machine you control. It is not a per process accounting.
+
+How the block is measured depends on what the hardware exposes, and `usage.measurement_method` says which one you
+got:
+
+| **Method** | **Hardware** | **What it means** |
+| ---------- | ------------ | ----------------- |
+| `counter` | Intel RAPL, no discrete GPU | The cumulative energy counters are read before and after the block. Exact. |
+| `sampled` | powermetrics on a Mac, cloud instances | Power is sampled while the block runs and integrated. An estimate. |
+| `not_attributable` | a Mac without `sudo`, a Linux host with a discrete GPU | `track` raises `WorkloadNotAttributable` instead of reporting a number. |
+
+Two cases refuse rather than mislead. Without `sudo` a Mac falls back to the wall adapter reading, which follows the
+battery charge rather than the compute and reports the same energy whether your code runs or sleeps. On Linux, RAPL
+counts the CPU package and its memory but never a discrete GPU, so a workload running on one would be measured
+without the hardware that ran it.
+
+Anything the sensors did not report stays `None` rather than becoming zero, and is left out of the span attributes.
+Run `make check-sensor` to see what your own machine can measure: it compares an idle window against a busy one and
+fails when the two do not separate.
+
 ## 💻 Development
 
 **Local: using uv**

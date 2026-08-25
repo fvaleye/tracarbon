@@ -36,6 +36,11 @@ check-data: ## Check data of Tracarbon
 	@uv run python scripts/check_data.py
 	@echo "👍"
 
+.PHONY: check-sensor
+check-sensor: ## Check that the energy sensor of this machine follows what it computes
+	$(info --- 🔌 Checking the sensor ---)
+	@uv run python scripts/check_sensor_responds_to_load.py
+
 .PHONY: build-documentation
 build-documentation: ## Build documentation with Sphinx
 	$(info --- 📚 Run build of the Sphinx documentation ---)

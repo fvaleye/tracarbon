@@ -11,6 +11,7 @@ from tracarbon.exceptions import AzureSensorException
 from tracarbon.exceptions import GCPSensorException
 from tracarbon.hardwares import EnergyUsage
 from tracarbon.hardwares import HardwareInfo
+from tracarbon.hardwares import MeasurementMethod
 from tracarbon.hardwares import WindowsEnergyConsumption
 from tracarbon.hardwares.cloud_providers import AWS
 from tracarbon.hardwares.cloud_providers import GCP
@@ -359,3 +360,12 @@ def test_azure_sensor_should_return_error_when_instance_type_is_missing():
 
     with pytest.raises(AzureSensorException):
         AzureEnergyConsumption(instance_type=instance_type)
+
+
+def test_the_ioreg_fallback_cannot_be_attributed_to_a_workload():
+    assert MacEnergyConsumption(active_sensor="ioreg").measurement_method() == MeasurementMethod.NOT_ATTRIBUTABLE
+    assert MacEnergyConsumption().measurement_method() == MeasurementMethod.NOT_ATTRIBUTABLE
+
+
+def test_powermetrics_can_be_sampled_for_a_workload():
+    assert MacEnergyConsumption(active_sensor="powermetrics").measurement_method() == MeasurementMethod.SAMPLED
