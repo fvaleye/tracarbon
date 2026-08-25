@@ -49,6 +49,26 @@ pip install 'tracarbon[datadog,prometheus,kubernetes]'
 | Apple Silicon  | ✅ Supported via `powermetrics` on Mac (requires sudo). Tracks integrated GPU power on M1/M2/M3/M4 chips.                       |
 | Intel          | ❌ Not yet implemented.                                                                                                         |
 
+### 🔬 What your sensor can actually measure
+
+Not every sensor follows what the machine computes. Run `make check-sensor` to find out what yours does: it reads
+the sensor over an idle window and over a busy one and fails when the two do not separate.
+
+```sh
+make check-sensor
+```
+
+Measured on an Apple Silicon Mac, for the paths that surprise people:
+
+| **Path** | **Idle** | **Busy** | **What it means** |
+| -------- | -------- | -------- | ----------------- |
+| `ioreg AdapterPower`, no sudo | 43.96 W | 43.96 W | Reports the wall adapter, which follows the battery charge. Identical whether code runs or sleeps. |
+| `powermetrics`, one process per read | 12.84 W | 12.68 W | Each read costs about 0.8 s and returns a 1 ms snapshot, so the reads are noise. |
+| `powermetrics`, one streaming process | 11.20 W | 13.31 W | Separates, but the same idle window measured 6.00 W on a repeat. |
+
+Intel RAPL is different in kind: `/sys/class/powercap` exposes cumulative energy counters in microjoules, so energy
+over a window is a subtraction rather than an estimate.
+
 ## 📡 Exporters
 
 | **Exporter** |          **Description**          |
