@@ -169,6 +169,26 @@ class Power(BaseModel):
         return (watts_hour / Power.WH_TO_KWH_FACTOR) * co2g_per_kwh
 
     @staticmethod
+    def joules_from_watt_hours(watt_hours: float) -> float:
+        """
+        Get joules from watt-hours.
+
+        :param watt_hours: the energy in watt-hours W/h
+        :return: joules
+        """
+        return watt_hours * Power.SECONDS_TO_HOURS_FACTOR
+
+    @staticmethod
+    def watt_hours_from_joules(joules: float) -> float:
+        """
+        Get watt-hours from joules.
+
+        :param joules: the energy in joules
+        :return: watt-hours W/h
+        """
+        return joules / Power.SECONDS_TO_HOURS_FACTOR
+
+    @staticmethod
     def joules_from_microjoules(uj: float) -> float:
         """
         Get joules from microjoules.

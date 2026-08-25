@@ -113,6 +113,17 @@ class EnergyConsumption(Sensor):
         """
         raise TracarbonException(f"{type(self).__name__} reports power, it exposes no cumulative energy counter.")
 
+    async def can_measure_a_workload(self) -> bool:
+        """
+        Get whether the energy this sensor reports can be read over the window a workload ran.
+
+        Only cumulative counters can: a sensor reporting power has to be sampled, and every
+        sampled reading between two counters is an estimate of what happened in between.
+
+        :return: whether a workload can be measured on this sensor
+        """
+        return False
+
 
 class MacEnergyConsumption(EnergyConsumption):
     """
@@ -203,6 +214,23 @@ class LinuxEnergyConsumption(EnergyConsumption):
             "Intel RAPL requires /sys/class/powercap/intel-rapl. "
             "AMD RAPL requires kernel 5.8+ or amd_energy driver."
         )
+
+    async def can_measure_a_workload(self) -> bool:
+        """
+        Get whether a workload running on this Linux host can be measured.
+
+        Both RAPL interfaces expose cumulative counters. A discrete GPU is reported apart and
+        never reaches the host total, so a workload running on one would be measured without the
+        hardware that ran it.
+
+        :return: whether a workload can be measured on this host
+        """
+        if not self.rapl.is_rapl_compatible() and not await self.amd_rapl.is_amd_rapl_compatible():
+            return False
+        if GPUInfo.get_gpu_power_usage_or_none() is not None:
+            logger.warning("A discrete GPU is present and RAPL does not count it, so no workload can be measured.")
+            return False
+        return True
 
     async def get_energy_usage(self) -> EnergyUsage:
         """

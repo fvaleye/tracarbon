@@ -19,6 +19,7 @@ from tracarbon.exceptions import GCPSensorException
 from tracarbon.exceptions import HardwareNoGPUDetectedException
 from tracarbon.exceptions import HardwareRAPLException
 from tracarbon.exceptions import TracarbonException
+from tracarbon.exceptions import WorkloadNotAttributable
 from tracarbon.exporters import Exporter
 from tracarbon.exporters import JSONExporter
 from tracarbon.exporters import Metric
@@ -55,6 +56,9 @@ from tracarbon.locations import Country
 from tracarbon.locations import EmissionFactorType
 from tracarbon.locations import GCPLocation
 from tracarbon.locations import Location
+from tracarbon.workload import WorkloadTracker
+from tracarbon.workload import WorkloadUsage
+from tracarbon.workload import track
 
 if DATADOG_INSTALLED:
     from tracarbon.exporters import DatadogExporter as DatadogExporter
@@ -123,8 +127,12 @@ __all__ = [
     "TracarbonReport",
     "UsageType",
     "WindowsEnergyConsumption",
+    "WorkloadNotAttributable",
+    "WorkloadTracker",
+    "WorkloadUsage",
     "check_optional_dependency",
     "logger_configuration",
+    "track",
 ]
 
 if DATADOG_INSTALLED:

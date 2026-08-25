@@ -139,6 +139,41 @@ print(report.total_co2g)
 
 `total_co2g` is `None` when no host carbon emission metric was collected. The total reflects collected samples.
 
+**One workload**
+
+Measure what the host consumed while one block of code ran, from sync code or from inside an event loop:
+
+```python
+from tracarbon import track
+
+with track(name="llm.generate") as tracker:
+    response = your_model.generate(prompt)
+    tracker.usage.tokens = response.output_tokens
+
+async with track(name="llm.generate") as tracker:   # inside an async server
+    response = await your_model.generate(prompt)
+    tracker.usage.tokens = response.output_tokens
+
+usage = tracker.usage
+print(usage.joules, usage.joules_per_token, usage.co2g)
+span.set_attributes(usage.otel_attributes)  # tracarbon.energy.* next to the gen_ai token counts
+```
+
+Inside a running event loop `async with` is the only way in: the plain `with` refuses at entry rather than fail
+during teardown, where it would replace whatever your workload raised.
+
+The energy comes from the cumulative counters of the hardware, read once before the block and once after, so it is
+a subtraction rather than an estimate. Hardware exposing no counter raises `WorkloadNotAttributable` rather than
+report a number sampling cannot support, which today means Linux measures a workload through RAPL and a Mac does not. A
+Linux host with a discrete GPU also refuses: RAPL counts the CPU package and its memory, never the card, so a
+workload running on one would be measured without the hardware that ran it.
+
+This is host energy observed during the window, not a share attributed to the workload. The counters measure the
+machine, so whatever else ran is in the number, and two blocks measured over the same window each report the whole
+machine rather than half of it each. It is worth reading when your workload is what the machine is busy with. It is
+not per process accounting. Anything the hardware did not report stays `None` rather than becoming zero, and is left
+out of the span attributes.
+
 ## 💻 Development
 
 **Local: using uv**
