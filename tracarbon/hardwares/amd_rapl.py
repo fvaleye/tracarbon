@@ -3,6 +3,7 @@ import re
 from datetime import datetime
 from typing import Dict
 from typing import List
+from typing import Tuple
 
 import aiofiles
 from loguru import logger
@@ -10,13 +11,21 @@ from pydantic import BaseModel
 from pydantic import Field
 
 from tracarbon.exceptions import HardwareRAPLException
+from tracarbon.hardwares.energy import EnergyCounter
 from tracarbon.hardwares.energy import EnergyUsage
+from tracarbon.hardwares.energy import EnergyZone
 from tracarbon.hardwares.energy import Power
+from tracarbon.hardwares.energy import UsageType
 
 __all__ = [
     "AMDRAPLResult",
     "AMDRAPL",
 ]
+
+
+AMD_DOMAIN_USAGE_TYPES: Dict[str, Tuple[UsageType, ...]] = {
+    "package": (UsageType.HOST, UsageType.CPU),
+}
 
 
 class AMDRAPLResult(BaseModel):
@@ -152,6 +161,23 @@ class AMDRAPL(BaseModel):
 
         logger.debug(f"AMD RAPL results: {rapl_results}")
         return rapl_results
+
+    async def get_energy_counter(self) -> EnergyCounter:
+        """
+        Read the cumulative energy counters the amd_energy HWMON interface exposes, one zone at a time.
+
+        HWMON exposes no range for its energy files, so a zone that rolled over cannot be corrected.
+
+        :return: the energy each zone consumed since it started counting
+        """
+        counter = EnergyCounter()
+        for rapl_result in await self.get_amd_rapl_power_usage():
+            counter.zones[rapl_result.name] = EnergyZone(
+                joules=Power.joules_from_microjoules(uj=rapl_result.energy_uj),
+                usage_types=AMD_DOMAIN_USAGE_TYPES.get(self._classify_domain(rapl_result.label), ()),
+            )
+        logger.debug(f"The AMD energy zones read {counter.zones}.")
+        return counter
 
     def _classify_domain(self, label: str) -> str:
         """

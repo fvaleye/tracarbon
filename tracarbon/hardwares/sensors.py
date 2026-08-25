@@ -190,11 +190,19 @@ class LinuxEnergyConsumption(EnergyConsumption):
 
     async def get_energy_counter(self) -> EnergyCounter:
         """
-        Read the cumulative energy counters Intel RAPL exposes.
+        Read the cumulative energy counters of this host, from whichever interface exposes them.
 
         :return: the energy consumed since the counters started
         """
-        return await self.rapl.get_energy_counter()
+        if self.rapl.is_rapl_compatible():
+            return await self.rapl.get_energy_counter()
+        if await self.amd_rapl.is_amd_rapl_compatible():
+            return await self.amd_rapl.get_energy_counter()
+        raise TracarbonException(
+            "No supported RAPL interface found. "
+            "Intel RAPL requires /sys/class/powercap/intel-rapl. "
+            "AMD RAPL requires kernel 5.8+ or amd_energy driver."
+        )
 
     async def get_energy_usage(self) -> EnergyUsage:
         """

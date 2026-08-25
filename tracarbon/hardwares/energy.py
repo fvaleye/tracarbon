@@ -2,7 +2,9 @@ from datetime import datetime
 from enum import Enum
 from typing import ClassVar
 from typing import Dict
+from typing import Tuple
 
+from loguru import logger
 from pydantic import BaseModel
 from pydantic import Field
 
@@ -10,6 +12,7 @@ __all__ = [
     "EnergyUsageUnit",
     "UsageType",
     "EnergyUsage",
+    "EnergyZone",
     "EnergyCounter",
     "Power",
 ]
@@ -35,16 +38,28 @@ class UsageType(Enum):
     GPU = "gpu"
 
 
+class EnergyZone(BaseModel):
+    """
+    One power zone of the hardware and the energy it has counted since it started.
+
+    A zone rolls over on its own once it reaches the range it exposes, so a reading lower than
+    the previous one means that zone wrapped rather than its energy dropping.
+    """
+
+    joules: float
+    wraps_at_joules: float | None = None
+    usage_types: Tuple[UsageType, ...] = ()
+
+
 class EnergyCounter(BaseModel):
     """
-    The energy the hardware has consumed since it started counting.
+    The energy every power zone of the hardware has counted, kept apart until it is measured.
 
-    The counters roll over once they reach the range the hardware exposes, so a reading
-    lower than the previous one means the counter wrapped rather than the energy dropping.
+    Zones wrap independently, so summing them before measuring a window would make one zone
+    wrapping look like every zone did.
     """
 
-    joules: Dict[UsageType, float] = Field(default_factory=dict)
-    wraps_at_joules: Dict[UsageType, float] = Field(default_factory=dict)
+    zones: Dict[str, EnergyZone] = Field(default_factory=dict)
 
     def joules_since(self, previous: "EnergyCounter") -> Dict[UsageType, float]:
         """
@@ -53,14 +68,19 @@ class EnergyCounter(BaseModel):
         :param previous: the earlier reading to measure from
         :return: the energy consumed for each type the two readings have in common
         """
-        consumed = dict()
-        for usage_type, joules in self.joules.items():
-            previous_joules = previous.joules.get(usage_type)
-            if previous_joules is None:
+        consumed: Dict[UsageType, float] = dict()
+        for name, zone in self.zones.items():
+            previous_zone = previous.zones.get(name)
+            if previous_zone is None:
                 continue
-            if joules < previous_joules:
-                joules = joules + self.wraps_at_joules.get(usage_type, 0.0)
-            consumed[usage_type] = joules - previous_joules
+            joules = zone.joules
+            if joules < previous_zone.joules:
+                if zone.wraps_at_joules is None:
+                    logger.warning(f"The energy zone {name} went backwards and exposes no range to correct it.")
+                    continue
+                joules = joules + zone.wraps_at_joules
+            for usage_type in zone.usage_types:
+                consumed[usage_type] = consumed.get(usage_type, 0.0) + (joules - previous_zone.joules)
         return consumed
 
 

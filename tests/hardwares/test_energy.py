@@ -5,6 +5,7 @@ from tracarbon import EnergyUsage
 from tracarbon import EnergyUsageUnit
 from tracarbon import UsageType
 from tracarbon.hardwares import Power
+from tracarbon.hardwares.energy import EnergyZone
 
 
 def test_power_should_convert_watt_hours_to_co2g():
@@ -78,28 +79,38 @@ def test_power_should_convert_microjoules_to_joules():
     assert round(joules, 3) == joules_expected
 
 
+def a_counter(**zones: tuple) -> EnergyCounter:
+    return EnergyCounter(
+        zones={
+            name: EnergyZone(joules=joules, wraps_at_joules=wraps_at_joules, usage_types=(UsageType.HOST,))
+            for name, (joules, wraps_at_joules) in zones.items()
+        }
+    )
+
+
 def test_a_counter_reports_the_energy_consumed_since_a_previous_reading():
-    previous = EnergyCounter(joules={UsageType.HOST: 100.0, UsageType.CPU: 40.0})
-    current = EnergyCounter(joules={UsageType.HOST: 130.0, UsageType.CPU: 55.0})
+    previous = a_counter(package=(100.0, 1000.0), dram=(40.0, 1000.0))
+    current = a_counter(package=(130.0, 1000.0), dram=(55.0, 1000.0))
 
-    consumed = current.joules_since(previous=previous)
-
-    assert consumed == {UsageType.HOST: 30.0, UsageType.CPU: 15.0}
+    assert current.joules_since(previous=previous) == {UsageType.HOST: 45.0}
 
 
-def test_a_counter_that_wrapped_reports_the_energy_across_the_wrap():
-    previous = EnergyCounter(joules={UsageType.HOST: 990.0})
-    current = EnergyCounter(joules={UsageType.HOST: 10.0}, wraps_at_joules={UsageType.HOST: 1000.0})
+def test_one_zone_wrapping_does_not_correct_the_zones_that_did_not():
+    previous = a_counter(package=(90.0, 100.0), dram=(90.0, 100.0))
+    current = a_counter(package=(10.0, 100.0), dram=(95.0, 100.0))
 
-    consumed = current.joules_since(previous=previous)
-
-    assert consumed == {UsageType.HOST: 20.0}
+    assert current.joules_since(previous=previous) == {UsageType.HOST: 25.0}
 
 
-def test_a_counter_reports_nothing_for_a_type_the_previous_reading_did_not_have():
-    previous = EnergyCounter(joules={UsageType.HOST: 100.0})
-    current = EnergyCounter(joules={UsageType.HOST: 130.0, UsageType.GPU: 12.0})
+def test_a_zone_going_backwards_without_a_range_is_left_out():
+    previous = EnergyCounter(zones={"socket": EnergyZone(joules=90.0, usage_types=(UsageType.HOST,))})
+    current = EnergyCounter(zones={"socket": EnergyZone(joules=10.0, usage_types=(UsageType.HOST,))})
 
-    consumed = current.joules_since(previous=previous)
+    assert current.joules_since(previous=previous) == {}
 
-    assert consumed == {UsageType.HOST: 30.0}
+
+def test_a_counter_reports_nothing_for_a_zone_the_previous_reading_did_not_have():
+    previous = a_counter(package=(100.0, 1000.0))
+    current = a_counter(package=(130.0, 1000.0), dram=(12.0, 1000.0))
+
+    assert current.joules_since(previous=previous) == {UsageType.HOST: 30.0}

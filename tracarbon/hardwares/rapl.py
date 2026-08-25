@@ -14,6 +14,7 @@ from pydantic import Field
 from tracarbon.exceptions import HardwareRAPLException
 from tracarbon.hardwares.energy import EnergyCounter
 from tracarbon.hardwares.energy import EnergyUsage
+from tracarbon.hardwares.energy import EnergyZone
 from tracarbon.hardwares.energy import Power
 from tracarbon.hardwares.energy import UsageType
 
@@ -171,17 +172,16 @@ class RAPL(BaseModel):
 
     async def get_energy_counter(self) -> EnergyCounter:
         """
-        Read the cumulative energy counters RAPL exposes, without deriving a power from them.
+        Read the cumulative energy counters RAPL exposes, one zone at a time.
 
-        :return: the energy the hardware consumed since the counters started
+        :return: the energy each zone consumed since it started counting
         """
         counter = EnergyCounter()
         for rapl_result in await self.get_rapl_power_usage():
-            domain = self._classify_domain(rapl_result.name)
-            joules = Power.joules_from_microjoules(uj=rapl_result.energy_uj)
-            wraps_at_joules = Power.joules_from_microjoules(uj=rapl_result.max_energy_uj)
-            for usage_type in RAPL_DOMAIN_USAGE_TYPES.get(domain, ()):
-                counter.joules[usage_type] = counter.joules.get(usage_type, 0.0) + joules
-                counter.wraps_at_joules[usage_type] = counter.wraps_at_joules.get(usage_type, 0.0) + wraps_at_joules
-        logger.debug(f"The RAPL energy counters read {counter.joules}.")
+            counter.zones[rapl_result.name] = EnergyZone(
+                joules=Power.joules_from_microjoules(uj=rapl_result.energy_uj),
+                wraps_at_joules=Power.joules_from_microjoules(uj=rapl_result.max_energy_uj),
+                usage_types=RAPL_DOMAIN_USAGE_TYPES.get(self._classify_domain(rapl_result.name), ()),
+            )
+        logger.debug(f"The RAPL energy zones read {counter.zones}.")
         return counter

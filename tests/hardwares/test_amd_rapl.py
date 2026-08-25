@@ -6,6 +6,7 @@ import pytest
 from tracarbon.hardwares.amd_rapl import AMDRAPL
 from tracarbon.hardwares.amd_rapl import AMDRAPLResult
 from tracarbon.hardwares.energy import EnergyUsageUnit
+from tracarbon.hardwares.energy import UsageType
 
 
 @pytest.mark.asyncio
@@ -164,3 +165,15 @@ def test_classify_domain():
 
     assert amd_rapl._classify_domain("unknown_label") == "unknown"
     assert amd_rapl._classify_domain("something_else") == "unknown"
+
+
+@pytest.mark.asyncio
+async def test_get_energy_counter_reads_every_amd_energy_zone():
+    path = f"{pathlib.Path(__file__).parent.resolve()}/data/amd-energy"
+
+    counter = await AMDRAPL(amd_energy_path=path, energy_files=["1", "2", "3"]).get_energy_counter()
+
+    assert len(counter.zones) == 3
+    socket_zones = [zone for zone in counter.zones.values() if UsageType.HOST in zone.usage_types]
+    assert socket_zones
+    assert all(zone.wraps_at_joules is None for zone in counter.zones.values())
