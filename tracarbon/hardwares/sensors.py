@@ -18,6 +18,7 @@ from tracarbon.hardwares.cloud_providers import AWS
 from tracarbon.hardwares.cloud_providers import GCP
 from tracarbon.hardwares.cloud_providers import Azure
 from tracarbon.hardwares.cloud_providers import CloudProviders
+from tracarbon.hardwares.energy import EnergyCounter
 from tracarbon.hardwares.energy import EnergyUsage
 from tracarbon.hardwares.gpu import AppleSiliconPowerMetrics
 from tracarbon.hardwares.gpu import GPUInfo
@@ -104,6 +105,14 @@ class EnergyConsumption(Sensor):
         """
         pass
 
+    async def get_energy_counter(self) -> EnergyCounter:
+        """
+        Read the cumulative energy counters of the hardware.
+
+        :return: the energy consumed since the counters started
+        """
+        raise TracarbonException(f"{type(self).__name__} reports power, it exposes no cumulative energy counter.")
+
 
 class MacEnergyConsumption(EnergyConsumption):
     """
@@ -178,6 +187,14 @@ class LinuxEnergyConsumption(EnergyConsumption):
     rapl: RAPL = RAPL()
     amd_rapl: AMDRAPL = AMDRAPL()
     _active_sensor: str = ""
+
+    async def get_energy_counter(self) -> EnergyCounter:
+        """
+        Read the cumulative energy counters Intel RAPL exposes.
+
+        :return: the energy consumed since the counters started
+        """
+        return await self.rapl.get_energy_counter()
 
     async def get_energy_usage(self) -> EnergyUsage:
         """

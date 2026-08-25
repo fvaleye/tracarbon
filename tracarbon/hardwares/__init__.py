@@ -4,6 +4,7 @@ from tracarbon.hardwares.cloud_providers import AWS
 from tracarbon.hardwares.cloud_providers import GCP
 from tracarbon.hardwares.cloud_providers import Azure
 from tracarbon.hardwares.cloud_providers import CloudProviders
+from tracarbon.hardwares.energy import EnergyCounter
 from tracarbon.hardwares.energy import EnergyUsageUnit
 from tracarbon.hardwares.energy import Power
 from tracarbon.hardwares.energy import UsageType
@@ -35,6 +36,7 @@ __all__ = [
     "CloudEnergyConsumption",
     "CloudProviders",
     "EnergyConsumption",
+    "EnergyCounter",
     "EnergyUsage",
     "EnergyUsageUnit",
     "GCP",

@@ -28,6 +28,7 @@ from tracarbon.exporters import StdoutExporter
 from tracarbon.exporters import Tag
 from tracarbon.general_metrics import CarbonEmissionGenerator
 from tracarbon.general_metrics import EnergyConsumptionGenerator
+from tracarbon.hardwares import EnergyCounter
 from tracarbon.hardwares import EnergyUsageUnit
 from tracarbon.hardwares import UsageType
 from tracarbon.hardwares.sensors import AMDRAPL
@@ -91,6 +92,7 @@ __all__ = [
     "EmissionFactorType",
     "EnergyConsumption",
     "EnergyConsumptionGenerator",
+    "EnergyCounter",
     "EnergyUsage",
     "EnergyUsageUnit",
     "Exporter",
