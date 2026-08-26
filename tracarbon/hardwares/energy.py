@@ -88,24 +88,42 @@ class Power(BaseModel):
     """Power utility"""
 
     MICROJOULES_TO_WATT_FACTOR: ClassVar[int] = 1000000
+    MILLIWATTS_TO_WATT_FACTOR: ClassVar[int] = 1000
     WH_TO_KWH_FACTOR: ClassVar[int] = 1000
     SECONDS_TO_HOURS_FACTOR: ClassVar[int] = 3600
+
+    @staticmethod
+    def watt_hours_from_watts_over(watts: float, seconds: float) -> float:
+        """
+        Get the energy a constant wattage delivers over a window.
+
+        The wattage is held flat over the window, so a shorter window smooths away less of a
+        varying load. The caller measures the window, so a clock that can be stepped by an
+        adjustment never reaches the energy.
+
+        :param watts: the wattage in W
+        :param seconds: the duration of the window
+        :return: watt-hours W/h
+        """
+        return watts * (seconds / Power.SECONDS_TO_HOURS_FACTOR)
 
     @staticmethod
     def watts_to_watt_hours(watts: float, previous_energy_measurement_time: datetime | None = None) -> float:
         """
         Convert current watts to watt-hours W/h using the previous energy measurement.
 
+        The wattage is held flat over the interval, so a shorter interval smooths away less of a
+        varying load. The first measurement has no interval behind it and returns zero: it only
+        opens the window.
+
         :param watts: the wattage in W
         :param previous_energy_measurement_time: the previous measurement time
         :return: watt-hours W/h
         """
-        now = datetime.now()
-        if previous_energy_measurement_time:
-            time_difference_in_seconds = (now - previous_energy_measurement_time).total_seconds()
-        else:
-            time_difference_in_seconds = 1
-        return watts * (time_difference_in_seconds / Power.SECONDS_TO_HOURS_FACTOR)
+        if previous_energy_measurement_time is None:
+            return 0.0
+        seconds = (datetime.now() - previous_energy_measurement_time).total_seconds()
+        return Power.watt_hours_from_watts_over(watts=watts, seconds=seconds)
 
     @staticmethod
     def co2g_from_watts_hour(watts_hour: float, co2g_per_kwh: float) -> float:

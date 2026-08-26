@@ -4,6 +4,7 @@ import re
 import shutil
 import subprocess
 from abc import ABC
+from typing import ClassVar
 from typing import Tuple
 
 from loguru import logger
@@ -13,6 +14,7 @@ from tracarbon.exceptions import HardwareNoGPUDetectedException
 
 _RE_POWER_W = re.compile(r"Power\s*\(W\):\s*([\d.]+)", re.IGNORECASE)
 _RE_POWER_USAGE_W = re.compile(r"POWER[^:]*:\s*([\d.]+)\s*W", re.IGNORECASE)
+_ANE_SAMPLER = "ane_power"
 
 
 @functools.lru_cache(maxsize=8)
@@ -127,16 +129,23 @@ class AppleSiliconPowerMetrics(BaseModel):
     Apple Silicon power metrics using powermetrics.
     Parses CPU, GPU, and ANE power from powermetrics output.
     Note: powermetrics requires sudo privileges.
+
+    The ANE runs on its own rail and powermetrics reports it through its own sampler, so asking
+    for cpu_power and gpu_power alone returns no ANE line at all. Hardware old enough to have no
+    ANE rail rejects the sampler, and the samplers are asked for again without it.
     """
 
+    SAMPLERS: ClassVar[str] = f"cpu_power,gpu_power,{_ANE_SAMPLER}"
+    SAMPLERS_WITHOUT_ANE: ClassVar[str] = "cpu_power,gpu_power"
+
     @classmethod
-    def _run_powermetrics(cls, samplers: str) -> Tuple[bytes, int]:
+    def _run_powermetrics(cls, samplers: str) -> Tuple[bytes, int, bytes]:
         """
         Run powermetrics with the given samplers.
         Tries without sudo first, falls back to sudo -n if needed.
 
         :param samplers: comma-separated sampler names (e.g. "cpu_power,gpu_power")
-        :return: result of the shell command and returncode
+        :return: result of the shell command, returncode and the error it reported
         """
         powermetrics_path = shutil.which("powermetrics")
         if powermetrics_path is None:
@@ -161,7 +170,7 @@ class AppleSiliconPowerMetrics(BaseModel):
                     timeout=10,
                 )
 
-        return result.stdout, result.returncode
+        return result.stdout, result.returncode, result.stderr
 
     @classmethod
     def _parse_power_mw(cls, output: str, label: str) -> float | None:
@@ -184,11 +193,27 @@ class AppleSiliconPowerMetrics(BaseModel):
     @classmethod
     def launch_shell_command(cls) -> Tuple[bytes, int]:
         """
-        Launch powermetrics to query CPU and GPU power.
+        Launch powermetrics to query CPU, GPU and ANE power.
 
         :return: result of the shell command and returncode
         """
-        return cls._run_powermetrics("cpu_power,gpu_power")
+        output, return_code, error = cls._run_powermetrics(cls.SAMPLERS)
+        if return_code != 0 and cls._rejected_the_ane_sampler(error):
+            output, return_code, _ = cls._run_powermetrics(cls.SAMPLERS_WITHOUT_ANE)
+        return output, return_code
+
+    @staticmethod
+    def _rejected_the_ane_sampler(error: bytes) -> bool:
+        """
+        Get whether powermetrics failed because it does not know the ANE sampler.
+
+        Every other failure, a missing privilege above all, fails the same way without it, so
+        asking again would only spend a second process to be told the same thing.
+
+        :param error: what powermetrics reported on its error output
+        :return: whether asking again without the ANE sampler is worth it
+        """
+        return bool(error) and _ANE_SAMPLER.encode() in error.lower()
 
     @classmethod
     def get_power_breakdown(cls) -> Tuple[float | None, float | None, float | None]:
@@ -248,7 +273,8 @@ class AppleSiliconGPU(BaseModel):
 
         :return: result of the shell command and returncode
         """
-        return AppleSiliconPowerMetrics._run_powermetrics("gpu_power")
+        output, return_code, _ = AppleSiliconPowerMetrics._run_powermetrics("gpu_power")
+        return output, return_code
 
     @classmethod
     def get_gpu_power_usage(cls) -> float:

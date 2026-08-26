@@ -1,4 +1,5 @@
 import sys
+import time
 
 import psutil
 import pytest
@@ -6,8 +7,10 @@ import pytest
 from tracarbon import Country
 from tracarbon import MetricGenerator
 from tracarbon.exporters import Metric
+from tracarbon.exporters import MetricReport
 from tracarbon.exporters import StdoutExporter
 from tracarbon.exporters import Tag
+from tracarbon.hardwares import EnergyUsageUnit
 
 
 def test_exporters_should_run_and_print_the_metrics(mocker, caplog):
@@ -83,3 +86,92 @@ async def test_metric_generator_generate():
     metric_generated = await MetricGenerator(metrics=metrics).generate().__anext__()
 
     assert metric_generated.name == "test_metric_2"
+
+
+async def _sixty_watts() -> float:
+    return 60.0
+
+
+def _power_metric(**tags) -> Metric:
+    return Metric(
+        name="test_power_metric",
+        value=_sixty_watts,
+        tags=[Tag(key="units", value=EnergyUsageUnit.WATT.value)] + [Tag(key=k, value=v) for k, v in tags.items()],
+    )
+
+
+def test_metric_report_totals_power_as_the_energy_it_delivered():
+    power_metric = _power_metric()
+    report = MetricReport(exporter_name=StdoutExporter.get_name(), metric=power_metric)
+    a_minute_ago = time.monotonic() - 60
+
+    report.accumulate(metric=power_metric, value=60.0, measured_at=a_minute_ago)
+
+    assert report.total == 0.0
+    assert report.total_unit == "watt-hours"
+
+    report.accumulate(metric=power_metric, value=60.0, measured_at=time.monotonic())
+
+    assert round(report.total, 3) == 1.0
+    assert report.average == 60.0
+
+
+def test_metric_report_measures_a_window_a_clock_correction_cannot_stretch():
+    power_metric = _power_metric()
+    report = MetricReport(exporter_name=StdoutExporter.get_name(), metric=power_metric)
+    a_minute_ago = time.monotonic() - 60
+
+    report.accumulate(metric=power_metric, value=60.0, measured_at=a_minute_ago)
+    report.accumulate(metric=power_metric, value=60.0, measured_at=time.monotonic())
+
+    # The window is measured on a clock that only moves forward, so an adjustment of the wall
+    # clock between the two readings cannot lengthen or shorten the energy they bracket.
+    assert round(report.total, 3) == 1.0
+
+
+def test_metric_report_totals_power_reported_in_milliwatts():
+    milliwatt_metric = Metric(
+        name="test_milliwatt_metric",
+        value=_sixty_watts,
+        tags=[Tag(key="units", value=EnergyUsageUnit.MILLIWATT.value)],
+    )
+    report = MetricReport(exporter_name=StdoutExporter.get_name(), metric=milliwatt_metric)
+    a_minute_ago = time.monotonic() - 60
+
+    report.accumulate(metric=milliwatt_metric, value=60000.0, measured_at=a_minute_ago)
+    report.accumulate(metric=milliwatt_metric, value=60000.0, measured_at=time.monotonic())
+
+    # 60000 mW is 60 W, so a minute of it is one watt-hour, not a thousand.
+    assert round(report.total, 3) == 1.0
+
+
+def test_metric_report_totals_every_series_that_shares_a_metric_name():
+    first_container = _power_metric(container_name="first")
+    second_container = _power_metric(container_name="second")
+    report = MetricReport(exporter_name=StdoutExporter.get_name(), metric=first_container)
+    a_minute_ago = time.monotonic() - 60
+
+    report.accumulate(metric=first_container, value=60.0, measured_at=a_minute_ago)
+    report.accumulate(metric=second_container, value=60.0, measured_at=a_minute_ago)
+    report.accumulate(metric=first_container, value=60.0, measured_at=time.monotonic())
+    report.accumulate(metric=second_container, value=60.0, measured_at=time.monotonic())
+
+    # One watt-hour each. Integrating both against a single time shared by the name would total one.
+    assert round(report.total, 3) == 2.0
+
+
+@pytest.mark.asyncio
+async def test_metric_report_totals_a_metric_that_is_not_power_as_itself():
+    carbon_metric = Metric(
+        name="test_carbon_metric",
+        value=_sixty_watts,
+        tags=[Tag(key="units", value="co2g")],
+    )
+    exporter = StdoutExporter(metric_generators=[])
+
+    await exporter.add_metric_to_report(metric=carbon_metric, value=1.5)
+    report = await exporter.add_metric_to_report(metric=carbon_metric, value=2.5)
+
+    assert report.total == 4.0
+    assert report.total_unit == "co2g"
+    assert report.average == 2.0

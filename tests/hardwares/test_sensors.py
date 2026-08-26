@@ -9,6 +9,7 @@ from tracarbon import LinuxEnergyConsumption
 from tracarbon import TracarbonException
 from tracarbon.exceptions import AzureSensorException
 from tracarbon.exceptions import GCPSensorException
+from tracarbon.exceptions import HardwareNoGPUDetectedException
 from tracarbon.hardwares import EnergyUsage
 from tracarbon.hardwares import HardwareInfo
 from tracarbon.hardwares import WindowsEnergyConsumption
@@ -29,7 +30,7 @@ def test_get_platform_should_return_the_platform_energy_consumption_mac():
 
     assert (
         energy_consumption.shell_command
-        == """ioreg -rw0 -a -c AppleSmartBattery | plutil -extract '0.BatteryData.AdapterPower' raw -"""
+        == """ioreg -rw0 -a -c AppleSmartBattery | plutil -extract '0.BatteryData.SystemPower' raw -"""
     )
     assert energy_consumption.init is False
 
@@ -359,3 +360,37 @@ def test_azure_sensor_should_return_error_when_instance_type_is_missing():
 
     with pytest.raises(AzureSensorException):
         AzureEnergyConsumption(instance_type=instance_type)
+
+
+@pytest.mark.asyncio
+async def test_mac_energy_consumption_reads_the_adapter_when_no_system_power_is_reported(mocker):
+    mocker.patch.object(
+        AppleSiliconPowerMetrics,
+        "get_power_breakdown",
+        side_effect=HardwareNoGPUDetectedException("powermetrics failed to run."),
+    )
+    mocker.patch.object(GPUInfo, "get_gpu_power_usage_or_none", return_value=None)
+    read_power = mocker.patch.object(MacEnergyConsumption, "_read_power", side_effect=[None, 30.0])
+
+    mac_sensor = MacEnergyConsumption()
+    energy_usage = await mac_sensor.get_energy_usage()
+
+    assert energy_usage.host_energy_usage == 30.0
+    assert read_power.call_count == 2
+    assert "AdapterPower" in read_power.call_args.args[0]
+
+
+@pytest.mark.asyncio
+async def test_mac_energy_consumption_reports_no_power_when_ioreg_reports_neither_key(mocker):
+    mocker.patch.object(
+        AppleSiliconPowerMetrics,
+        "get_power_breakdown",
+        side_effect=HardwareNoGPUDetectedException("powermetrics failed to run."),
+    )
+    mocker.patch.object(GPUInfo, "get_gpu_power_usage_or_none", return_value=None)
+    mocker.patch.object(MacEnergyConsumption, "_read_power", side_effect=[None, None])
+
+    mac_sensor = MacEnergyConsumption()
+    energy_usage = await mac_sensor.get_energy_usage()
+
+    assert energy_usage.host_energy_usage == 0.0
