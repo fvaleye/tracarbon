@@ -5,6 +5,7 @@ __all__ = [
     "AWSSensorException",
     "GCPSensorException",
     "AzureSensorException",
+    "HardwareIOReportException",
     "HardwareRAPLException",
     "HardwareNoGPUDetectedException",
     "CO2SignalAPIKeyIsMissing",
@@ -49,6 +50,14 @@ class AzureSensorException(TracarbonException):
 
 class HardwareRAPLException(TracarbonException):
     """The hardware is not compatible with RAPL."""
+
+    pass
+
+
+class HardwareIOReportException(TracarbonException):
+    """
+    Exception raised when the IOReport energy counters cannot be read.
+    """
 
     pass
 

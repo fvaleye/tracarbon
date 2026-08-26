@@ -30,7 +30,7 @@ pip install 'tracarbon[datadog,prometheus,kubernetes]'
 
 | **Devices** |                                                                                                                                                           **Description**                                                                                                                                                            |
 | ----------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| Mac         |                                                                                                  ✅ Global energy consumption of your Mac. Reads CPU, GPU and ANE power through `powermetrics` on Apple Silicon (requires sudo), and falls back to the system power reported by `ioreg`.                                                                                                  |
+| Mac         | ✅ Apple Silicon CPU, GPU, memory and Neural Engine energy via IOReport (no sudo). Excludes display and peripherals. Fallbacks: `powermetrics` (sudo), then `ioreg`. |
 | Linux       | ✅ Supports Intel and AMD processors via [RAPL](https://web.eece.maine.edu/~vweaver/projects/rapl/). Intel uses the powercap interface. AMD is supported on kernel 5.8+ (powercap) or via the `amd_energy` driver (HWMON). Works with containers on [Kubernetes](https://kubernetes.io/) using the [Metric API](https://kubernetes.io/docs/tasks/debug/debug-cluster/resource-metrics-pipeline/#metrics-api) if available. |
 | Windows     |                                                                                                                        ❌ Not yet implemented. See [#184](https://github.com/hubblo-org/scaphandre/pull/184).                                                                                                                        |
 
@@ -46,7 +46,7 @@ pip install 'tracarbon[datadog,prometheus,kubernetes]'
 | -------------- | :----------------------------------------------------------------------------------------------------------------------------: |
 | NVIDIA         | ✅ Supported via `nvidia-smi`. Works on Linux, Windows, and Intel Macs. Supports multiple GPUs.                                 |
 | AMD            | ✅ Supported via `rocm-smi` or `amd-smi` on Linux. Supports multiple GPUs.                                                      |
-| Apple Silicon  | ✅ Supported via `powermetrics` on Mac (requires sudo). Tracks integrated GPU power on M1/M2/M3/M4 chips.                       |
+| Apple Silicon  | ✅ Integrated GPU power via IOReport, without sudo. Falls back to `powermetrics` (requires sudo). |
 | Intel          | ❌ Not yet implemented.                                                                                                         |
 
 ## 📡 Exporters

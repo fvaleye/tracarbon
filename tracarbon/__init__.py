@@ -16,6 +16,7 @@ from tracarbon.exceptions import CloudProviderRegionIsMissing
 from tracarbon.exceptions import CO2SignalAPIKeyIsMissing
 from tracarbon.exceptions import CountryIsMissing
 from tracarbon.exceptions import GCPSensorException
+from tracarbon.exceptions import HardwareIOReportException
 from tracarbon.exceptions import HardwareNoGPUDetectedException
 from tracarbon.exceptions import HardwareRAPLException
 from tracarbon.exceptions import TracarbonException
@@ -29,6 +30,7 @@ from tracarbon.exporters import Tag
 from tracarbon.general_metrics import CarbonEmissionGenerator
 from tracarbon.general_metrics import EnergyConsumptionGenerator
 from tracarbon.hardwares import EnergyUsageUnit
+from tracarbon.hardwares import IOReportEnergy
 from tracarbon.hardwares import UsageType
 from tracarbon.hardwares.sensors import AMDRAPL
 from tracarbon.hardwares.sensors import RAPL
@@ -100,6 +102,8 @@ __all__ = [
     "GPUInfo",
     "HardwareInfo",
     "HardwareNoGPUDetectedException",
+    "IOReportEnergy",
+    "HardwareIOReportException",
     "HardwareRAPLException",
     "JSONExporter",
     "KUBERNETES_INSTALLED",

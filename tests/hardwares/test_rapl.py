@@ -47,9 +47,11 @@ async def test_get_rapl_power_usage():
 @pytest.mark.asyncio
 @pytest.mark.linux
 @pytest.mark.darwin
-async def test_get_rapl_power_wrap_around_when_0():
+async def test_get_rapl_power_wrap_around_when_0(mocker):
     path = f"{pathlib.Path(__file__).parent.resolve()}/data/intel-rapl2"
-    two_seconds_ago = datetime.datetime.now() - datetime.timedelta(seconds=2)
+    now = datetime.datetime.now()
+    mocker.patch("tracarbon.hardwares.rapl.datetime").now.return_value = now
+    two_seconds_ago = now - datetime.timedelta(seconds=2)
     rapl_separator_for_windows = "T"
     rapl_results = dict()
     rapl_results["T0-package-0"] = RAPLResult(
@@ -72,10 +74,12 @@ async def test_get_rapl_power_wrap_around_when_0():
 @pytest.mark.asyncio
 @pytest.mark.linux
 @pytest.mark.darwin
-async def test_get_total_uj_one_call():
+async def test_get_total_uj_one_call(mocker):
     path = f"{pathlib.Path(__file__).parent.resolve()}/data/intel-rapl2"
     rapl_separator_for_windows = "T"
-    one_minute_ago = datetime.datetime.now() - datetime.timedelta(seconds=60)
+    now = datetime.datetime.now()
+    mocker.patch("tracarbon.hardwares.rapl.datetime").now.return_value = now
+    one_minute_ago = now - datetime.timedelta(seconds=60)
     rapl_results = dict()
     rapl_results["T0-package-0"] = RAPLResult(
         name="T0-package-0", energy_uj=50000, max_energy_uj=70000, timestamp=one_minute_ago
@@ -107,13 +111,15 @@ def test_classify_domain():
 @pytest.mark.asyncio
 @pytest.mark.linux
 @pytest.mark.darwin
-async def test_results_with_two_packages_are_correctly_computed():
+async def test_results_with_two_packages_are_correctly_computed(mocker):
     path = f"{pathlib.Path(__file__).parent.resolve()}/data/intel-rapl"
     rapl_separator_for_windows = "T"
 
     one_milliwatt = 60000
 
-    one_minute_ago = datetime.datetime.now() - datetime.timedelta(seconds=60)
+    now = datetime.datetime.now()
+    mocker.patch("tracarbon.hardwares.rapl.datetime").now.return_value = now
+    one_minute_ago = now - datetime.timedelta(seconds=60)
     rapl_results = dict()
     rapl_results["T0-package-0"] = RAPLResult(
         name="T0-package-0", energy_uj=24346753748 - one_milliwatt, max_energy_uj=65532610987, timestamp=one_minute_ago
@@ -235,7 +241,34 @@ async def test_a_wrap_uses_the_full_elapsed_time_to_check_its_power(mocker):
 
     energy_report = await rapl.get_energy_report()
 
-    assert energy_report.host_energy_usage > 0.0
+    assert energy_report.host_energy_usage == pytest.approx(wrapped_energy_joules / elapsed_seconds)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("wall_clock_seconds", [-3600, 0, 3600])
+@pytest.mark.parametrize("elapsed_seconds", [0.0, 0.25])
+async def test_sample_intervals_ignore_wall_clock_changes(mocker, tmpdir, wall_clock_seconds, elapsed_seconds):
+    zone = tmpdir.mkdir("intel-raplT0")
+    zone.join("name").write("package-0")
+    zone.join("max_energy_range_uj").write("100000000")
+    counter = zone.join("energy_uj")
+    counter.write("90000000")
+    now = datetime.datetime.now()
+    adjusted_time = now + datetime.timedelta(seconds=wall_clock_seconds)
+    mocker.patch("tracarbon.hardwares.rapl.datetime").now.side_effect = [now, adjusted_time, adjusted_time]
+    clock = mocker.patch("tracarbon.hardwares.rapl.time")
+    clock.monotonic.side_effect = [0.0, elapsed_seconds, elapsed_seconds + 0.25]
+    rapl = RAPL(file_list=[str(zone)], max_power_watts={"T0-package-0": 100.0})
+
+    first_report = await rapl.get_energy_report()
+    counter.write("0")
+    wrapped_report = await rapl.get_energy_report()
+    counter.write("10000000")
+    next_report = await rapl.get_energy_report()
+
+    assert first_report.host_energy_usage == 0.0
+    assert wrapped_report.host_energy_usage == pytest.approx(10.0 / elapsed_seconds if elapsed_seconds else 0.0)
+    assert next_report.host_energy_usage == pytest.approx(40.0)
 
 
 @pytest.mark.asyncio
@@ -303,9 +336,11 @@ async def test_the_ceiling_a_zone_publishes_is_read_once(mocker):
 @pytest.mark.asyncio
 @pytest.mark.linux
 @pytest.mark.darwin
-async def test_dram_without_a_published_max_does_not_borrow_the_package_max():
+async def test_dram_without_a_published_max_does_not_borrow_the_package_max(mocker):
     path = f"{pathlib.Path(__file__).parent.resolve()}/data/intel-rapl"
-    one_hundred_seconds_ago = datetime.datetime.now() - datetime.timedelta(seconds=100)
+    now = datetime.datetime.now()
+    mocker.patch("tracarbon.hardwares.rapl.datetime").now.return_value = now
+    one_hundred_seconds_ago = now - datetime.timedelta(seconds=100)
     rapl_separator_for_windows = "T"
     current_energy_uj = 2592370025.0
     max_energy_uj = 65532610987.0
