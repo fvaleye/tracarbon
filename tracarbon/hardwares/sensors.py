@@ -166,15 +166,17 @@ class MacEnergyConsumption(EnergyConsumption):
         except Exception:
             logger.debug("powermetrics not available, falling back to ioreg")
 
-        host_power = await self._read_power(self.shell_command)
-        sensor = "ioreg SystemPower"
-        if host_power is None:
-            host_power = await self._read_power(self.adapter_shell_command)
-            sensor = "ioreg AdapterPower"
-        if host_power is None:
-            logger.debug("ioreg reports neither SystemPower nor AdapterPower (no battery).")
-            host_power = 0.0
-            sensor = "ioreg"
+        host_power, sensor = 0.0, "ioreg"
+        for candidate, shell_command in (
+            ("ioreg SystemPower", self.shell_command),
+            ("ioreg AdapterPower", self.adapter_shell_command),
+        ):
+            reading = await self._read_power(shell_command)
+            if reading is not None:
+                host_power, sensor = reading, candidate
+                break
+        else:
+            logger.warning("ioreg reports no power on this hardware, the host is reported as drawing none.")
         if self._active_sensor != sensor:
             logger.info(f"Using {sensor} for energy measurement")
             self._active_sensor = sensor

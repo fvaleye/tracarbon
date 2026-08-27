@@ -89,26 +89,18 @@ class CarbonEmission(Sensor):
 
     _measured_at: float | None = PrivateAttr(default=None)
 
-    def _seconds_since_the_previous_measurement(self, measured_at: float) -> float | None:
+    def _seconds_since_the_previous_measurement(self, measured_at: float) -> float:
         """
-        Get how long the window closing at this measurement lasted.
-
-        The window runs from one reading of the hardware to the next, so it is measured at the
-        readings themselves and not around the work that follows them. Asking the location for
-        its carbon intensity can take seconds, and those seconds belong to the window they fall
-        in rather than to nobody. The duration comes from a clock that only moves forward, so an
-        adjustment of the wall clock between two measurements cannot stretch or reverse the
-        energy they bracket. A caller that supplied only a wall-clock time keeps being measured
-        against it.
+        Get how long the window closing at this measurement lasted, zero when it opens the first.
 
         :param measured_at: when the hardware was read, on a clock that only moves forward
-        :return: the duration in seconds, or None when no window has been measured yet
+        :return: the duration in seconds
         """
         if self._measured_at is not None:
             return measured_at - self._measured_at
         if self.previous_energy_consumption_time is not None:
             return (datetime.now() - self.previous_energy_consumption_time).total_seconds()
-        return None
+        return 0.0
 
     def __init__(self, **data: Any) -> None:
         if "location" not in data:
@@ -141,35 +133,18 @@ class CarbonEmission(Sensor):
         seconds = self._seconds_since_the_previous_measurement(measured_at=measured_at)
         co2g_per_kwh = await self.location.get_latest_co2g_kwh()
         logger.debug(f"Carbon Emission of the location: {co2g_per_kwh}g CO2 eq/kWh")
-        host_carbon_usage = Power.co2g_from_watts_hour(
-            Power.watt_hours_from_watts_over(watts=energy_usage.host_energy_usage, seconds=seconds or 0.0),
-            co2g_per_kwh=co2g_per_kwh,
-        )
-        cpu_carbon_usage = 0.0
-        memory_carbon_usage = 0.0
-        gpu_carbon_usage = 0.0
-        if energy_usage.cpu_energy_usage:
-            cpu_carbon_usage = Power.co2g_from_watts_hour(
-                Power.watt_hours_from_watts_over(watts=energy_usage.cpu_energy_usage, seconds=seconds or 0.0),
-                co2g_per_kwh=co2g_per_kwh,
-            )
-        if energy_usage.memory_energy_usage:
-            memory_carbon_usage = Power.co2g_from_watts_hour(
-                Power.watt_hours_from_watts_over(watts=energy_usage.memory_energy_usage, seconds=seconds or 0.0),
-                co2g_per_kwh=co2g_per_kwh,
-            )
-        if energy_usage.gpu_energy_usage:
-            gpu_carbon_usage = Power.co2g_from_watts_hour(
-                Power.watt_hours_from_watts_over(watts=energy_usage.gpu_energy_usage, seconds=seconds or 0.0),
-                co2g_per_kwh=co2g_per_kwh,
-            )
+
+        def co2g_from(watts: float | None) -> float | None:
+            watt_hours = Power.watt_hours_from_watts_over(watts=watts or 0.0, seconds=seconds)
+            return Power.co2g_from_watts_hour(watt_hours, co2g_per_kwh=co2g_per_kwh) or None
+
         self.previous_energy_consumption_time = datetime.now()
         self._measured_at = measured_at
         return CarbonUsage(
-            host_carbon_usage=host_carbon_usage,
-            cpu_carbon_usage=cpu_carbon_usage if cpu_carbon_usage > 0 else None,
-            memory_carbon_usage=(memory_carbon_usage if memory_carbon_usage > 0 else None),
-            gpu_carbon_usage=gpu_carbon_usage if gpu_carbon_usage > 0 else None,
+            host_carbon_usage=co2g_from(energy_usage.host_energy_usage) or 0.0,
+            cpu_carbon_usage=co2g_from(energy_usage.cpu_energy_usage),
+            memory_carbon_usage=co2g_from(energy_usage.memory_energy_usage),
+            gpu_carbon_usage=co2g_from(energy_usage.gpu_energy_usage),
             unit=CarbonUsageUnit.CO2_G,
             carbon_intensity_metadata=self.location.carbon_intensity_metadata.model_copy(),
         )

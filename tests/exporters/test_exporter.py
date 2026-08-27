@@ -88,20 +88,19 @@ async def test_metric_generator_generate():
     assert metric_generated.name == "test_metric_2"
 
 
-async def _sixty_watts() -> float:
-    return 60.0
+def _metric(units: str = EnergyUsageUnit.WATT.value, **tags) -> Metric:
+    async def a_reading() -> float:
+        return 60.0
 
-
-def _power_metric(**tags) -> Metric:
     return Metric(
         name="test_power_metric",
-        value=_sixty_watts,
-        tags=[Tag(key="units", value=EnergyUsageUnit.WATT.value)] + [Tag(key=k, value=v) for k, v in tags.items()],
+        value=a_reading,
+        tags=[Tag(key="units", value=units)] + [Tag(key=k, value=v) for k, v in tags.items()],
     )
 
 
 def test_metric_report_totals_power_as_the_energy_it_delivered():
-    power_metric = _power_metric()
+    power_metric = _metric()
     report = MetricReport(exporter_name=StdoutExporter.get_name(), metric=power_metric)
     a_minute_ago = time.monotonic() - 60
 
@@ -116,74 +115,88 @@ def test_metric_report_totals_power_as_the_energy_it_delivered():
     assert report.average == 60.0
 
 
-def test_metric_report_measures_a_window_a_clock_correction_cannot_stretch():
-    power_metric = _power_metric()
-    report = MetricReport(exporter_name=StdoutExporter.get_name(), metric=power_metric)
-    a_minute_ago = time.monotonic() - 60
-
-    report.accumulate(metric=power_metric, value=60.0, measured_at=a_minute_ago)
-    report.accumulate(metric=power_metric, value=60.0, measured_at=time.monotonic())
-
-    # The window is measured on a clock that only moves forward, so an adjustment of the wall
-    # clock between the two readings cannot lengthen or shorten the energy they bracket.
-    assert round(report.total, 3) == 1.0
-
-
 def test_metric_report_totals_power_reported_in_milliwatts():
-    milliwatt_metric = Metric(
-        name="test_milliwatt_metric",
-        value=_sixty_watts,
-        tags=[Tag(key="units", value=EnergyUsageUnit.MILLIWATT.value)],
-    )
+    milliwatt_metric = _metric(units=EnergyUsageUnit.MILLIWATT.value)
     report = MetricReport(exporter_name=StdoutExporter.get_name(), metric=milliwatt_metric)
     a_minute_ago = time.monotonic() - 60
+    sixty_watts_in_milliwatts = 60000.0
+    a_minute_of_sixty_watts_in_watt_hours = 1.0
 
-    report.accumulate(metric=milliwatt_metric, value=60000.0, measured_at=a_minute_ago)
-    report.accumulate(metric=milliwatt_metric, value=60000.0, measured_at=time.monotonic())
+    report.accumulate(metric=milliwatt_metric, value=sixty_watts_in_milliwatts, measured_at=a_minute_ago)
+    report.accumulate(metric=milliwatt_metric, value=sixty_watts_in_milliwatts, measured_at=time.monotonic())
 
-    # 60000 mW is 60 W, so a minute of it is one watt-hour, not a thousand.
-    assert round(report.total, 3) == 1.0
+    assert round(report.total, 3) == a_minute_of_sixty_watts_in_watt_hours
 
 
 def test_metric_report_totals_every_series_that_shares_a_metric_name():
-    first_container = _power_metric(container_name="first")
-    second_container = _power_metric(container_name="second")
+    first_container = _metric(container_name="first")
+    second_container = _metric(container_name="second")
     report = MetricReport(exporter_name=StdoutExporter.get_name(), metric=first_container)
     a_minute_ago = time.monotonic() - 60
+    a_watt_hour_from_each_of_the_two_series = 2.0
 
     report.accumulate(metric=first_container, value=60.0, measured_at=a_minute_ago)
     report.accumulate(metric=second_container, value=60.0, measured_at=a_minute_ago)
     report.accumulate(metric=first_container, value=60.0, measured_at=time.monotonic())
     report.accumulate(metric=second_container, value=60.0, measured_at=time.monotonic())
 
-    # One watt-hour each. Integrating both against a single time shared by the name would total one.
-    assert round(report.total, 3) == 2.0
+    assert round(report.total, 3) == a_watt_hour_from_each_of_the_two_series
 
 
-def test_metric_report_totals_every_series_reporting_slower_than_the_forget_horizon():
-    first_container = _power_metric(container_name="first")
-    second_container = _power_metric(container_name="second")
+@pytest.mark.asyncio
+async def test_exporter_totals_established_series_when_a_new_series_reports_first(mocker):
+    first_container = _metric(container_name="first")
+    second_container = _metric(container_name="second")
+    new_container = _metric(container_name="new")
     report = MetricReport(exporter_name=StdoutExporter.get_name(), metric=first_container)
     two_hours = 7200.0
-    started_at = time.monotonic() - 3 * two_hours
+    two_one_minute_windows_from_each_series = 4.0
+    two_hours_of_sixty_watts_from_each_series = 240.0
 
-    for cycle in range(4):
-        measured_at = started_at + cycle * two_hours
+    for measured_at in (0.0, 60.0, 120.0):
         report.accumulate(metric=first_container, value=60.0, measured_at=measured_at)
         report.accumulate(metric=second_container, value=60.0, measured_at=measured_at)
 
-    # Three windows of two hours at sixty watts, for each of the two series. Forgetting a series
-    # between two of its own readings would drop the one still waiting its turn and total half.
-    assert round(report.total, 3) == 2 * 3 * 120.0
+    exporter = StdoutExporter(
+        metric_generators=[MetricGenerator(metrics=[new_container, first_container, second_container])],
+        metric_report={first_container.name: report},
+    )
+    mocker.patch("tracarbon.exporters.exporter.time.monotonic", return_value=120.0 + two_hours)
+
+    await exporter._launch_all()
+
+    assert report.total == two_one_minute_windows_from_each_series + two_hours_of_sixty_watts_from_each_series
+
+
+@pytest.mark.asyncio
+async def test_exporter_forgets_a_series_absent_from_the_current_cycle(mocker):
+    gone_container = _metric(container_name="gone")
+    report = MetricReport(exporter_name=StdoutExporter.get_name(), metric=gone_container)
+    report.accumulate(metric=gone_container, value=60.0, measured_at=0.0)
+    report.accumulate(metric=gone_container, value=60.0, measured_at=60.0)
+    exporter = StdoutExporter(metric_generators=[], metric_report={gone_container.name: report})
+    mocker.patch("tracarbon.exporters.exporter.time.monotonic", return_value=7200.0)
+    the_one_minute_window_before_it_went_away = 1.0
+
+    await exporter._launch_all()
+    report.accumulate(metric=gone_container, value=60.0, measured_at=7200.0)
+
+    assert report.total == the_one_minute_window_before_it_went_away
+
+
+def test_metric_report_averages_every_interval():
+    power_metric = _metric()
+    report = MetricReport(exporter_name=StdoutExporter.get_name(), metric=power_metric)
+
+    for measured_at in (0.0, 10.0, 30.0, 60.0):
+        report.accumulate(metric=power_metric, value=60.0, measured_at=measured_at)
+
+    assert report.average_interval_in_seconds == 20.0
 
 
 @pytest.mark.asyncio
 async def test_metric_report_totals_a_metric_that_is_not_power_as_itself():
-    carbon_metric = Metric(
-        name="test_carbon_metric",
-        value=_sixty_watts,
-        tags=[Tag(key="units", value="co2g")],
-    )
+    carbon_metric = _metric(units="co2g")
     exporter = StdoutExporter(metric_generators=[])
 
     await exporter.add_metric_to_report(metric=carbon_metric, value=1.5)

@@ -90,6 +90,7 @@ async def test_carbon_emission_should_run_to_convert_watt_hours_to_co2g_on_linux
 @pytest.mark.darwin
 async def test_carbon_emission_measures_a_window_a_clock_correction_cannot_reverse(mocker):
     co2g_per_kwh = 74.0
+    a_minute_of_sixty_watts_in_co2g = 0.074
     mocker.patch.object(Country, "get_latest_co2g_kwh", return_value=co2g_per_kwh)
     mocker.patch.object(MacEnergyConsumption, "get_energy_usage", return_value=EnergyUsage(host_energy_usage=60.0))
     carbon_emission = CarbonEmission(location=Country(name="fr", co2g_kwh=co2g_per_kwh))
@@ -104,8 +105,7 @@ async def test_carbon_emission_measures_a_window_a_clock_correction_cannot_rever
     with mock.patch.object(carbon_emissions, "datetime", SteppedBackwards):
         co2g = await carbon_emission.get_co2_usage()
 
-    # 60 W over a minute is a watt-hour, whichever way the wall clock moved in between.
-    assert round(co2g.host_carbon_usage, 3) == 0.074
+    assert round(co2g.host_carbon_usage, 3) == a_minute_of_sixty_watts_in_co2g
 
 
 @pytest.mark.asyncio
@@ -113,6 +113,7 @@ async def test_carbon_emission_measures_a_window_a_clock_correction_cannot_rever
 async def test_carbon_emission_measures_the_window_between_the_readings(mocker):
     co2g_per_kwh = 74.0
     seconds_the_lookup_takes = 5.0
+    co2g_of_the_window_between_the_readings = 0.074
 
     async def a_slow_carbon_intensity_lookup() -> float:
         await asyncio.sleep(seconds_the_lookup_takes)
@@ -126,9 +127,7 @@ async def test_carbon_emission_measures_the_window_between_the_readings(mocker):
 
     co2g = await carbon_emission.get_co2_usage()
 
-    # The window runs from one reading of the hardware to the next. Closing it after the lookup
-    # instead would hand back the 60 W of a 55 second window, 0.068 g.
-    assert round(co2g.host_carbon_usage, 3) == 0.074
+    assert round(co2g.host_carbon_usage, 3) == co2g_of_the_window_between_the_readings
 
 
 def test_carbon_usage_with_type_and_conversion():

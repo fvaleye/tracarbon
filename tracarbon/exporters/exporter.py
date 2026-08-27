@@ -26,12 +26,9 @@ from tracarbon.locations import Location
 
 _UNITS_OF_POWER = frozenset({EnergyUsageUnit.WATT.value, EnergyUsageUnit.MILLIWATT.value})
 _WATT_HOURS = "watt-hours"
-# Long enough that no reporting interval reaches it, short enough that the series of a container
-# which has gone do not accumulate for the life of the process.
+# How long a series that stopped reporting is remembered, so that the series of a container which
+# has gone do not accumulate for the life of the process.
 _SERIES_ARE_FORGOTTEN_AFTER_SECONDS = 3600
-# What a reporting interval longer than that floor is measured against instead, so that the
-# horizon stays ahead of the interval rather than closing in on it.
-_SERIES_ARE_FORGOTTEN_AFTER_INTERVALS = 4
 
 
 class Tag(BaseModel):
@@ -69,10 +66,7 @@ class Metric(BaseModel):
 
         :return: the unit, or None if the metric declares none
         """
-        for tag in self.tags:
-            if tag.key == "units":
-                return tag.value
-        return None
+        return next((tag.value for tag in self.tags if tag.key == "units"), None)
 
     def format_tags(self, separator: str = ":") -> List[str]:
         """
@@ -87,15 +81,9 @@ class MetricReport(BaseModel):
     """
     MetricReport is a report of the generated metrics.
 
-    The total accumulates a quantity, which is not always the quantity that was reported: a metric
-    reported in watts is power, and adding power readings together totals nothing. Those are
-    integrated over the interval they were measured on and totalled as watt-hours instead, so
-    total_unit is what the total is in, and it is not always the unit of the metric.
-
-    One report covers every series sharing a metric name, and a generator reporting per container
-    gives them one name and different tags. Each series is integrated over the time since that same
-    series was last reported, so a name carrying several of them totals all of them rather than
-    only the one that happened to be reported first.
+    A metric reported in watts is power, so it is integrated over the interval it was measured on
+    and totalled as the watt-hours total_unit carries. Every series sharing a metric name is
+    integrated on its own interval.
     """
 
     exporter_name: str
@@ -112,13 +100,12 @@ class MetricReport(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     _measured_at_by_series: Dict[str, float] = PrivateAttr(default_factory=dict)
+    _interval_count: int = PrivateAttr(default=0)
 
     def _record_the_interval_of(self, series: str, measured_at: float) -> None:
         """
-        Add the interval this series just spanned to the average of the intervals seen.
-
-        Measured on the series rather than on the name it shares, so that a name carrying several
-        of them averages how often each reports and not how close together two of them landed.
+        Add the interval this series just spanned to the average of the intervals seen, measured
+        on the series rather than on the name it shares.
 
         :param series: the series being reported
         :param measured_at: the time of the reading being recorded
@@ -127,31 +114,19 @@ class MetricReport(BaseModel):
         if measured_before is None:
             return
         interval = measured_at - measured_before
-        self.average_interval_in_seconds = (
-            interval if not self.average_interval_in_seconds else (self.average_interval_in_seconds + interval) / 2
-        )
+        self._interval_count += 1
+        average = self.average_interval_in_seconds or 0.0
+        self.average_interval_in_seconds = average + (interval - average) / self._interval_count
 
     def _forget_the_series_that_stopped_reporting(self, measured_at: float) -> None:
         """
-        Drop the series that have not reported for long enough to be gone.
-
-        The key of a series carries the tags that identify it, and a container that restarts comes
-        back under a new name, so keeping every key ever seen grows without a ceiling. A series
-        that comes back after being forgotten opens a new window rather than measuring the whole
-        absence, which is what it should do anyway.
-
-        A name carrying several series reports them one after the other, so a horizon shorter
-        than the interval they report on would let the first of them forget the ones still
-        waiting their turn, and every window those spanned would be lost rather than totalled.
-        The horizon is held above the interval that was measured for that reason.
+        Drop the series that have not reported for long enough to be gone, since a container that
+        restarts comes back under a new key and keeping every key ever seen has no ceiling. One
+        that comes back opens a new window rather than measuring the whole absence.
 
         :param measured_at: the time of the reading being recorded
         """
-        forgotten_after = max(
-            _SERIES_ARE_FORGOTTEN_AFTER_SECONDS,
-            _SERIES_ARE_FORGOTTEN_AFTER_INTERVALS * (self.average_interval_in_seconds or 0.0),
-        )
-        forgotten_before = measured_at - forgotten_after
+        forgotten_before = measured_at - _SERIES_ARE_FORGOTTEN_AFTER_SECONDS
         for series, last_measured_at in list(self._measured_at_by_series.items()):
             if last_measured_at < forgotten_before:
                 del self._measured_at_by_series[series]
@@ -177,7 +152,6 @@ class MetricReport(BaseModel):
             self.total_unit = unit
         self._record_the_interval_of(series=series, measured_at=measured_at)
         self._measured_at_by_series[series] = measured_at
-        self._forget_the_series_that_stopped_reporting(measured_at=measured_at)
 
         self.call_count += 1
         self.average += (value - self.average) / self.call_count
@@ -264,9 +238,12 @@ class Exporter(BaseModel, metaclass=ABCMeta):
         """
         Launch the exporter with all the metric generators.
         """
+        cycle_started_at = time.monotonic()
         for metric_generator in self.metric_generators:
             logger.debug(f"Running MetricGenerator[{metric_generator}].")
             await self.launch(metric_generator=metric_generator)
+        for metric_report in self.metric_report.values():
+            metric_report._forget_the_series_that_stopped_reporting(measured_at=cycle_started_at)
 
     async def add_metric_to_report(self, metric: "Metric", value: float) -> "MetricReport":
         """

@@ -195,25 +195,15 @@ class AppleSiliconPowerMetrics(BaseModel):
         """
         Launch powermetrics to query CPU, GPU and ANE power.
 
+        Hardware with no ANE rail rejects the sampler by name. Every other failure, a missing
+        privilege above all, fails the same way without it, so it is not worth asking twice.
+
         :return: result of the shell command and returncode
         """
         output, return_code, error = cls._run_powermetrics(cls.SAMPLERS)
-        if return_code != 0 and cls._rejected_the_ane_sampler(error):
+        if return_code != 0 and _ANE_SAMPLER.encode() in error.lower():
             output, return_code, _ = cls._run_powermetrics(cls.SAMPLERS_WITHOUT_ANE)
         return output, return_code
-
-    @staticmethod
-    def _rejected_the_ane_sampler(error: bytes) -> bool:
-        """
-        Get whether powermetrics failed because it does not know the ANE sampler.
-
-        Every other failure, a missing privilege above all, fails the same way without it, so
-        asking again would only spend a second process to be told the same thing.
-
-        :param error: what powermetrics reported on its error output
-        :return: whether asking again without the ANE sampler is worth it
-        """
-        return bool(error) and _ANE_SAMPLER.encode() in error.lower()
 
     @classmethod
     def get_power_breakdown(cls) -> Tuple[float | None, float | None, float | None]:
