@@ -160,6 +160,23 @@ def test_metric_report_totals_every_series_that_shares_a_metric_name():
     assert round(report.total, 3) == 2.0
 
 
+def test_metric_report_totals_every_series_reporting_slower_than_the_forget_horizon():
+    first_container = _power_metric(container_name="first")
+    second_container = _power_metric(container_name="second")
+    report = MetricReport(exporter_name=StdoutExporter.get_name(), metric=first_container)
+    two_hours = 7200.0
+    started_at = time.monotonic() - 3 * two_hours
+
+    for cycle in range(4):
+        measured_at = started_at + cycle * two_hours
+        report.accumulate(metric=first_container, value=60.0, measured_at=measured_at)
+        report.accumulate(metric=second_container, value=60.0, measured_at=measured_at)
+
+    # Three windows of two hours at sixty watts, for each of the two series. Forgetting a series
+    # between two of its own readings would drop the one still waiting its turn and total half.
+    assert round(report.total, 3) == 2 * 3 * 120.0
+
+
 @pytest.mark.asyncio
 async def test_metric_report_totals_a_metric_that_is_not_power_as_itself():
     carbon_metric = Metric(

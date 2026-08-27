@@ -29,6 +29,9 @@ _WATT_HOURS = "watt-hours"
 # Long enough that no reporting interval reaches it, short enough that the series of a container
 # which has gone do not accumulate for the life of the process.
 _SERIES_ARE_FORGOTTEN_AFTER_SECONDS = 3600
+# What a reporting interval longer than that floor is measured against instead, so that the
+# horizon stays ahead of the interval rather than closing in on it.
+_SERIES_ARE_FORGOTTEN_AFTER_INTERVALS = 4
 
 
 class Tag(BaseModel):
@@ -137,9 +140,18 @@ class MetricReport(BaseModel):
         that comes back after being forgotten opens a new window rather than measuring the whole
         absence, which is what it should do anyway.
 
+        A name carrying several series reports them one after the other, so a horizon shorter
+        than the interval they report on would let the first of them forget the ones still
+        waiting their turn, and every window those spanned would be lost rather than totalled.
+        The horizon is held above the interval that was measured for that reason.
+
         :param measured_at: the time of the reading being recorded
         """
-        forgotten_before = measured_at - _SERIES_ARE_FORGOTTEN_AFTER_SECONDS
+        forgotten_after = max(
+            _SERIES_ARE_FORGOTTEN_AFTER_SECONDS,
+            _SERIES_ARE_FORGOTTEN_AFTER_INTERVALS * (self.average_interval_in_seconds or 0.0),
+        )
+        forgotten_before = measured_at - forgotten_after
         for series, last_measured_at in list(self._measured_at_by_series.items()):
             if last_measured_at < forgotten_before:
                 del self._measured_at_by_series[series]
