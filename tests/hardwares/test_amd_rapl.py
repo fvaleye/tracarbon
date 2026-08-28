@@ -3,6 +3,7 @@ import pathlib
 
 import pytest
 
+from tracarbon import EnergyCounter
 from tracarbon.hardwares.amd_rapl import AMDRAPL
 from tracarbon.hardwares.amd_rapl import AMDRAPLResult
 from tracarbon.hardwares.energy import EnergyUsageUnit
@@ -168,12 +169,25 @@ def test_classify_domain():
 
 
 @pytest.mark.asyncio
+def assert_the_counters_the_driver_accumulates_into_do_not_roll_over(counter: EnergyCounter) -> None:
+    """
+    The 32-bit register behind these rolls over in about nine minutes on a 240 W two-socket
+    machine, but the amd_energy driver wakes every 100 seconds to accumulate it into the 64-bit
+    counter read here, so what sysfs exposes does not roll over.
+
+    https://www.kernel.org/doc/html/v5.10/hwmon/amd_energy.html
+    """
+    assert all(zone.wraps_at_joules is None for zone in counter.zones.values())
+
+
 async def test_get_energy_counter_reads_every_amd_energy_zone():
     path = f"{pathlib.Path(__file__).parent.resolve()}/data/amd-energy"
 
     counter = await AMDRAPL(amd_energy_path=path, energy_files=["1", "2", "3"]).get_energy_counter()
 
     assert len(counter.zones) == 3
-    socket_zones = [zone for zone in counter.zones.values() if UsageType.HOST in zone.usage_types]
-    assert socket_zones
-    assert all(zone.wraps_at_joules is None for zone in counter.zones.values())
+    assert counter.zones["amd-1-Esocket0"].joules == pytest.approx(24346.753748)
+    assert counter.zones["amd-1-Esocket0"].usage_types == (UsageType.HOST, UsageType.CPU)
+    assert counter.zones["amd-2-Ecore0"].usage_types == ()
+    assert counter.zones["amd-3-Ecore1"].usage_types == ()
+    assert_the_counters_the_driver_accumulates_into_do_not_roll_over(counter)

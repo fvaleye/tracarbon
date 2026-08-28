@@ -52,6 +52,57 @@ class EnergyZone(BaseModel):
     averaged_over_seconds: float = 0.0
     usage_types: Tuple[UsageType, ...] = ()
 
+    @property
+    def seconds_before_it_can_wrap_twice(self) -> float | None:
+        """
+        Get how long this zone can count before it could have rolled over more than once.
+
+        The stretch is the longest one over which the zone could not have drawn a whole range. A
+        zone wrapping at a rate nothing bounds affords none of it, which is what the caller reads
+        from a zone that says nothing about the power holding it.
+        A zone saying nothing about the power it is held to cannot say this either, and is not
+        measured at all. Guessing a ceiling instead would refuse a laptop a window it could have
+        measured and let a large socket past one it could not.
+
+        :return: the seconds it affords, or None where it never rolls over or does not say how fast
+        """
+        if not self.wraps_at_joules or not self.counts_at_most_watts:
+            return None
+        return max(0.0, self.wraps_at_joules / self.counts_at_most_watts - self.averaged_over_seconds)
+
+    def drew_more_than_it_could_have(self, joules: float, seconds: float) -> bool:
+        """
+        Get whether a zone reports consuming more energy than it could have drawn.
+
+        A counter that was restarted reads lower than it did before, exactly as one that wrapped
+        does, and correcting a restart as though it were a wrap credits the zone a whole range it
+        never consumed. What constrains it is what says the two apart, and what it constrains is an
+        average over a window, so a stretch holds what the average allows across it and a further
+        window's worth on top.
+
+        :param joules: the energy the zone is taken to have consumed
+        :param seconds: how long the window lasted
+        :return: whether that much energy was beyond this zone in that time
+        """
+        if self.counts_at_most_watts is None:
+            return False
+        return joules > self.counts_at_most_watts * (seconds + self.averaged_over_seconds)
+
+    def could_have_wrapped_twice_in(self, seconds: float) -> bool:
+        """
+        Get whether this zone could have rolled over more than once over a window.
+
+        A window exactly as long as one roll lands on the reading it started from, which cannot be
+        told from no energy at all, so that window is already too long.
+
+        :param seconds: how long the window lasted
+        :return: whether the energy of the window can still be told from two readings
+        """
+        if self.wraps_at_joules and not self.counts_at_most_watts:
+            return True
+        affords = self.seconds_before_it_can_wrap_twice
+        return affords is not None and seconds >= affords
+
 
 class EnergyCounter(BaseModel):
     """
@@ -63,27 +114,55 @@ class EnergyCounter(BaseModel):
 
     zones: Dict[str, EnergyZone] = Field(default_factory=dict)
 
-    def joules_since(self, previous: "EnergyCounter") -> Dict[UsageType, float]:
+    def joules_since(self, previous: "EnergyCounter", seconds: float) -> Dict[UsageType, float]:
         """
         Get the energy consumed since a previous reading of the same counters.
 
+        A usage type is reported only when every zone counting towards it was measured. A zone the
+        earlier reading did not have, one that went backwards with no range to correct it, and one
+        that could have rolled over more than once all leave the types they cover unmeasured, so
+        that a part of the machine is never handed back as though it were the whole of it.
+
         :param previous: the earlier reading to measure from
-        :return: the energy consumed for each type the two readings have in common
+        :param seconds: how long the window lasted, which is what says whether a zone could have
+            rolled over more than once, so a caller that does not know it cannot be told the energy
+        :return: the energy consumed for each type both readings measured in full
         """
         consumed: Dict[UsageType, float] = dict()
-        for name, zone in self.zones.items():
+        unmeasured: set[UsageType] = set()
+        for name in self.zones.keys() | previous.zones.keys():
+            zone = self.zones.get(name)
             previous_zone = previous.zones.get(name)
+            if zone is None:
+                unmeasured.update(previous.zones[name].usage_types)
+                continue
             if previous_zone is None:
+                unmeasured.update(zone.usage_types)
                 continue
             joules = zone.joules
             if joules < previous_zone.joules:
-                if zone.wraps_at_joules is None:
+                if not zone.wraps_at_joules:
                     logger.warning(f"The energy zone {name} went backwards and exposes no range to correct it.")
+                    unmeasured.update(zone.usage_types)
                     continue
                 joules = joules + zone.wraps_at_joules
+            if zone.drew_more_than_it_could_have(joules=joules - previous_zone.joules, seconds=seconds):
+                logger.warning(
+                    f"The energy zone {name} reports consuming more in {seconds} seconds than what constrains "
+                    f"it allows, so it did not simply wrap."
+                )
+                unmeasured.update(zone.usage_types)
+                continue
+            if zone.could_have_wrapped_twice_in(seconds=seconds):
+                logger.warning(
+                    f"The energy zone {name} could have wrapped more than once in {seconds} seconds, and it "
+                    f"counts no wraps, so the energy it consumed cannot be told from two readings."
+                )
+                unmeasured.update(zone.usage_types)
+                continue
             for usage_type in zone.usage_types:
                 consumed[usage_type] = consumed.get(usage_type, 0.0) + (joules - previous_zone.joules)
-        return consumed
+        return {usage_type: joules for usage_type, joules in consumed.items() if usage_type not in unmeasured}
 
 
 class EnergyUsage(BaseModel):

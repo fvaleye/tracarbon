@@ -7,6 +7,7 @@ from tracarbon import RAPL
 from tracarbon.hardwares import EnergyUsageUnit
 from tracarbon.hardwares import RAPLResult
 from tracarbon.hardwares import UsageType
+from tracarbon.hardwares.energy import EnergyZone
 
 
 @pytest.mark.linux
@@ -175,6 +176,27 @@ async def test_a_zone_is_read_against_the_highest_power_it_is_constrained_to():
 
     assert counter.zones["T0-package-0"].counts_at_most_watts == the_higher_of_the_two_constraints_in_watts
     assert counter.zones["T0-package-0"].averaged_over_seconds == pytest.approx(0.00244)
+    assert counter.zones["T0-package-0"].seconds_before_it_can_wrap_twice == pytest.approx(1872.36, abs=0.01)
+
+
+@pytest.mark.asyncio
+@pytest.mark.linux
+@pytest.mark.darwin
+@pytest.mark.asyncio
+async def test_a_zone_whose_budget_covers_a_whole_roll_affords_no_window():
+    a_limit_whose_budget_is_a_whole_roll = EnergyZone(
+        joules=0.0, wraps_at_joules=100.0, counts_at_most_watts=10.0, averaged_over_seconds=10.0
+    )
+    a_limit_whose_budget_is_half_a_roll = EnergyZone(
+        joules=0.0, wraps_at_joules=100.0, counts_at_most_watts=10.0, averaged_over_seconds=5.0
+    )
+    a_limit_averaged_over_almost_nothing = EnergyZone(
+        joules=0.0, wraps_at_joules=100.0, counts_at_most_watts=10.0, averaged_over_seconds=0.1
+    )
+
+    assert a_limit_whose_budget_is_a_whole_roll.seconds_before_it_can_wrap_twice == 0.0
+    assert a_limit_whose_budget_is_half_a_roll.seconds_before_it_can_wrap_twice == 5.0
+    assert a_limit_averaged_over_almost_nothing.seconds_before_it_can_wrap_twice == pytest.approx(9.9)
 
 
 @pytest.mark.asyncio
@@ -196,6 +218,21 @@ async def test_a_constraint_naming_itself_a_peak_bounds_every_stretch(tmpdir):
     capped_at = await RAPL._read_the_power_the_zone_is_capped_at(file_path=str(zone))
 
     assert capped_at == (28.0, 0.0)
+
+
+async def test_the_zones_of_a_machine_measure_a_window_end_to_end():
+    path = f"{pathlib.Path(__file__).parent.resolve()}/data/intel-rapl"
+    rapl_separator_for_windows = "T"
+    rapl = RAPL(path=path, rapl_separator=rapl_separator_for_windows)
+    a_second = 1.0
+
+    counter = await rapl.get_energy_counter()
+
+    assert counter.joules_since(previous=counter, seconds=a_second) == {
+        UsageType.HOST: 0.0,
+        UsageType.CPU: 0.0,
+        UsageType.MEMORY: 0.0,
+    }
 
 
 async def test_a_zone_inside_another_is_held_to_what_encloses_it():
