@@ -260,6 +260,16 @@ class Power(BaseModel):
         return uj / Power.MICROJOULES_TO_WATT_FACTOR
 
     @staticmethod
+    def watt_hours_from_joules(joules: float) -> float:
+        """
+        Get watt-hours from joules.
+
+        :param joules: the energy in joules
+        :return: watt-hours W/h
+        """
+        return joules / Power.SECONDS_TO_HOURS_FACTOR
+
+    @staticmethod
     def watts_from_microwatts(uw: float) -> float:
         """
         Get watts from microwatts.

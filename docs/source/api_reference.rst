@@ -88,3 +88,9 @@ General Metrics
 
 .. automodule:: tracarbon.general_metrics
     :members:
+
+Workload
+========
+
+.. automodule:: tracarbon.workload
+    :members:

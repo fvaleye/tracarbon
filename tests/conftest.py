@@ -30,3 +30,14 @@ def pytest_runtest_setup(item):
     plat = sys.platform
     if supported_platforms and plat not in supported_platforms:
         pytest.skip(f"cannot run on platform {plat}")
+
+
+@pytest.fixture(autouse=True)
+def no_cached_machine_lookups():
+    """
+    Keep where this machine runs, and what measures it, from leaking between tests.
+    """
+    from tracarbon import workload
+
+    workload._the_location_this_machine_runs_in.cache_clear()
+    workload._the_energy_consumption_of_this_machine.cache_clear()
