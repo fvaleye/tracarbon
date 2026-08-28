@@ -48,6 +48,8 @@ class EnergyZone(BaseModel):
 
     joules: float
     wraps_at_joules: float | None = None
+    counts_at_most_watts: float | None = None
+    averaged_over_seconds: float = 0.0
     usage_types: Tuple[UsageType, ...] = ()
 
 
@@ -177,6 +179,16 @@ class Power(BaseModel):
         :return: joules
         """
         return uj / Power.MICROJOULES_TO_WATT_FACTOR
+
+    @staticmethod
+    def watts_from_microwatts(uw: float) -> float:
+        """
+        Get watts from microwatts.
+
+        :param uw: the power in microwatts
+        :return: watts
+        """
+        return uw / Power.MICROJOULES_TO_WATT_FACTOR
 
     @staticmethod
     def watts_from_microjoules(

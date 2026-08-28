@@ -161,3 +161,48 @@ async def test_get_energy_counter_keeps_every_zone_apart():
     assert counter.zones["T0T1-dram"].usage_types == (UsageType.HOST, UsageType.MEMORY)
     assert counter.zones["T0T0-core"].usage_types == (UsageType.CPU,)
     assert counter.zones["T0-package-0"].wraps_at_joules == pytest.approx(65532.610987)
+
+
+@pytest.mark.asyncio
+@pytest.mark.linux
+@pytest.mark.darwin
+async def test_a_zone_is_read_against_the_highest_power_it_is_constrained_to():
+    path = f"{pathlib.Path(__file__).parent.resolve()}/data/intel-rapl"
+    rapl_separator_for_windows = "T"
+    the_higher_of_the_two_constraints_in_watts = 35.0
+
+    counter = await RAPL(path=path, rapl_separator=rapl_separator_for_windows).get_energy_counter()
+
+    assert counter.zones["T0-package-0"].counts_at_most_watts == the_higher_of_the_two_constraints_in_watts
+    assert counter.zones["T0-package-0"].averaged_over_seconds == pytest.approx(0.00244)
+
+
+@pytest.mark.asyncio
+async def test_a_constraint_whose_window_cannot_be_told_leaves_the_zone_uncapped(tmpdir, mocker):
+    zone = tmpdir.mkdir("zone")
+    zone.join("constraint_0_max_power_uw").write("28000000")
+
+    capped_at = await RAPL._read_the_power_the_zone_is_capped_at(file_path=str(zone))
+
+    assert capped_at is None
+
+
+@pytest.mark.asyncio
+async def test_a_constraint_naming_itself_a_peak_bounds_every_stretch(tmpdir):
+    zone = tmpdir.mkdir("zone")
+    zone.join("constraint_0_max_power_uw").write("28000000")
+    zone.join("constraint_0_name").write("peak_power")
+
+    capped_at = await RAPL._read_the_power_the_zone_is_capped_at(file_path=str(zone))
+
+    assert capped_at == (28.0, 0.0)
+
+
+async def test_a_zone_inside_another_is_held_to_what_encloses_it():
+    path = f"{pathlib.Path(__file__).parent.resolve()}/data/intel-rapl"
+    rapl_separator_for_windows = "T"
+    the_constraint_the_package_publishes = 35.0
+
+    counter = await RAPL(path=path, rapl_separator=rapl_separator_for_windows).get_energy_counter()
+
+    assert counter.zones["T0T0-core"].counts_at_most_watts == the_constraint_the_package_publishes

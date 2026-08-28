@@ -1,4 +1,6 @@
+import glob
 import os
+import pathlib
 import re
 from datetime import datetime
 from pathlib import Path
@@ -10,6 +12,7 @@ import aiofiles
 from loguru import logger
 from pydantic import BaseModel
 from pydantic import Field
+from pydantic import PrivateAttr
 
 from tracarbon.exceptions import HardwareRAPLException
 from tracarbon.hardwares.energy import EnergyCounter
@@ -31,6 +34,10 @@ RAPL_DOMAIN_USAGE_TYPES: Dict[str, Tuple[UsageType, ...]] = {
 }
 
 
+_MICROSECONDS_PER_SECOND = 1_000_000
+_THE_NAME_OF_A_PEAK_CONSTRAINT = "peak_power"
+
+
 class RAPLResult(BaseModel):
     """
     RAPL result after reading the RAPL registry.
@@ -39,6 +46,7 @@ class RAPLResult(BaseModel):
     name: str
     energy_uj: float
     max_energy_uj: float
+    capped_at: tuple[float, float] | None = None
     timestamp: datetime
 
 
@@ -49,6 +57,7 @@ class RAPL(BaseModel):
 
     path: str = "/sys/class/powercap/intel-rapl"
     rapl_separator: str = ":"
+    _constraints_by_zone: Dict[str, tuple[float, float] | None] = PrivateAttr(default_factory=dict)
     rapl_results: Dict[str, RAPLResult] = Field(default_factory=dict)
     file_list: List[str] = Field(default_factory=list)
 
@@ -79,6 +88,109 @@ class RAPL(BaseModel):
                 self.file_list.append(directory_path)
         logger.debug(f"The RAPL file list collected: {self.file_list}.")
 
+    async def _what_constrains(self, file_path: str) -> tuple[float, float] | None:
+        """
+        Get what constrains a zone, reading it the first time it is asked for.
+
+        What a zone is constrained to is a property of the machine and does not change while it
+        runs, so reading it once spares the sampling loop a walk of the constraint files it takes
+        every interval.
+
+        :param file_path: the directory of the zone
+        :return: the watts and the seconds they are averaged over, or None where nothing holds it
+        """
+        if file_path not in self._constraints_by_zone:
+            self._constraints_by_zone[file_path] = await RAPL._read_the_power_the_zone_is_capped_at(file_path=file_path)
+        return self._constraints_by_zone[file_path]
+
+    @staticmethod
+    async def _read_the_power_the_zone_is_capped_at(file_path: str) -> tuple[float, float] | None:
+        """
+        Read the highest power a zone is constrained to, and the time that constraint averages over.
+
+        A zone is held to several constraints at once, and powercap neither orders them nor requires
+        them to be named, so the highest of them is taken. That is the one that reaches the wrap
+        soonest, which is the direction it is safe to be wrong in.
+
+        A zone nested inside another draws from it, so one publishing no constraint of its own is
+        held to whatever encloses it. Only the outermost zone can be constrained by nothing.
+
+        :param file_path: the directory of the zone
+        :return: the watts and the seconds they are averaged over, or None where nothing holds it
+        """
+        constrained_to = await RAPL._read_the_constraints_of(file_path=file_path)
+        if constrained_to:
+            return max(constrained_to)
+        enclosing = str(pathlib.PurePath(file_path).parent)
+        if await RAPL._read_a_number_from(f"{enclosing}/energy_uj") is None:
+            return None
+        return await RAPL._read_the_power_the_zone_is_capped_at(file_path=enclosing)
+
+    @staticmethod
+    async def _read_the_constraints_of(file_path: str) -> list[tuple[float, float]]:
+        """
+        Read every constraint a zone publishes for itself.
+
+        :param file_path: the directory of the zone
+        :return: the watts and the seconds they are averaged over, for each constraint published
+        """
+        constrained_to = []
+        for constraint in sorted(glob.glob(f"{file_path}/constraint_*_max_power_uw")):
+            watts = await RAPL._read_a_number_from(constraint)
+            averaged_over = await RAPL._read_the_window_a_constraint_averages_over(constraint)
+            if watts is None or averaged_over is None:
+                return []
+            if watts > 0:
+                constrained_to.append((Power.watts_from_microwatts(uw=watts), averaged_over))
+        return constrained_to
+
+    @staticmethod
+    async def _read_a_number_from(path: str) -> float | None:
+        """
+        Read one number a zone publishes.
+
+        :param path: the file holding it
+        :return: the number, or None where the file cannot be read
+        """
+        try:
+            async with aiofiles.open(path) as published:
+                return float(await published.read())
+        except (OSError, ValueError):
+            return None
+
+    @staticmethod
+    async def _read_the_window_a_constraint_averages_over(constraint_path: str) -> float | None:
+        """
+        Read the time a constraint is an average over, which is what it bounds the power across.
+
+        A limit over a window says nothing about a shorter stretch, where the hardware is free to
+        draw more and make it back later. Only a constraint naming itself a peak bounds every
+        stretch, so a window that cannot be read is unknown rather than absent, and unknown is not
+        something to measure against.
+
+        :param constraint_path: the max power file of the constraint
+        :return: the seconds it averages over, zero for a peak, or None where it cannot be told
+        """
+        microseconds = await RAPL._read_a_number_from(constraint_path.replace("_max_power_uw", "_time_window_us"))
+        if microseconds is not None:
+            return microseconds / _MICROSECONDS_PER_SECOND
+        named = await RAPL._read_what_a_constraint_calls_itself(constraint_path)
+        return 0.0 if named == _THE_NAME_OF_A_PEAK_CONSTRAINT else None
+
+    @staticmethod
+    async def _read_what_a_constraint_calls_itself(constraint_path: str) -> str:
+        """
+        Read the name a constraint publishes for itself.
+
+        :param constraint_path: the max power file of the constraint
+        :return: the name, or an empty string where it publishes none
+        """
+        try:
+            async with aiofiles.open(constraint_path.replace("_max_power_uw", "_name")) as name:
+                return (await name.read()).strip()
+        except OSError:
+            return ""
+
     async def get_rapl_power_usage(self) -> List[RAPLResult]:
         """
         Read the RAPL energy measurements files on paths provided.
@@ -101,11 +213,13 @@ class RAPL(BaseModel):
                         energy_uj = float(await rapl_energy.read())
                     async with aiofiles.open(f"{file_path}/max_energy_range_uj") as rapl_max_energy:
                         max_energy_uj = float(await rapl_max_energy.read())
+                    capped_at = await self._what_constrains(file_path=file_path)
                     rapl_results.append(
                         RAPLResult(
                             name=name,
                             energy_uj=energy_uj,
                             max_energy_uj=max_energy_uj,
+                            capped_at=capped_at,
                             timestamp=datetime.now(),
                         )
                     )
@@ -181,6 +295,8 @@ class RAPL(BaseModel):
             counter.zones[rapl_result.name] = EnergyZone(
                 joules=Power.joules_from_microjoules(uj=rapl_result.energy_uj),
                 wraps_at_joules=Power.joules_from_microjoules(uj=rapl_result.max_energy_uj),
+                counts_at_most_watts=rapl_result.capped_at[0] if rapl_result.capped_at else None,
+                averaged_over_seconds=rapl_result.capped_at[1] if rapl_result.capped_at else 0.0,
                 usage_types=RAPL_DOMAIN_USAGE_TYPES.get(self._classify_domain(rapl_result.name), ()),
             )
         logger.debug(f"The RAPL energy zones read {counter.zones}.")
