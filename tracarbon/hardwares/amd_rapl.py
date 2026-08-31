@@ -195,15 +195,14 @@ class AMDRAPL(BaseModel):
 
             energy_uj = rapl_result.energy_uj
 
-            # Handle wrap-around for 32-bit counters on older AMD CPUs
-            # 32-bit counter max is ~4.29 billion microjoules
-            max_32bit_uj = 4294967295.0
             if previous_rapl_result.energy_uj > rapl_result.energy_uj:
-                logger.debug(
-                    f"Wrap-around detected in AMD RAPL {rapl_result.name}. "
-                    f"Current: {rapl_result.energy_uj}, Previous: {previous_rapl_result.energy_uj}"
+                logger.warning(
+                    f"The AMD RAPL zone {rapl_result.name} counts down from "
+                    f"{previous_rapl_result.energy_uj} to {rapl_result.energy_uj}, so the driver was "
+                    f"reloaded and the zone is left out of this measurement."
                 )
-                energy_uj = energy_uj + max_32bit_uj
+                self.rapl_results[rapl_result.name] = rapl_result
+                continue
 
             energy_delta = energy_uj - previous_rapl_result.energy_uj
             watts = Power.watts_from_microjoules(energy_delta / time_difference_seconds)

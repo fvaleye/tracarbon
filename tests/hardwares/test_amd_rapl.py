@@ -114,40 +114,22 @@ async def test_get_energy_report_with_previous_results():
 @pytest.mark.asyncio
 @pytest.mark.linux
 @pytest.mark.darwin
-async def test_wrap_around_detection():
+async def test_a_zone_counting_down_is_not_credited_a_range_it_cannot_have_wrapped():
     path = f"{pathlib.Path(__file__).parent.resolve()}/data/amd-energy"
     two_seconds_ago = datetime.datetime.now() - datetime.timedelta(seconds=2)
-
-    # Simulate wrap-around: previous value was near max, current is small
+    a_reading_the_driver_restarted_from = 30000000000.0
     rapl_results = {
-        "amd-1-Esocket0": AMDRAPLResult(
-            name="amd-1-Esocket0",
-            label="Esocket0",
-            energy_uj=4294967290.0,  # Near 32-bit max
-            timestamp=two_seconds_ago,
-        ),
-        "amd-2-Ecore0": AMDRAPLResult(
-            name="amd-2-Ecore0",
-            label="Ecore0",
-            energy_uj=4294967290.0,
-            timestamp=two_seconds_ago,
-        ),
-        "amd-3-Ecore1": AMDRAPLResult(
-            name="amd-3-Ecore1",
-            label="Ecore1",
-            energy_uj=4294967290.0,
-            timestamp=two_seconds_ago,
-        ),
+        name: AMDRAPLResult(
+            name=name, label=label, energy_uj=a_reading_the_driver_restarted_from, timestamp=two_seconds_ago
+        )
+        for name, label in (("amd-1-Esocket0", "Esocket0"), ("amd-2-Ecore0", "Ecore0"), ("amd-3-Ecore1", "Ecore1"))
     }
-
     amd_rapl = AMDRAPL(amd_energy_path=path, rapl_results=rapl_results)
 
-    # This should not raise an error due to wrap-around handling
     energy_report = await amd_rapl.get_energy_report()
 
-    # Energy values should be positive (wrap-around handled correctly)
-    assert energy_report.host_energy_usage >= 0
-    assert energy_report.cpu_energy_usage is None or energy_report.cpu_energy_usage >= 0
+    assert energy_report.host_energy_usage == 0.0
+    assert energy_report.cpu_energy_usage is None
 
 
 def test_classify_domain():
