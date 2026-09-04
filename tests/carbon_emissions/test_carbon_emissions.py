@@ -1,6 +1,4 @@
-import asyncio
 import datetime
-import time
 from unittest import mock
 
 import pytest
@@ -93,9 +91,11 @@ async def test_carbon_emission_measures_a_window_a_clock_correction_cannot_rever
     a_minute_of_sixty_watts_in_co2g = 0.074
     mocker.patch.object(Country, "get_latest_co2g_kwh", return_value=co2g_per_kwh)
     mocker.patch.object(MacEnergyConsumption, "get_energy_usage", return_value=EnergyUsage(host_energy_usage=60.0))
+    clock = mock.Mock()
+    clock.monotonic.side_effect = [0.0, 60.0]
+    mocker.patch.object(carbon_emissions, "time", clock)
     carbon_emission = CarbonEmission(location=Country(name="fr", co2g_kwh=co2g_per_kwh))
     await carbon_emission.get_co2_usage()
-    carbon_emission._measured_at = time.monotonic() - 60
 
     class SteppedBackwards(datetime.datetime):
         @classmethod
@@ -112,18 +112,23 @@ async def test_carbon_emission_measures_a_window_a_clock_correction_cannot_rever
 @pytest.mark.darwin
 async def test_carbon_emission_measures_the_window_between_the_readings(mocker):
     co2g_per_kwh = 74.0
-    seconds_the_lookup_takes = 5.0
+    elapsed_seconds = 0.0
+    lookup_durations = iter((5.0, 0.0))
     co2g_of_the_window_between_the_readings = 0.074
 
     async def a_slow_carbon_intensity_lookup() -> float:
-        await asyncio.sleep(seconds_the_lookup_takes)
+        nonlocal elapsed_seconds
+        elapsed_seconds += next(lookup_durations)
         return co2g_per_kwh
 
     mocker.patch.object(Country, "get_latest_co2g_kwh", side_effect=a_slow_carbon_intensity_lookup)
     mocker.patch.object(MacEnergyConsumption, "get_energy_usage", return_value=EnergyUsage(host_energy_usage=60.0))
+    clock = mock.Mock()
+    clock.monotonic.side_effect = lambda: elapsed_seconds
+    mocker.patch.object(carbon_emissions, "time", clock)
     carbon_emission = CarbonEmission(location=Country(name="fr", co2g_kwh=co2g_per_kwh))
     await carbon_emission.get_co2_usage()
-    carbon_emission._measured_at = time.monotonic() - 60
+    elapsed_seconds = 60.0
 
     co2g = await carbon_emission.get_co2_usage()
 

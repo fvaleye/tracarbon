@@ -99,10 +99,10 @@ class MetricReport(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    _measured_at_by_series: Dict[str, float] = PrivateAttr(default_factory=dict)
+    _measured_at_by_series: Dict[tuple[tuple[str, str], ...], float] = PrivateAttr(default_factory=dict)
     _interval_count: int = PrivateAttr(default=0)
 
-    def _record_the_interval_of(self, series: str, measured_at: float) -> None:
+    def _record_the_interval_of(self, series: tuple[tuple[str, str], ...], measured_at: float) -> None:
         """
         Add the interval this series just spanned to the average of the intervals seen, measured
         on the series rather than on the name it shares.
@@ -139,7 +139,7 @@ class MetricReport(BaseModel):
         :param value: the reported value
         :param measured_at: when it was reported, on a clock that only moves forward
         """
-        series = ",".join(metric.format_tags())
+        series = tuple(sorted((tag.key, tag.value) for tag in metric.tags))
         unit = metric.unit()
         if unit in _UNITS_OF_POWER:
             watts = value / Power.MILLIWATTS_TO_WATT_FACTOR if unit == EnergyUsageUnit.MILLIWATT.value else value

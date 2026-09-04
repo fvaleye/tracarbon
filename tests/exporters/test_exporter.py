@@ -1,5 +1,4 @@
 import sys
-import time
 
 import psutil
 import pytest
@@ -102,45 +101,53 @@ def _metric(units: str = EnergyUsageUnit.WATT.value, **tags) -> Metric:
 def test_metric_report_totals_power_as_the_energy_it_delivered():
     power_metric = _metric()
     report = MetricReport(exporter_name=StdoutExporter.get_name(), metric=power_metric)
-    a_minute_ago = time.monotonic() - 60
 
-    report.accumulate(metric=power_metric, value=60.0, measured_at=a_minute_ago)
+    report.accumulate(metric=power_metric, value=60.0, measured_at=0.0)
 
     assert report.total == 0.0
     assert report.total_unit == "watt-hours"
 
-    report.accumulate(metric=power_metric, value=60.0, measured_at=time.monotonic())
+    report.accumulate(metric=power_metric, value=60.0, measured_at=60.0)
 
-    assert round(report.total, 3) == 1.0
+    assert report.total == 1.0
     assert report.average == 60.0
 
 
 def test_metric_report_totals_power_reported_in_milliwatts():
     milliwatt_metric = _metric(units=EnergyUsageUnit.MILLIWATT.value)
     report = MetricReport(exporter_name=StdoutExporter.get_name(), metric=milliwatt_metric)
-    a_minute_ago = time.monotonic() - 60
     sixty_watts_in_milliwatts = 60000.0
     a_minute_of_sixty_watts_in_watt_hours = 1.0
 
-    report.accumulate(metric=milliwatt_metric, value=sixty_watts_in_milliwatts, measured_at=a_minute_ago)
-    report.accumulate(metric=milliwatt_metric, value=sixty_watts_in_milliwatts, measured_at=time.monotonic())
+    report.accumulate(metric=milliwatt_metric, value=sixty_watts_in_milliwatts, measured_at=0.0)
+    report.accumulate(metric=milliwatt_metric, value=sixty_watts_in_milliwatts, measured_at=60.0)
 
-    assert round(report.total, 3) == a_minute_of_sixty_watts_in_watt_hours
+    assert report.total == a_minute_of_sixty_watts_in_watt_hours
 
 
 def test_metric_report_totals_every_series_that_shares_a_metric_name():
     first_container = _metric(container_name="first")
     second_container = _metric(container_name="second")
     report = MetricReport(exporter_name=StdoutExporter.get_name(), metric=first_container)
-    a_minute_ago = time.monotonic() - 60
     a_watt_hour_from_each_of_the_two_series = 2.0
 
-    report.accumulate(metric=first_container, value=60.0, measured_at=a_minute_ago)
-    report.accumulate(metric=second_container, value=60.0, measured_at=a_minute_ago)
-    report.accumulate(metric=first_container, value=60.0, measured_at=time.monotonic())
-    report.accumulate(metric=second_container, value=60.0, measured_at=time.monotonic())
+    report.accumulate(metric=first_container, value=60.0, measured_at=0.0)
+    report.accumulate(metric=second_container, value=60.0, measured_at=0.0)
+    report.accumulate(metric=first_container, value=60.0, measured_at=60.0)
+    report.accumulate(metric=second_container, value=60.0, measured_at=60.0)
 
-    assert round(report.total, 3) == a_watt_hour_from_each_of_the_two_series
+    assert report.total == a_watt_hour_from_each_of_the_two_series
+
+
+def test_metric_report_keeps_distinct_series_when_formatted_tags_collide():
+    first_series = _metric(a="b,c:d")
+    second_series = _metric(a="b", c="d")
+    report = MetricReport(exporter_name=StdoutExporter.get_name(), metric=first_series)
+
+    report.accumulate(metric=first_series, value=60.0, measured_at=0.0)
+    report.accumulate(metric=second_series, value=60.0, measured_at=60.0)
+
+    assert report.total == 0.0
 
 
 @pytest.mark.asyncio
