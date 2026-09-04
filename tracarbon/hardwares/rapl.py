@@ -19,6 +19,9 @@ __all__ = [
     "RAPL",
 ]
 
+_MICROWATTS_PER_WATT = 1000000
+_MICROJOULES_PER_JOULE = 1000000
+
 
 class RAPLResult(BaseModel):
     """
@@ -40,6 +43,7 @@ class RAPL(BaseModel):
     rapl_separator: str = ":"
     rapl_results: Dict[str, RAPLResult] = Field(default_factory=dict)
     file_list: List[str] = Field(default_factory=list)
+    max_power_watts: Dict[str, float] = Field(default_factory=dict)
 
     def is_rapl_compatible(self) -> bool:
         """
@@ -90,6 +94,8 @@ class RAPL(BaseModel):
                         energy_uj = float(await rapl_energy.read())
                     async with aiofiles.open(f"{file_path}/max_energy_range_uj") as rapl_max_energy:
                         max_energy_uj = float(await rapl_max_energy.read())
+                    if name not in self.max_power_watts:
+                        self.max_power_watts[name] = await self._read_max_power_watts(file_path=file_path)
                     rapl_results.append(
                         RAPLResult(
                             name=name,
@@ -103,6 +109,30 @@ class RAPL(BaseModel):
             raise HardwareRAPLException(exception) from exception
         logger.debug(f"The RAPL results: {rapl_results}.")
         return rapl_results
+
+    @staticmethod
+    async def _read_max_power_watts(file_path: str) -> float:
+        """
+        Read the zone's highest short-term or peak power constraint.
+
+        Long-term power can be exceeded during valid short bursts, so it cannot
+        reliably distinguish a counter reset from a wrap.
+
+        :param file_path: the directory of the zone
+        :return: the published watts, or zero where the zone publishes neither
+        """
+        watts = 0.0
+        for constraint in Path(file_path).glob("constraint_*_max_power_uw"):  # noqa: ASYNC240
+            try:
+                constraint_name = constraint.with_name(constraint.name.replace("_max_power_uw", "_name"))
+                async with aiofiles.open(constraint_name) as published_name:
+                    if (await published_name.read()).strip() not in ("short_term", "peak_power"):
+                        continue
+                async with aiofiles.open(constraint) as published:
+                    watts = max(watts, float(await published.read()) / _MICROWATTS_PER_WATT)
+            except (OSError, ValueError):
+                continue
+        return watts
 
     def _classify_domain(self, name: str) -> str:
         """
@@ -123,6 +153,18 @@ class RAPL(BaseModel):
             return "cpu"
         return "unknown"
 
+    def _wrap_exceeds_max_power(self, name: str, joules: float, seconds: float) -> bool:
+        """
+        Check whether a wrap-adjusted reading exceeds the zone's published maximum power.
+
+        :param name: The energy domain name (e.g., "package-0", "dram")
+        :param joules: the energy the zone is taken to have consumed
+        :param seconds: how long the window lasted
+        :return: whether the wrap-adjusted reading exceeds the published maximum
+        """
+        max_power_watts = self.max_power_watts.get(name, 0.0)
+        return max_power_watts > 0 and joules > max_power_watts * seconds
+
     async def get_energy_report(self) -> EnergyUsage:
         """
         Get the energy report based on RAPL.
@@ -130,27 +172,52 @@ class RAPL(BaseModel):
         :return: the energy usage report of the RAPL measurements
         """
         rapl_results = await self.get_rapl_power_usage()
+        rapl_results.sort(key=lambda result: self._classify_domain(result.name) != "package")
+        restarted_package_prefixes: set[str] = set()
         host_energy_usage_watts = 0.0
         cpu_energy_usage_watts = 0.0
         memory_energy_usage_watts = 0.0
         gpu_energy_usage_watts = 0.0
         for rapl_result in rapl_results:
+            domain = self._classify_domain(rapl_result.name)
+            zone_prefix = rapl_result.name.partition("-")[0]
+            if any(
+                zone_prefix.startswith(f"{package_prefix}{self.rapl_separator}")
+                for package_prefix in restarted_package_prefixes
+            ):
+                self.rapl_results[rapl_result.name] = rapl_result
+                continue
             previous_rapl_result = self.rapl_results.get(rapl_result.name, rapl_result)
+            elapsed_seconds = max(
+                (rapl_result.timestamp - previous_rapl_result.timestamp).total_seconds(),
+                0.0,
+            )
             # Round to the nearest second to make calculation stable over small IO delays
-            time_difference_seconds = round((rapl_result.timestamp - previous_rapl_result.timestamp).total_seconds())
-            if time_difference_seconds <= 0:
-                time_difference_seconds = 1
+            time_difference_seconds = max(round(elapsed_seconds), 1)
             energy_uj = rapl_result.energy_uj
             if previous_rapl_result.energy_uj > rapl_result.energy_uj:
                 logger.debug(
-                    f"Wrap-around detected in RAPL {rapl_result.name}. "
+                    f"The RAPL counter {rapl_result.name} moved backwards. "
                     f"The current RAPL energy value ({rapl_result.energy_uj}) "
                     f"is lower than previous value ({previous_rapl_result.energy_uj})."
                 )
                 energy_uj = energy_uj + rapl_result.max_energy_uj
+                if self._wrap_exceeds_max_power(
+                    name=rapl_result.name,
+                    joules=(energy_uj - previous_rapl_result.energy_uj) / _MICROJOULES_PER_JOULE,
+                    seconds=elapsed_seconds,
+                ):
+                    logger.warning(
+                        f"The wrap-adjusted RAPL reading for {rapl_result.name} exceeds its published maximum "
+                        f"power over this interval. Tracarbon is treating the counter as reset and leaving the "
+                        f"zone out of this measurement."
+                    )
+                    if domain == "package":
+                        restarted_package_prefixes.add(zone_prefix)
+                    self.rapl_results[rapl_result.name] = rapl_result
+                    continue
             watts = Power.watts_from_microjoules((energy_uj - previous_rapl_result.energy_uj) / time_difference_seconds)
             self.rapl_results[rapl_result.name] = rapl_result
-            domain = self._classify_domain(rapl_result.name)
             if domain in ("package", "memory"):
                 host_energy_usage_watts += watts
             if domain == "cpu":
