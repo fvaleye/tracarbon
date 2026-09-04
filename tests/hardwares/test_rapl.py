@@ -174,27 +174,37 @@ async def test_a_zone_that_was_restarted_is_not_credited_a_whole_range():
 
 
 @pytest.mark.asyncio
-@pytest.mark.linux
-@pytest.mark.darwin
-async def test_a_zone_that_wrapped_within_what_it_could_draw_is_still_corrected():
-    path = f"{pathlib.Path(__file__).parent.resolve()}/data/intel-rapl2"
-    two_seconds_ago = datetime.datetime.now() - datetime.timedelta(seconds=2)
-    rapl_separator_for_windows = "T"
-    a_reading_just_below_the_range_the_zone_wraps_at = 69990.0
-    rapl_results = {
-        "T0-package-0": RAPLResult(
-            name="T0-package-0",
-            energy_uj=a_reading_just_below_the_range_the_zone_wraps_at,
-            max_energy_uj=70000,
-            timestamp=two_seconds_ago,
-        )
-    }
-    rapl = RAPL(path=path, rapl_separator=rapl_separator_for_windows, rapl_results=rapl_results)
+async def test_a_wrap_above_long_term_power_is_still_corrected(mocker, tmpdir):
+    zone = tmpdir.mkdir("zone")
+    zone.join("constraint_0_name").write("long_term")
+    zone.join("constraint_0_max_power_uw").write("28000000")
+    now = datetime.datetime.now()
+    elapsed_seconds = 2
+    previous_energy_uj = 65500000000.0
+    max_energy_uj = 65532610987.0
+    wrapped_energy_joules = 80.0
+    current_result = RAPLResult(
+        name="T0-package-0",
+        energy_uj=previous_energy_uj + wrapped_energy_joules * Power.MICROJOULES_TO_WATT_FACTOR - max_energy_uj,
+        max_energy_uj=max_energy_uj,
+        timestamp=now,
+    )
+    rapl = RAPL(
+        rapl_results={
+            current_result.name: RAPLResult(
+                name=current_result.name,
+                energy_uj=previous_energy_uj,
+                max_energy_uj=max_energy_uj,
+                timestamp=now - datetime.timedelta(seconds=elapsed_seconds),
+            )
+        },
+        max_power_watts={current_result.name: await RAPL._read_max_power_watts(file_path=str(zone))},
+    )
+    mocker.patch.object(RAPL, "get_rapl_power_usage", return_value=[current_result])
 
     energy_report = await rapl.get_energy_report()
 
-    the_ten_microjoules_the_roll_accounts_for = 10.002 / 2 / Power.MICROJOULES_TO_WATT_FACTOR
-    assert energy_report.host_energy_usage == pytest.approx(the_ten_microjoules_the_roll_accounts_for)
+    assert energy_report.host_energy_usage == pytest.approx(40.0)
 
 
 @pytest.mark.asyncio
@@ -261,8 +271,11 @@ async def test_a_zone_publishing_no_ceiling_reads_as_none_at_all(tmpdir):
 @pytest.mark.asyncio
 async def test_the_peak_power_limit_is_read_when_the_zone_publishes_one(tmpdir):
     zone = tmpdir.mkdir("zone")
+    zone.join("constraint_0_name").write("long_term")
     zone.join("constraint_0_max_power_uw").write("28000000")
+    zone.join("constraint_1_name").write("short_term")
     zone.join("constraint_1_max_power_uw").write("35000000")
+    zone.join("constraint_2_name").write("peak_power")
     zone.join("constraint_2_max_power_uw").write("70000000")
 
     assert await RAPL._read_max_power_watts(file_path=str(zone)) == 70.0
@@ -284,7 +297,7 @@ async def test_the_ceiling_a_zone_publishes_is_read_once(mocker):
 
     assert read_after_the_first_report == len(rapl.max_power_watts)
     assert reading_the_ceiling.call_count == read_after_the_first_report
-    assert rapl.max_power_watts["T0-package-0"] == 28.0
+    assert rapl.max_power_watts["T0-package-0"] == 0.0
 
 
 @pytest.mark.asyncio

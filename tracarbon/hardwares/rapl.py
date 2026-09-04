@@ -113,17 +113,21 @@ class RAPL(BaseModel):
     @staticmethod
     async def _read_max_power_watts(file_path: str) -> float:
         """
-        Read the zone's highest published maximum power constraint.
+        Read the zone's highest short-term or peak power constraint.
 
-        Powercap publishes one constraint per power limit, and the peak power limit reads
-        highest on the processors that have one, so the largest readable value wins.
+        Long-term power can be exceeded during valid short bursts, so it cannot
+        reliably distinguish a counter reset from a wrap.
 
         :param file_path: the directory of the zone
-        :return: the published watts, or zero where the zone publishes none
+        :return: the published watts, or zero where the zone publishes neither
         """
         watts = 0.0
         for constraint in Path(file_path).glob("constraint_*_max_power_uw"):  # noqa: ASYNC240
             try:
+                constraint_name = constraint.with_name(constraint.name.replace("_max_power_uw", "_name"))
+                async with aiofiles.open(constraint_name) as published_name:
+                    if (await published_name.read()).strip() not in ("short_term", "peak_power"):
+                        continue
                 async with aiofiles.open(constraint) as published:
                     watts = max(watts, float(await published.read()) / _MICROWATTS_PER_WATT)
             except (OSError, ValueError):
