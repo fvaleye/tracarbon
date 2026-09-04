@@ -29,6 +29,14 @@ def test_energy_should_convert_watt_hours_to_co2g():
     assert round(watt_hours, 3) == watt_hours_expected
 
 
+def test_energy_should_report_no_watt_hours_without_a_previous_measurement():
+    watts = 45
+
+    watt_hours = Power.watts_to_watt_hours(watts=watts)
+
+    assert watt_hours == 0.0
+
+
 def test_energy_should_convert_watts_from_microjoules():
     uj = 4304343000
     watts_expected = 4304.343

@@ -112,19 +112,42 @@ class MacEnergyConsumption(EnergyConsumption):
     Uses powermetrics as the primary sensor for Apple Silicon, providing
     per-component power breakdown (CPU, GPU, ANE). Works on battery and plugged in.
 
-    Falls back to ioreg AdapterPower if powermetrics is not available (requires sudo).
-    The ioreg fallback only works when plugged into a wall adapter.
+    Falls back to ioreg SystemPower if powermetrics is not available (requires sudo).
+    SystemPower is what the system draws. AdapterPower would add the current charging the
+    battery on top, and is only read on hardware that reports no SystemPower.
     """
 
-    shell_command: str = """ioreg -rw0 -a -c AppleSmartBattery | plutil -extract '0.BatteryData.AdapterPower' raw -"""
+    shell_command: str = """ioreg -rw0 -a -c AppleSmartBattery | plutil -extract '0.BatteryData.SystemPower' raw -"""
+    adapter_shell_command: str = (
+        """ioreg -rw0 -a -c AppleSmartBattery | plutil -extract '0.BatteryData.AdapterPower' raw -"""
+    )
     _active_sensor: str = ""
+
+    @staticmethod
+    async def _read_power(shell_command: str) -> float | None:
+        """
+        Read a power value in watts from ioreg.
+
+        :param shell_command: the command reading one key of the battery data
+        :return: the power in watts, or None if the hardware reports no such key
+        """
+        proc = await asyncio.create_subprocess_shell(
+            shell_command,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        result, _ = await proc.communicate()
+        try:
+            return float(result)
+        except ValueError:
+            return None
 
     async def get_energy_usage(self) -> EnergyUsage:
         """
         Run the sensor and generate energy usage.
 
         Tries powermetrics first for per-component breakdown (CPU, GPU, ANE),
-        falls back to ioreg AdapterPower + separate GPU query.
+        falls back to ioreg SystemPower + separate GPU query.
 
         :return: the generated energy usage.
         """
@@ -143,23 +166,22 @@ class MacEnergyConsumption(EnergyConsumption):
         except Exception:
             logger.debug("powermetrics not available, falling back to ioreg")
 
-        if self._active_sensor != "ioreg":
-            logger.info("Using ioreg AdapterPower for energy measurement (plugged-in only)")
-            self._active_sensor = "ioreg"
-        proc = await asyncio.create_subprocess_shell(
-            self.shell_command,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        result, _ = await proc.communicate()
+        host_power, sensor = 0.0, "ioreg"
+        for candidate, shell_command in (
+            ("ioreg SystemPower", self.shell_command),
+            ("ioreg AdapterPower", self.adapter_shell_command),
+        ):
+            reading = await self._read_power(shell_command)
+            if reading is not None:
+                host_power, sensor = reading, candidate
+                break
+        else:
+            logger.warning("ioreg reports no power on this hardware, the host is reported as drawing none.")
+        if self._active_sensor != sensor:
+            logger.info(f"Using {sensor} for energy measurement")
+            self._active_sensor = sensor
 
         gpu_power = GPUInfo.get_gpu_power_usage_or_none()
-
-        try:
-            host_power = float(result)
-        except ValueError:
-            logger.debug(f"ioreg AdapterPower unavailable (no battery or unplugged): {result!r}")
-            host_power = 0.0
 
         return EnergyUsage(host_energy_usage=host_power, gpu_energy_usage=gpu_power)
 

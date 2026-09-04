@@ -406,3 +406,39 @@ def test_powermetrics_get_combined_power_returns_none_on_failure(mocker):
     combined = AppleSiliconPowerMetrics.get_combined_power()
 
     assert combined is None
+
+
+def test_apple_silicon_power_metrics_asks_for_the_dedicated_ane_sampler(mocker):
+    run_powermetrics = mocker.patch.object(AppleSiliconPowerMetrics, "_run_powermetrics", return_value=(b"", 0, b""))
+
+    AppleSiliconPowerMetrics.launch_shell_command()
+
+    assert run_powermetrics.call_count == 1
+    assert "ane_power" in run_powermetrics.call_args.args[0]
+
+
+def test_apple_silicon_power_metrics_asks_again_without_ane_when_the_sampler_is_rejected(mocker):
+    run_powermetrics = mocker.patch.object(
+        AppleSiliconPowerMetrics,
+        "_run_powermetrics",
+        side_effect=[(b"", 1, b"unrecognized sampler: ane_power"), (b"CPU Power: 3000 mW", 0, b"")],
+    )
+
+    output, return_code = AppleSiliconPowerMetrics.launch_shell_command()
+
+    assert return_code == 0
+    assert run_powermetrics.call_count == 2
+    assert "ane_power" not in run_powermetrics.call_args.args[0]
+
+
+def test_apple_silicon_power_metrics_does_not_ask_again_when_it_lacks_the_privileges(mocker):
+    run_powermetrics = mocker.patch.object(
+        AppleSiliconPowerMetrics,
+        "_run_powermetrics",
+        return_value=(b"", 1, b"powermetrics must be invoked as the superuser"),
+    )
+
+    output, return_code = AppleSiliconPowerMetrics.launch_shell_command()
+
+    assert return_code == 1
+    assert run_powermetrics.call_count == 1

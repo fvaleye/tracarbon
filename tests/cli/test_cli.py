@@ -2,6 +2,7 @@ import pytest
 from kubernetes import config
 
 from tracarbon import CarbonEmission
+from tracarbon import CarbonUsage
 from tracarbon import Country
 from tracarbon import EnergyUsage
 from tracarbon import Kubernetes
@@ -40,6 +41,13 @@ def test_run_metrics_should_be_ok(mocker, caplog):
     energy_usage = EnergyUsage(host_energy_usage=60.0)
     mocker.patch.object(config, "load_kube_config", return_value=None)
     mocker.patch.object(MacEnergyConsumption, "get_energy_usage", return_value=energy_usage)
+    mocker.patch.object(
+        CarbonEmission,
+        "get_co2_usage",
+        side_effect=lambda: CarbonUsage(
+            host_carbon_usage=0.02, cpu_carbon_usage=0.01, memory_carbon_usage=0.005, gpu_carbon_usage=0.005
+        ),
+    )
 
     run_metrics(exporter_name=exporter, running=False)
 
