@@ -1,3 +1,4 @@
+import asyncio
 from urllib.parse import parse_qs
 from urllib.parse import urlparse
 
@@ -11,6 +12,76 @@ from tracarbon.locations import CarbonIntensityMetadata
 from tracarbon.locations import CarbonIntensitySource
 from tracarbon.locations import Country
 from tracarbon.locations.location import EmissionFactorType
+
+
+@pytest.mark.parametrize("source", [CarbonIntensitySource.CO2SignalAPI, CarbonIntensitySource.ElectricityMapsAPI])
+def test_carbon_intensity_cache_expires_across_event_loops(mocker, monkeypatch, source):
+    monkeypatch.setenv("AIOCACHE_DISABLE", "0")
+    clock = mocker.patch("time.monotonic", return_value=1000.0)
+    request = mocker.patch.object(Country, "request", return_value={"carbonIntensity": 100.0})
+    country = Country(
+        name="cache-expiry",
+        co2signal_api_key="API_KEY",
+        co2signal_url="https://api.electricitymaps.com/v4/carbon-intensity/latest",
+        co2g_kwh_source=source,
+        co2g_kwh=100.0,
+        carbon_intensity_metadata=CarbonIntensityMetadata(
+            source=source,
+            co2g_kwh=100.0,
+            zone="cache-expiry",
+            emission_factor_type=(
+                EmissionFactorType.LIFECYCLE if source == CarbonIntensitySource.ElectricityMapsAPI else None
+            ),
+        ),
+    )
+
+    assert asyncio.run(country.get_latest_co2g_kwh()) == 100.0
+    request.return_value = {"carbonIntensity": 200.0}
+    clock.return_value = 4599.0
+    assert asyncio.run(country.get_latest_co2g_kwh()) == 100.0
+    assert request.await_count == 1
+
+    clock.return_value = 4600.0
+    assert asyncio.run(country.get_latest_co2g_kwh()) == 200.0
+    assert request.await_count == 2
+    assert country.carbon_intensity_metadata.co2g_kwh == 200.0
+
+    clock.return_value = 8200.0
+    request.side_effect = RuntimeError("api failed")
+    assert asyncio.run(country.get_latest_co2g_kwh()) == 200.0
+    assert country.carbon_intensity_metadata.fallback_used
+    clock.return_value = 11799.0
+    assert asyncio.run(country.get_latest_co2g_kwh()) == 200.0
+    assert request.await_count == 3
+
+    clock.return_value = 11800.0
+    request.side_effect = None
+    request.return_value = {"carbonIntensity": 300.0}
+    assert asyncio.run(country.get_latest_co2g_kwh()) == 300.0
+    assert request.await_count == 4
+    assert not country.carbon_intensity_metadata.fallback_used
+
+
+@pytest.mark.parametrize("changed_field", ["name", "co2signal_api_key", "AIOCACHE_DISABLE"])
+def test_carbon_intensity_cache_respects_configuration_changes(mocker, monkeypatch, changed_field):
+    monkeypatch.setenv("AIOCACHE_DISABLE", "0")
+    request = mocker.patch.object(Country, "request", return_value={"carbonIntensity": 100.0})
+    country = Country(
+        name="FR",
+        co2signal_api_key="API_KEY",
+        co2g_kwh_source=CarbonIntensitySource.CO2SignalAPI,
+    )
+    assert asyncio.run(country.get_latest_co2g_kwh()) == 100.0
+    assert asyncio.run(country.get_latest_co2g_kwh()) == 100.0
+    assert request.await_count == 1
+
+    if changed_field == "AIOCACHE_DISABLE":
+        monkeypatch.setenv(changed_field, "1")
+    else:
+        setattr(country, changed_field, "changed")
+    request.return_value = {"carbonIntensity": 200.0}
+    assert asyncio.run(country.get_latest_co2g_kwh()) == 200.0
+    assert request.await_count == 2
 
 
 @pytest.mark.asyncio
