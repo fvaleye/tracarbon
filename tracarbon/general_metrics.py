@@ -65,6 +65,9 @@ class CarbonEmissionGenerator(MetricGenerator):
     carbon_emission: CarbonEmission
     co2signal_api_key: str | None = None
 
+    def reset(self) -> None:
+        self.carbon_emission.reset()
+
     def __init__(self, location: Location | None = None, **data: Any) -> None:
         if not location:
             location = Country.get_location()
@@ -201,6 +204,9 @@ if KUBERNETES_INSTALLED:
         carbon_emission: CarbonEmission
         kubernetes: Kubernetes
         co2signal_api_key: str | None = None
+
+        def reset(self) -> None:
+            self.carbon_emission.reset()
 
         def __init__(self, location: Location, **data: Any) -> None:
             if "carbon_emission" not in data:
