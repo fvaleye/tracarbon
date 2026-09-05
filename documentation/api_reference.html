@@ -50,7 +50,7 @@
     <link rel="prev" title="Usage" href="usage.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.10.2" />
+  <meta name="docsearch:version" content="0.11.0" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -503,7 +503,7 @@
 <span id="configuration"></span><h2>Configuration<a class="headerlink" href="#module-tracarbon.conf" title="Link to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.conf.TracarbonConfiguration">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.conf.</span></span><span class="sig-name descname"><span class="pre">TracarbonConfiguration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric_prefix_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tracarbon'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_in_seconds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'INFO'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'https://api.electricitymaps.com/v3/carbon-intensity/latest'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emission_factor_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lifecycle'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_file_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.conf.TracarbonConfiguration" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.conf.</span></span><span class="sig-name descname"><span class="pre">TracarbonConfiguration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric_prefix_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tracarbon'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_in_seconds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'INFO'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'https://api.electricitymaps.com/v4/carbon-intensity/latest'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emission_factor_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lifecycle'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_file_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.conf.TracarbonConfiguration" title="Link to this definition">#</a></dt>
 <dd><p>The Configuration of Tracarbon.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -572,8 +572,11 @@
 <span class="sig-name descname"><span class="pre">stop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.builder.Tracarbon.stop" title="Link to this definition">#</a></dt>
 <dd><p>Stop Tracarbon.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>None</p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the total CO2 grams the host emitted since Tracarbon started</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float | None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -582,7 +585,7 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.builder.TracarbonBuilder">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.builder.</span></span><span class="sig-name descname"><span class="pre">TracarbonBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exporter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configuration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">TracarbonConfiguration(metric_prefix_name='test',</span> <span class="pre">log_level='INFO',</span> <span class="pre">interval_in_seconds=1,</span> <span class="pre">co2signal_api_key='',</span> <span class="pre">co2signal_url='https://api.electricitymaps.com/v3/carbon-intensity/latest',</span> <span class="pre">emission_factor_type='lifecycle')</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.builder.TracarbonBuilder" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.builder.</span></span><span class="sig-name descname"><span class="pre">TracarbonBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exporter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configuration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">TracarbonConfiguration(metric_prefix_name='test',</span> <span class="pre">log_level='INFO',</span> <span class="pre">interval_in_seconds=1,</span> <span class="pre">co2signal_api_key='',</span> <span class="pre">co2signal_url='https://api.electricitymaps.com/v4/carbon-intensity/latest',</span> <span class="pre">emission_factor_type='lifecycle')</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.builder.TracarbonBuilder" title="Link to this definition">#</a></dt>
 <dd><p>Tracarbon builder for building Tracarbon.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -661,6 +664,17 @@
 <dt class="sig sig-object py" id="tracarbon.builder.TracarbonReport.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'arbitrary_types_allowed':</span> <span class="pre">True}</span></em><a class="headerlink" href="#tracarbon.builder.TracarbonReport.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="tracarbon.builder.TracarbonReport.total_co2g">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">total_co2g</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#tracarbon.builder.TracarbonReport.total_co2g" title="Link to this definition">#</a></dt>
+<dd><p>Get the CO2 grams the host emitted since Tracarbon started.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the total CO2 grams, or None if no host carbon emission was reported</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -798,13 +812,14 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.hardwares.containers.Kubernetes">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.containers.</span></span><span class="sig-name descname"><span class="pre">Kubernetes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">namespaces</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'metrics.k8s.io'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'v1beta1'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.containers.Kubernetes" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.containers.</span></span><span class="sig-name descname"><span class="pre">Kubernetes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">namespaces</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'metrics.k8s.io'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'v1beta1'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.containers.Kubernetes" title="Link to this definition">#</a></dt>
 <dd><p>Kubernetes client.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>namespaces</strong> (<em>List</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>)</p></li>
 <li><p><strong>api</strong> (<em>CustomObjectsApi</em>)</p></li>
+<li><p><strong>node_name</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>group</strong> (<em>str</em>)</p></li>
 <li><p><strong>version</strong> (<em>str</em>)</p></li>
 </ul>
@@ -834,6 +849,29 @@
 <dt class="sig sig-object py" id="tracarbon.hardwares.containers.Kubernetes.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'arbitrary_types_allowed':</span> <span class="pre">True}</span></em><a class="headerlink" href="#tracarbon.hardwares.containers.Kubernetes.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.hardwares.containers.Kubernetes.model_post_init">
+<span class="sig-name descname"><span class="pre">model_post_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.containers.Kubernetes.model_post_init" title="Link to this definition">#</a></dt>
+<dd><p>This function is meant to behave like a BaseModel method to initialize private attributes.</p>
+<p>It takes context as an argument since that’s what pydantic-core passes when calling it.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>self: The BaseModel instance.
+context: The context.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<em>BaseModel</em>)</p></li>
+<li><p><strong>context</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -966,6 +1004,29 @@
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.hardwares.energy.Power.watt_hours_from_watts_over">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">watt_hours_from_watts_over</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">watts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seconds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.energy.Power.watt_hours_from_watts_over" title="Link to this definition">#</a></dt>
+<dd><p>Get the energy a constant wattage delivers over a window.</p>
+<p>The wattage is held flat over the window, so a shorter window smooths away less of a
+varying load. The caller measures the window, so a clock that can be stepped by an
+adjustment never reaches the energy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>watts</strong> (<em>float</em>) – the wattage in W</p></li>
+<li><p><strong>seconds</strong> (<em>float</em>) – the duration of the window</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>watt-hours W/h</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="tracarbon.hardwares.energy.Power.watts_from_microjoules">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">watts_from_microjoules</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.energy.Power.watts_from_microjoules" title="Link to this definition">#</a></dt>
 <dd><p>Get watts from microjoules.</p>
@@ -989,6 +1050,9 @@
 <dt class="sig sig-object py" id="tracarbon.hardwares.energy.Power.watts_to_watt_hours">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">watts_to_watt_hours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">watts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">previous_energy_measurement_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.energy.Power.watts_to_watt_hours" title="Link to this definition">#</a></dt>
 <dd><p>Convert current watts to watt-hours W/h using the previous energy measurement.</p>
+<p>The wattage is held flat over the interval, so a shorter interval smooths away less of a
+varying load. The first measurement has no interval behind it and returns zero: it only
+opens the window.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1108,6 +1172,9 @@ Delegates to AppleSiliconPowerMetrics.</p>
 <dd><p>Apple Silicon power metrics using powermetrics.
 Parses CPU, GPU, and ANE power from powermetrics output.
 Note: powermetrics requires sudo privileges.</p>
+<p>The ANE runs on its own rail and powermetrics reports it through its own sampler, so asking
+for cpu_power and gpu_power alone returns no ANE line at all. Hardware old enough to have no
+ANE rail rejects the sampler, and the samplers are asked for again without it.</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py method">
@@ -1142,7 +1209,9 @@ Falls back to summing individual components if Combined Power line is not found.
 <dl class="py method">
 <dt class="sig sig-object py" id="tracarbon.hardwares.gpu.AppleSiliconPowerMetrics.launch_shell_command">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">launch_shell_command</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.gpu.AppleSiliconPowerMetrics.launch_shell_command" title="Link to this definition">#</a></dt>
-<dd><p>Launch powermetrics to query CPU and GPU power.</p>
+<dd><p>Launch powermetrics to query CPU, GPU and ANE power.</p>
+<p>Hardware with no ANE rail rejects the sampler by name. Every other failure, a missing
+privilege above all, fails the same way without it, so it is not worth asking twice.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>result of the shell command and returncode</p>
@@ -1249,9 +1318,28 @@ Supports multiple GPUs by summing power consumption.</p>
 
 </dd></dl>
 
+<dl class="py class" id="module-tracarbon.hardwares.ioreport">
+<dt class="sig sig-object py" id="tracarbon.hardwares.ioreport.IOReportEnergy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.ioreport.</span></span><span class="sig-name descname"><span class="pre">IOReportEnergy</span></span><a class="headerlink" href="#tracarbon.hardwares.ioreport.IOReportEnergy" title="Link to this definition">#</a></dt>
+<dd><p>Report average Apple Silicon power between consecutive IOReport samples.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.hardwares.ioreport.IOReportEnergy.get_energy_report">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_energy_report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.ioreport.IOReportEnergy.get_energy_report" title="Link to this definition">#</a></dt>
+<dd><p>Return watts per component, including ANE energy in the host total.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#tracarbon.hardwares.energy.EnergyUsage" title="tracarbon.hardwares.energy.EnergyUsage"><em>EnergyUsage</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py class" id="module-tracarbon.hardwares.rapl">
 <dt class="sig sig-object py" id="tracarbon.hardwares.rapl.RAPL">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.rapl.</span></span><span class="sig-name descname"><span class="pre">RAPL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path='/sys/class/powercap/intel-rapl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rapl_separator=':'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rapl_results=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_list=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.rapl.RAPL" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.rapl.</span></span><span class="sig-name descname"><span class="pre">RAPL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path='/sys/class/powercap/intel-rapl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rapl_separator=':'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rapl_results=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_list=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_power_watts=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.rapl.RAPL" title="Link to this definition">#</a></dt>
 <dd><p>RAPL to read energy consumption with Intel hardware</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1260,6 +1348,7 @@ Supports multiple GPUs by summing power consumption.</p>
 <li><p><strong>rapl_separator</strong> (<em>str</em>)</p></li>
 <li><p><strong>rapl_results</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="#tracarbon.hardwares.rapl.RAPLResult" title="tracarbon.hardwares.rapl.RAPLResult"><em>RAPLResult</em></a><em>]</em>)</p></li>
 <li><p><strong>file_list</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>)</p></li>
+<li><p><strong>max_power_watts</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -1330,7 +1419,7 @@ In this case, max_energy_range_uj contanst must be returned.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.hardwares.rapl.RAPLResult">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.rapl.</span></span><span class="sig-name descname"><span class="pre">RAPLResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_uj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_energy_uj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.rapl.RAPLResult" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.rapl.</span></span><span class="sig-name descname"><span class="pre">RAPLResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_uj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_energy_uj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monotonic_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.rapl.RAPLResult" title="Link to this definition">#</a></dt>
 <dd><p>RAPL result after reading the RAPL registry.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1339,6 +1428,7 @@ In this case, max_energy_range_uj contanst must be returned.</p>
 <li><p><strong>energy_uj</strong> (<em>float</em>)</p></li>
 <li><p><strong>max_energy_uj</strong> (<em>float</em>)</p></li>
 <li><p><strong>timestamp</strong> (<em>datetime</em>)</p></li>
+<li><p><strong>monotonic_time</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -1600,6 +1690,9 @@ For RAM measurements, the package domain includes integrated memory controller.<
 <dd><p>Apple Silicon power metrics using powermetrics.
 Parses CPU, GPU, and ANE power from powermetrics output.
 Note: powermetrics requires sudo privileges.</p>
+<p>The ANE runs on its own rail and powermetrics reports it through its own sampler, so asking
+for cpu_power and gpu_power alone returns no ANE line at all. Hardware old enough to have no
+ANE rail rejects the sampler, and the samplers are asked for again without it.</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py method">
@@ -1634,7 +1727,9 @@ Falls back to summing individual components if Combined Power line is not found.
 <dl class="py method">
 <dt class="sig sig-object py" id="tracarbon.hardwares.sensors.AppleSiliconPowerMetrics.launch_shell_command">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">launch_shell_command</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.AppleSiliconPowerMetrics.launch_shell_command" title="Link to this definition">#</a></dt>
-<dd><p>Launch powermetrics to query CPU and GPU power.</p>
+<dd><p>Launch powermetrics to query CPU, GPU and ANE power.</p>
+<p>Hardware with no ANE rail rejects the sampler by name. Every other failure, a missing
+privilege above all, fails the same way without it, so it is not worth asking twice.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>result of the shell command and returncode</p>
@@ -1998,7 +2093,7 @@ Auto-detects GPU type and falls back to 0.0 if no GPU is found.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.hardwares.sensors.LinuxEnergyConsumption">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.sensors.</span></span><span class="sig-name descname"><span class="pre">LinuxEnergyConsumption</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rapl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">RAPL(path='/sys/class/powercap/intel-rapl',</span> <span class="pre">rapl_separator=':',</span> <span class="pre">rapl_results={},</span> <span class="pre">file_list=[])</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amd_rapl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">AMDRAPL(hwmon_base_path='/sys/class/hwmon',</span> <span class="pre">amd_energy_path=None,</span> <span class="pre">rapl_results={},</span> <span class="pre">energy_files=[])</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.LinuxEnergyConsumption" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.sensors.</span></span><span class="sig-name descname"><span class="pre">LinuxEnergyConsumption</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rapl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">RAPL(path='/sys/class/powercap/intel-rapl',</span> <span class="pre">rapl_separator=':',</span> <span class="pre">rapl_results={},</span> <span class="pre">file_list=[],</span> <span class="pre">max_power_watts={})</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amd_rapl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">AMDRAPL(hwmon_base_path='/sys/class/hwmon',</span> <span class="pre">amd_energy_path=None,</span> <span class="pre">rapl_results={},</span> <span class="pre">energy_files=[])</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.LinuxEnergyConsumption" title="Link to this definition">#</a></dt>
 <dd><p>Energy Consumption of a Linux device.</p>
 <p>Supports both Intel and AMD processors via RAPL:
 - Intel: Uses powercap interface at /sys/class/powercap/intel-rapl
@@ -2064,17 +2159,21 @@ context: The context.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.hardwares.sensors.MacEnergyConsumption">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.sensors.</span></span><span class="sig-name descname"><span class="pre">MacEnergyConsumption</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shell_command</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&quot;ioreg</span> <span class="pre">-rw0</span> <span class="pre">-a</span> <span class="pre">-c</span> <span class="pre">AppleSmartBattery</span> <span class="pre">|</span> <span class="pre">plutil</span> <span class="pre">-extract</span> <span class="pre">'0.BatteryData.AdapterPower'</span> <span class="pre">raw</span> <span class="pre">-&quot;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.MacEnergyConsumption" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.sensors.</span></span><span class="sig-name descname"><span class="pre">MacEnergyConsumption</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shell_command</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&quot;ioreg</span> <span class="pre">-rw0</span> <span class="pre">-a</span> <span class="pre">-c</span> <span class="pre">AppleSmartBattery</span> <span class="pre">|</span> <span class="pre">plutil</span> <span class="pre">-extract</span> <span class="pre">'0.BatteryData.SystemPower'</span> <span class="pre">raw</span> <span class="pre">-&quot;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adapter_shell_command</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&quot;ioreg</span> <span class="pre">-rw0</span> <span class="pre">-a</span> <span class="pre">-c</span> <span class="pre">AppleSmartBattery</span> <span class="pre">|</span> <span class="pre">plutil</span> <span class="pre">-extract</span> <span class="pre">'0.BatteryData.AdapterPower'</span> <span class="pre">raw</span> <span class="pre">-&quot;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.MacEnergyConsumption" title="Link to this definition">#</a></dt>
 <dd><p>Energy Consumption of a Mac in watts.</p>
-<p>Uses powermetrics as the primary sensor for Apple Silicon, providing
-per-component power breakdown (CPU, GPU, ANE). Works on battery and plugged in.</p>
-<p>Falls back to ioreg AdapterPower if powermetrics is not available (requires sudo).
-The ioreg fallback only works when plugged into a wall adapter.</p>
+<p>Reads the IOReport energy counters on Apple Silicon, which give the energy of an interval
+rather than a power reading held over it, need no elevated privileges and cover CPU, GPU,
+memory and ANE.</p>
+<p>Falls back to powermetrics, which measures the same components but has to be run as root, and
+then to the system power ioreg reports. That last one is the power of the whole machine rather
+than of the chip, and the battery only refreshes it every few tens of seconds, so it does not
+follow what the machine computes and is a last resort.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>init</strong> (<em>bool</em>)</p></li>
 <li><p><strong>shell_command</strong> (<em>str</em>)</p></li>
+<li><p><strong>adapter_shell_command</strong> (<em>str</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -2082,8 +2181,8 @@ The ioreg fallback only works when plugged into a wall adapter.</p>
 <dt class="sig sig-object py" id="tracarbon.hardwares.sensors.MacEnergyConsumption.get_energy_usage">
 <em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_energy_usage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.MacEnergyConsumption.get_energy_usage" title="Link to this definition">#</a></dt>
 <dd><p>Run the sensor and generate energy usage.</p>
-<p>Tries powermetrics first for per-component breakdown (CPU, GPU, ANE),
-falls back to ioreg AdapterPower + separate GPU query.</p>
+<p>Tries the IOReport energy counters first, then powermetrics for the same components, then
+the system power ioreg reports for the whole machine.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>the generated energy usage.</p>
@@ -2127,7 +2226,7 @@ context: The context.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.hardwares.sensors.RAPL">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.sensors.</span></span><span class="sig-name descname"><span class="pre">RAPL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path='/sys/class/powercap/intel-rapl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rapl_separator=':'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rapl_results=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_list=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.RAPL" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.sensors.</span></span><span class="sig-name descname"><span class="pre">RAPL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path='/sys/class/powercap/intel-rapl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rapl_separator=':'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rapl_results=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_list=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_power_watts=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.RAPL" title="Link to this definition">#</a></dt>
 <dd><p>RAPL to read energy consumption with Intel hardware</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -2136,6 +2235,7 @@ context: The context.</p>
 <li><p><strong>rapl_separator</strong> (<em>str</em>)</p></li>
 <li><p><strong>rapl_results</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="#tracarbon.hardwares.rapl.RAPLResult" title="tracarbon.hardwares.rapl.RAPLResult"><em>RAPLResult</em></a><em>]</em>)</p></li>
 <li><p><strong>file_list</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>)</p></li>
+<li><p><strong>max_power_watts</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -2442,6 +2542,20 @@ context: The context.</p>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.exporters.exporter.Metric.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.Metric.unit" title="Link to this definition">#</a></dt>
+<dd><p>Get the unit the values of this metric are reported in.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the unit, or None if the metric declares none</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str | None</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -2478,8 +2592,11 @@ context: The context.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.exporters.exporter.MetricReport">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.exporter.</span></span><span class="sig-name descname"><span class="pre">MetricReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exporter_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average_interval_in_seconds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_report_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.7976931348623157e+308</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">call_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.MetricReport" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exporters.exporter.</span></span><span class="sig-name descname"><span class="pre">MetricReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exporter_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average_interval_in_seconds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_report_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.7976931348623157e+308</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">call_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.MetricReport" title="Link to this definition">#</a></dt>
 <dd><p>MetricReport is a report of the generated metrics.</p>
+<p>A metric reported in watts is power, so it is integrated over the interval it was measured on
+and totalled as the watt-hours total_unit carries. Every series sharing a metric name is
+integrated on its own interval.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -2488,6 +2605,7 @@ context: The context.</p>
 <li><p><strong>average_interval_in_seconds</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>last_report_time</strong> (<em>datetime</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>total</strong> (<em>float</em>)</p></li>
+<li><p><strong>total_unit</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>average</strong> (<em>float</em>)</p></li>
 <li><p><strong>minimum</strong> (<em>float</em>)</p></li>
 <li><p><strong>maximum</strong> (<em>float</em>)</p></li>
@@ -2495,10 +2613,51 @@ context: The context.</p>
 </ul>
 </dd>
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.exporters.exporter.MetricReport.accumulate">
+<span class="sig-name descname"><span class="pre">accumulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">measured_at</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.MetricReport.accumulate" title="Link to this definition">#</a></dt>
+<dd><p>Add one reported value to the running total, the average and the bounds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>metric</strong> (<a class="reference internal" href="#tracarbon.exporters.exporter.Metric" title="tracarbon.exporters.exporter.Metric"><em>Metric</em></a>) – the metric the value was reported for</p></li>
+<li><p><strong>value</strong> (<em>float</em>) – the reported value</p></li>
+<li><p><strong>measured_at</strong> (<em>float</em>) – when it was reported, on a clock that only moves forward</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="tracarbon.exporters.exporter.MetricReport.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'arbitrary_types_allowed':</span> <span class="pre">True}</span></em><a class="headerlink" href="#tracarbon.exporters.exporter.MetricReport.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.exporters.exporter.MetricReport.model_post_init">
+<span class="sig-name descname"><span class="pre">model_post_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.MetricReport.model_post_init" title="Link to this definition">#</a></dt>
+<dd><p>This function is meant to behave like a BaseModel method to initialize private attributes.</p>
+<p>It takes context as an argument since that’s what pydantic-core passes when calling it.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>self: The BaseModel instance.
+context: The context.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<em>BaseModel</em>)</p></li>
+<li><p><strong>context</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -2893,11 +3052,34 @@ context: The context.</p>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.emissions.carbon_emissions.CarbonEmission.model_post_init">
+<span class="sig-name descname"><span class="pre">model_post_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.emissions.carbon_emissions.CarbonEmission.model_post_init" title="Link to this definition">#</a></dt>
+<dd><p>This function is meant to behave like a BaseModel method to initialize private attributes.</p>
+<p>It takes context as an argument since that’s what pydantic-core passes when calling it.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>self: The BaseModel instance.
+context: The context.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<em>BaseModel</em>)</p></li>
+<li><p><strong>context</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.emissions.carbon_emissions.CarbonUsage">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.emissions.carbon_emissions.</span></span><span class="sig-name descname"><span class="pre">CarbonUsage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">host_carbon_usage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpu_carbon_usage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_carbon_usage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gpu_carbon_usage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CarbonUsageUnit.CO2_G</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.emissions.carbon_emissions.CarbonUsage" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.emissions.carbon_emissions.</span></span><span class="sig-name descname"><span class="pre">CarbonUsage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">host_carbon_usage=0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpu_carbon_usage=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_carbon_usage=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gpu_carbon_usage=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit=CarbonUsageUnit.CO2_G</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">carbon_intensity_metadata=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.emissions.carbon_emissions.CarbonUsage" title="Link to this definition">#</a></dt>
 <dd><p>Carbon Usage of the different types.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -2907,6 +3089,7 @@ context: The context.</p>
 <li><p><strong>memory_carbon_usage</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>gpu_carbon_usage</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>unit</strong> (<a class="reference internal" href="#tracarbon.emissions.carbon_emissions.CarbonUsageUnit" title="tracarbon.emissions.carbon_emissions.CarbonUsageUnit"><em>CarbonUsageUnit</em></a>)</p></li>
+<li><p><strong>carbon_intensity_metadata</strong> (<a class="reference internal" href="#tracarbon.locations.location.CarbonIntensityMetadata" title="tracarbon.locations.location.CarbonIntensityMetadata"><em>CarbonIntensityMetadata</em></a>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -2965,6 +3148,33 @@ context: The context.</p>
 <section id="module-tracarbon.locations.location">
 <span id="locations"></span><h2>Locations<a class="headerlink" href="#module-tracarbon.locations.location" title="Link to this heading">#</a></h2>
 <dl class="py class">
+<dt class="sig sig-object py" id="tracarbon.locations.location.CarbonIntensityMetadata">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.location.</span></span><span class="sig-name descname"><span class="pre">CarbonIntensityMetadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CarbonIntensitySource.FILE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">updated_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emission_factor_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_estimated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimation_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fallback_used</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.location.CarbonIntensityMetadata" title="Link to this definition">#</a></dt>
+<dd><p>Metadata about the carbon intensity value used for emission calculations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> (<a class="reference internal" href="#tracarbon.locations.location.CarbonIntensitySource" title="tracarbon.locations.location.CarbonIntensitySource"><em>CarbonIntensitySource</em></a>)</p></li>
+<li><p><strong>co2g_kwh</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>zone</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>datetime</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>updated_at</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>emission_factor_type</strong> (<a class="reference internal" href="#tracarbon.locations.location.EmissionFactorType" title="tracarbon.locations.location.EmissionFactorType"><em>EmissionFactorType</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>is_estimated</strong> (<em>bool</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>estimation_method</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>fallback_used</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tracarbon.locations.location.CarbonIntensityMetadata.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#tracarbon.locations.location.CarbonIntensityMetadata.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.locations.location.CarbonIntensitySource">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.location.</span></span><span class="sig-name descname"><span class="pre">CarbonIntensitySource</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.location.CarbonIntensitySource" title="Link to this definition">#</a></dt>
 <dd><p>An enumeration.</p>
@@ -2978,7 +3188,7 @@ context: The context.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.locations.location.Location">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.location.</span></span><span class="sig-name descname"><span class="pre">Location</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CarbonIntensitySource.FILE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emission_factor_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">EmissionFactorType.LIFECYCLE</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.location.Location" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.location.</span></span><span class="sig-name descname"><span class="pre">Location</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh_source=CarbonIntensitySource.FILE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_url=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emission_factor_type=EmissionFactorType.LIFECYCLE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">carbon_intensity_metadata=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.location.Location" title="Link to this definition">#</a></dt>
 <dd><p>Generic Location.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -2987,8 +3197,9 @@ context: The context.</p>
 <li><p><strong>co2g_kwh_source</strong> (<a class="reference internal" href="#tracarbon.locations.location.CarbonIntensitySource" title="tracarbon.locations.location.CarbonIntensitySource"><em>CarbonIntensitySource</em></a>)</p></li>
 <li><p><strong>co2signal_api_key</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>co2signal_url</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
-<li><p><strong>co2g_kwh</strong> (<em>float</em>)</p></li>
+<li><p><strong>co2g_kwh</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>emission_factor_type</strong> (<a class="reference internal" href="#tracarbon.locations.location.EmissionFactorType" title="tracarbon.locations.location.EmissionFactorType"><em>EmissionFactorType</em></a>)</p></li>
+<li><p><strong>carbon_intensity_metadata</strong> (<a class="reference internal" href="#tracarbon.locations.location.CarbonIntensityMetadata" title="tracarbon.locations.location.CarbonIntensityMetadata"><em>CarbonIntensityMetadata</em></a>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -3036,7 +3247,7 @@ context: The context.</p>
 
 <dl class="py class" id="module-tracarbon.locations.country">
 <dt class="sig sig-object py" id="tracarbon.locations.country.AWSLocation">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.country.</span></span><span class="sig-name descname"><span class="pre">AWSLocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">region_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CarbonIntensitySource.FILE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emission_factor_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">EmissionFactorType.LIFECYCLE</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.AWSLocation" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.country.</span></span><span class="sig-name descname"><span class="pre">AWSLocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">region_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh_source=CarbonIntensitySource.FILE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_url=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emission_factor_type=EmissionFactorType.LIFECYCLE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">carbon_intensity_metadata=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_center_provider=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_center_region=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.AWSLocation" title="Link to this definition">#</a></dt>
 <dd><p>AWS Location.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -3046,8 +3257,11 @@ context: The context.</p>
 <li><p><strong>co2g_kwh_source</strong> (<a class="reference internal" href="#tracarbon.locations.location.CarbonIntensitySource" title="tracarbon.locations.location.CarbonIntensitySource"><em>CarbonIntensitySource</em></a>)</p></li>
 <li><p><strong>co2signal_api_key</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>co2signal_url</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
-<li><p><strong>co2g_kwh</strong> (<em>float</em>)</p></li>
+<li><p><strong>co2g_kwh</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>emission_factor_type</strong> (<a class="reference internal" href="#tracarbon.locations.location.EmissionFactorType" title="tracarbon.locations.location.EmissionFactorType"><em>EmissionFactorType</em></a>)</p></li>
+<li><p><strong>carbon_intensity_metadata</strong> (<a class="reference internal" href="#tracarbon.locations.location.CarbonIntensityMetadata" title="tracarbon.locations.location.CarbonIntensityMetadata"><em>CarbonIntensityMetadata</em></a>)</p></li>
+<li><p><strong>data_center_provider</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>data_center_region</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -3089,7 +3303,7 @@ context: The context.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.locations.country.AzureLocation">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.country.</span></span><span class="sig-name descname"><span class="pre">AzureLocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">region_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CarbonIntensitySource.FILE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emission_factor_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">EmissionFactorType.LIFECYCLE</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.AzureLocation" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.country.</span></span><span class="sig-name descname"><span class="pre">AzureLocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">region_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh_source=CarbonIntensitySource.FILE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_url=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emission_factor_type=EmissionFactorType.LIFECYCLE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">carbon_intensity_metadata=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_center_provider=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_center_region=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.AzureLocation" title="Link to this definition">#</a></dt>
 <dd><p>Azure Location.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -3099,8 +3313,11 @@ context: The context.</p>
 <li><p><strong>co2g_kwh_source</strong> (<a class="reference internal" href="#tracarbon.locations.location.CarbonIntensitySource" title="tracarbon.locations.location.CarbonIntensitySource"><em>CarbonIntensitySource</em></a>)</p></li>
 <li><p><strong>co2signal_api_key</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>co2signal_url</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
-<li><p><strong>co2g_kwh</strong> (<em>float</em>)</p></li>
+<li><p><strong>co2g_kwh</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>emission_factor_type</strong> (<a class="reference internal" href="#tracarbon.locations.location.EmissionFactorType" title="tracarbon.locations.location.EmissionFactorType"><em>EmissionFactorType</em></a>)</p></li>
+<li><p><strong>carbon_intensity_metadata</strong> (<a class="reference internal" href="#tracarbon.locations.location.CarbonIntensityMetadata" title="tracarbon.locations.location.CarbonIntensityMetadata"><em>CarbonIntensityMetadata</em></a>)</p></li>
+<li><p><strong>data_center_provider</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>data_center_region</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -3114,7 +3331,7 @@ context: The context.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.locations.country.CloudLocation">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.country.</span></span><span class="sig-name descname"><span class="pre">CloudLocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">region_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CarbonIntensitySource.FILE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emission_factor_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">EmissionFactorType.LIFECYCLE</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.CloudLocation" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.country.</span></span><span class="sig-name descname"><span class="pre">CloudLocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">region_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh_source=CarbonIntensitySource.FILE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_url=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emission_factor_type=EmissionFactorType.LIFECYCLE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">carbon_intensity_metadata=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_center_provider=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_center_region=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.CloudLocation" title="Link to this definition">#</a></dt>
 <dd><p>Base class for cloud provider locations.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -3124,8 +3341,11 @@ context: The context.</p>
 <li><p><strong>co2g_kwh_source</strong> (<a class="reference internal" href="#tracarbon.locations.location.CarbonIntensitySource" title="tracarbon.locations.location.CarbonIntensitySource"><em>CarbonIntensitySource</em></a>)</p></li>
 <li><p><strong>co2signal_api_key</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>co2signal_url</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
-<li><p><strong>co2g_kwh</strong> (<em>float</em>)</p></li>
+<li><p><strong>co2g_kwh</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>emission_factor_type</strong> (<a class="reference internal" href="#tracarbon.locations.location.EmissionFactorType" title="tracarbon.locations.location.EmissionFactorType"><em>EmissionFactorType</em></a>)</p></li>
+<li><p><strong>carbon_intensity_metadata</strong> (<a class="reference internal" href="#tracarbon.locations.location.CarbonIntensityMetadata" title="tracarbon.locations.location.CarbonIntensityMetadata"><em>CarbonIntensityMetadata</em></a>)</p></li>
+<li><p><strong>data_center_provider</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>data_center_region</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -3167,7 +3387,7 @@ context: The context.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.locations.country.Country">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.country.</span></span><span class="sig-name descname"><span class="pre">Country</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CarbonIntensitySource.FILE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emission_factor_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">EmissionFactorType.LIFECYCLE</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.Country" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.country.</span></span><span class="sig-name descname"><span class="pre">Country</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh_source=CarbonIntensitySource.FILE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_url=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emission_factor_type=EmissionFactorType.LIFECYCLE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">carbon_intensity_metadata=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_center_provider=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_center_region=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.Country" title="Link to this definition">#</a></dt>
 <dd><p>Country definition.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -3176,8 +3396,11 @@ context: The context.</p>
 <li><p><strong>co2g_kwh_source</strong> (<a class="reference internal" href="#tracarbon.locations.location.CarbonIntensitySource" title="tracarbon.locations.location.CarbonIntensitySource"><em>CarbonIntensitySource</em></a>)</p></li>
 <li><p><strong>co2signal_api_key</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>co2signal_url</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
-<li><p><strong>co2g_kwh</strong> (<em>float</em>)</p></li>
+<li><p><strong>co2g_kwh</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>emission_factor_type</strong> (<a class="reference internal" href="#tracarbon.locations.location.EmissionFactorType" title="tracarbon.locations.location.EmissionFactorType"><em>EmissionFactorType</em></a>)</p></li>
+<li><p><strong>carbon_intensity_metadata</strong> (<a class="reference internal" href="#tracarbon.locations.location.CarbonIntensityMetadata" title="tracarbon.locations.location.CarbonIntensityMetadata"><em>CarbonIntensityMetadata</em></a>)</p></li>
+<li><p><strong>data_center_provider</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>data_center_region</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -3266,7 +3489,7 @@ falling back to the TRACARBON_IPINFO_TOKEN environment variable</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.locations.country.GCPLocation">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.country.</span></span><span class="sig-name descname"><span class="pre">GCPLocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">region_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CarbonIntensitySource.FILE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emission_factor_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">EmissionFactorType.LIFECYCLE</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.GCPLocation" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.locations.country.</span></span><span class="sig-name descname"><span class="pre">GCPLocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">region_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh_source=CarbonIntensitySource.FILE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_api_key=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2signal_url=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co2g_kwh=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emission_factor_type=EmissionFactorType.LIFECYCLE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">carbon_intensity_metadata=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_center_provider=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_center_region=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.GCPLocation" title="Link to this definition">#</a></dt>
 <dd><p>GCP Location.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -3276,8 +3499,11 @@ falling back to the TRACARBON_IPINFO_TOKEN environment variable</p></li>
 <li><p><strong>co2g_kwh_source</strong> (<a class="reference internal" href="#tracarbon.locations.location.CarbonIntensitySource" title="tracarbon.locations.location.CarbonIntensitySource"><em>CarbonIntensitySource</em></a>)</p></li>
 <li><p><strong>co2signal_api_key</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>co2signal_url</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
-<li><p><strong>co2g_kwh</strong> (<em>float</em>)</p></li>
+<li><p><strong>co2g_kwh</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>emission_factor_type</strong> (<a class="reference internal" href="#tracarbon.locations.location.EmissionFactorType" title="tracarbon.locations.location.EmissionFactorType"><em>EmissionFactorType</em></a>)</p></li>
+<li><p><strong>carbon_intensity_metadata</strong> (<a class="reference internal" href="#tracarbon.locations.location.CarbonIntensityMetadata" title="tracarbon.locations.location.CarbonIntensityMetadata"><em>CarbonIntensityMetadata</em></a>)</p></li>
+<li><p><strong>data_center_provider</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>data_center_region</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -3326,6 +3552,12 @@ falling back to the TRACARBON_IPINFO_TOKEN environment variable</p></li>
 <dt class="sig sig-object py" id="tracarbon.exceptions.GCPSensorException">
 <em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exceptions.</span></span><span class="sig-name descname"><span class="pre">GCPSensorException</span></span><a class="headerlink" href="#tracarbon.exceptions.GCPSensorException" title="Link to this definition">#</a></dt>
 <dd><p>Error in the GCP Sensor.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="tracarbon.exceptions.HardwareIOReportException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.exceptions.</span></span><span class="sig-name descname"><span class="pre">HardwareIOReportException</span></span><a class="headerlink" href="#tracarbon.exceptions.HardwareIOReportException" title="Link to this definition">#</a></dt>
+<dd><p>Exception raised when the IOReport energy counters cannot be read.</p>
 </dd></dl>
 
 <dl class="py exception">
@@ -3578,6 +3810,7 @@ falling back to the TRACARBON_IPINFO_TOKEN environment variable</p></li>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.builder.TracarbonReport"><code class="docutils literal notranslate"><span class="pre">TracarbonReport</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.builder.TracarbonReport.model_config"><code class="docutils literal notranslate"><span class="pre">TracarbonReport.model_config</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.builder.TracarbonReport.total_co2g"><code class="docutils literal notranslate"><span class="pre">TracarbonReport.total_co2g</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -3600,6 +3833,7 @@ falling back to the TRACARBON_IPINFO_TOKEN environment variable</p></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.containers.Kubernetes"><code class="docutils literal notranslate"><span class="pre">Kubernetes</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.containers.Kubernetes.get_pods_usage"><code class="docutils literal notranslate"><span class="pre">Kubernetes.get_pods_usage()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.containers.Kubernetes.model_config"><code class="docutils literal notranslate"><span class="pre">Kubernetes.model_config</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.containers.Kubernetes.model_post_init"><code class="docutils literal notranslate"><span class="pre">Kubernetes.model_post_init()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.containers.Kubernetes.refresh_namespaces"><code class="docutils literal notranslate"><span class="pre">Kubernetes.refresh_namespaces()</span></code></a></li>
 </ul>
 </li>
@@ -3617,6 +3851,7 @@ falling back to the TRACARBON_IPINFO_TOKEN environment variable</p></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.energy.Power"><code class="docutils literal notranslate"><span class="pre">Power</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.energy.Power.co2g_from_watts_hour"><code class="docutils literal notranslate"><span class="pre">Power.co2g_from_watts_hour()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.energy.Power.model_config"><code class="docutils literal notranslate"><span class="pre">Power.model_config</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.energy.Power.watt_hours_from_watts_over"><code class="docutils literal notranslate"><span class="pre">Power.watt_hours_from_watts_over()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.energy.Power.watts_from_microjoules"><code class="docutils literal notranslate"><span class="pre">Power.watts_from_microjoules()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.energy.Power.watts_to_watt_hours"><code class="docutils literal notranslate"><span class="pre">Power.watts_to_watt_hours()</span></code></a></li>
 </ul>
@@ -3651,6 +3886,10 @@ falling back to the TRACARBON_IPINFO_TOKEN environment variable</p></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.gpu.NvidiaGPU.get_gpu_power_usage"><code class="docutils literal notranslate"><span class="pre">NvidiaGPU.get_gpu_power_usage()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.gpu.NvidiaGPU.launch_shell_command"><code class="docutils literal notranslate"><span class="pre">NvidiaGPU.launch_shell_command()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.gpu.NvidiaGPU.model_config"><code class="docutils literal notranslate"><span class="pre">NvidiaGPU.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.ioreport.IOReportEnergy"><code class="docutils literal notranslate"><span class="pre">IOReportEnergy</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.ioreport.IOReportEnergy.get_energy_report"><code class="docutils literal notranslate"><span class="pre">IOReportEnergy.get_energy_report()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.hardwares.rapl.RAPL"><code class="docutils literal notranslate"><span class="pre">RAPL</span></code></a><ul class="nav section-nav flex-column">
@@ -3785,6 +4024,7 @@ falling back to the TRACARBON_IPINFO_TOKEN environment variable</p></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Metric.format_name"><code class="docutils literal notranslate"><span class="pre">Metric.format_name()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Metric.format_tags"><code class="docutils literal notranslate"><span class="pre">Metric.format_tags()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Metric.model_config"><code class="docutils literal notranslate"><span class="pre">Metric.model_config</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Metric.unit"><code class="docutils literal notranslate"><span class="pre">Metric.unit()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.MetricGenerator"><code class="docutils literal notranslate"><span class="pre">MetricGenerator</span></code></a><ul class="nav section-nav flex-column">
@@ -3793,7 +4033,9 @@ falling back to the TRACARBON_IPINFO_TOKEN environment variable</p></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.MetricReport"><code class="docutils literal notranslate"><span class="pre">MetricReport</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.MetricReport.accumulate"><code class="docutils literal notranslate"><span class="pre">MetricReport.accumulate()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.MetricReport.model_config"><code class="docutils literal notranslate"><span class="pre">MetricReport.model_config</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.MetricReport.model_post_init"><code class="docutils literal notranslate"><span class="pre">MetricReport.model_post_init()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Tag"><code class="docutils literal notranslate"><span class="pre">Tag</span></code></a><ul class="nav section-nav flex-column">
@@ -3836,6 +4078,7 @@ falling back to the TRACARBON_IPINFO_TOKEN environment variable</p></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.emissions.carbon_emissions.CarbonEmission.get_co2_usage"><code class="docutils literal notranslate"><span class="pre">CarbonEmission.get_co2_usage()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.emissions.carbon_emissions.CarbonEmission.get_energy_usage"><code class="docutils literal notranslate"><span class="pre">CarbonEmission.get_energy_usage()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.emissions.carbon_emissions.CarbonEmission.model_config"><code class="docutils literal notranslate"><span class="pre">CarbonEmission.model_config</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.emissions.carbon_emissions.CarbonEmission.model_post_init"><code class="docutils literal notranslate"><span class="pre">CarbonEmission.model_post_init()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.emissions.carbon_emissions.CarbonUsage"><code class="docutils literal notranslate"><span class="pre">CarbonUsage</span></code></a><ul class="nav section-nav flex-column">
@@ -3848,6 +4091,10 @@ falling back to the TRACARBON_IPINFO_TOKEN environment variable</p></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-tracarbon.locations.location">Locations</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.location.CarbonIntensityMetadata"><code class="docutils literal notranslate"><span class="pre">CarbonIntensityMetadata</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.location.CarbonIntensityMetadata.model_config"><code class="docutils literal notranslate"><span class="pre">CarbonIntensityMetadata.model_config</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.location.CarbonIntensitySource"><code class="docutils literal notranslate"><span class="pre">CarbonIntensitySource</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.location.EmissionFactorType"><code class="docutils literal notranslate"><span class="pre">EmissionFactorType</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.location.Location"><code class="docutils literal notranslate"><span class="pre">Location</span></code></a><ul class="nav section-nav flex-column">
@@ -3893,6 +4140,7 @@ falling back to the TRACARBON_IPINFO_TOKEN environment variable</p></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exceptions.CloudProviderRegionIsMissing"><code class="docutils literal notranslate"><span class="pre">CloudProviderRegionIsMissing</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exceptions.CountryIsMissing"><code class="docutils literal notranslate"><span class="pre">CountryIsMissing</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exceptions.GCPSensorException"><code class="docutils literal notranslate"><span class="pre">GCPSensorException</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exceptions.HardwareIOReportException"><code class="docutils literal notranslate"><span class="pre">HardwareIOReportException</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exceptions.HardwareNoGPUDetectedException"><code class="docutils literal notranslate"><span class="pre">HardwareNoGPUDetectedException</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exceptions.HardwareRAPLException"><code class="docutils literal notranslate"><span class="pre">HardwareRAPLException</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exceptions.TracarbonException"><code class="docutils literal notranslate"><span class="pre">TracarbonException</span></code></a></li>
@@ -3958,7 +4206,7 @@ falling back to the TRACARBON_IPINFO_TOKEN environment variable</p></li>
 
   <p class="copyright">
     
-      © Copyright 2023 Tracarbon contributors.
+      © Copyright 2023-2026 Tracarbon contributors.
       <br/>
     
   </p>

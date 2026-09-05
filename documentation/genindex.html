@@ -47,7 +47,7 @@
     <link rel="search" title="Search" href="search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.10.2" />
+  <meta name="docsearch:version" content="0.11.0" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -383,6 +383,8 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#tracarbon.exporters.exporter.MetricReport.accumulate">accumulate() (tracarbon.exporters.exporter.MetricReport method)</a>
+</li>
       <li><a href="api_reference.html#tracarbon.cli.add_containers_generator">add_containers_generator() (in module tracarbon.cli)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.exporters.exporter.Exporter.add_metric_to_report">add_metric_to_report() (tracarbon.exporters.exporter.Exporter method)</a>
@@ -438,6 +440,8 @@
       <li><a href="api_reference.html#tracarbon.general_metrics.CarbonEmissionGenerator">CarbonEmissionGenerator (class in tracarbon.general_metrics)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.general_metrics.CarbonEmissionKubernetesGenerator">CarbonEmissionKubernetesGenerator (class in tracarbon.general_metrics)</a>
+</li>
+      <li><a href="api_reference.html#tracarbon.locations.location.CarbonIntensityMetadata">CarbonIntensityMetadata (class in tracarbon.locations.location)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.locations.location.CarbonIntensitySource">CarbonIntensitySource (class in tracarbon.locations.location)</a>
 </li>
@@ -586,6 +590,8 @@
       <li><a href="api_reference.html#tracarbon.hardwares.amd_rapl.AMDRAPL.get_energy_report">get_energy_report() (tracarbon.hardwares.amd_rapl.AMDRAPL method)</a>
 
       <ul>
+        <li><a href="api_reference.html#tracarbon.hardwares.ioreport.IOReportEnergy.get_energy_report">(tracarbon.hardwares.ioreport.IOReportEnergy method)</a>
+</li>
         <li><a href="api_reference.html#tracarbon.hardwares.rapl.RAPL.get_energy_report">(tracarbon.hardwares.rapl.RAPL method)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.hardwares.sensors.AMDRAPL.get_energy_report">(tracarbon.hardwares.sensors.AMDRAPL method)</a>
@@ -617,10 +623,10 @@
         <li><a href="api_reference.html#tracarbon.hardwares.sensors.EnergyUsage.get_energy_usage_on_type">(tracarbon.hardwares.sensors.EnergyUsage method)</a>
 </li>
       </ul></li>
-      <li><a href="api_reference.html#tracarbon.cli.get_exporter">get_exporter() (in module tracarbon.cli)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#tracarbon.cli.get_exporter">get_exporter() (in module tracarbon.cli)</a>
+</li>
       <li><a href="api_reference.html#tracarbon.hardwares.gpu.AMDGPU.get_gpu_power_usage">get_gpu_power_usage() (tracarbon.hardwares.gpu.AMDGPU class method)</a>
 
       <ul>
@@ -731,6 +737,8 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#tracarbon.exceptions.HardwareIOReportException">HardwareIOReportException</a>
+</li>
       <li><a href="api_reference.html#tracarbon.exceptions.HardwareNoGPUDetectedException">HardwareNoGPUDetectedException</a>
 </li>
       <li><a href="api_reference.html#tracarbon.exceptions.HardwareRAPLException">HardwareRAPLException</a>
@@ -741,6 +749,8 @@
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#tracarbon.hardwares.ioreport.IOReportEnergy">IOReportEnergy (class in tracarbon.hardwares.ioreport)</a>
+</li>
       <li><a href="api_reference.html#tracarbon.hardwares.amd_rapl.AMDRAPL.is_amd_rapl_compatible">is_amd_rapl_compatible() (tracarbon.hardwares.amd_rapl.AMDRAPL method)</a>
 
       <ul>
@@ -932,21 +942,29 @@
 </li>
         <li><a href="api_reference.html#tracarbon.locations.country.GCPLocation.model_config">(tracarbon.locations.country.GCPLocation attribute)</a>
 </li>
+        <li><a href="api_reference.html#tracarbon.locations.location.CarbonIntensityMetadata.model_config">(tracarbon.locations.location.CarbonIntensityMetadata attribute)</a>
+</li>
         <li><a href="api_reference.html#tracarbon.locations.location.Location.model_config">(tracarbon.locations.location.Location attribute)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_reference.html#tracarbon.exporters.datadog_exporter.DatadogExporter.model_post_init">model_post_init() (tracarbon.exporters.datadog_exporter.DatadogExporter method)</a>
+      <li><a href="api_reference.html#tracarbon.emissions.carbon_emissions.CarbonEmission.model_post_init">model_post_init() (tracarbon.emissions.carbon_emissions.CarbonEmission method)</a>
 
       <ul>
+        <li><a href="api_reference.html#tracarbon.exporters.datadog_exporter.DatadogExporter.model_post_init">(tracarbon.exporters.datadog_exporter.DatadogExporter method)</a>
+</li>
         <li><a href="api_reference.html#tracarbon.exporters.exporter.Exporter.model_post_init">(tracarbon.exporters.exporter.Exporter method)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.exporters.exporter.MetricReport.model_post_init">(tracarbon.exporters.exporter.MetricReport method)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.exporters.json_exporter.JSONExporter.model_post_init">(tracarbon.exporters.json_exporter.JSONExporter method)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.exporters.prometheus_exporter.PrometheusExporter.model_post_init">(tracarbon.exporters.prometheus_exporter.PrometheusExporter method)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.exporters.stdout.StdoutExporter.model_post_init">(tracarbon.exporters.stdout.StdoutExporter method)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.hardwares.containers.Kubernetes.model_post_init">(tracarbon.hardwares.containers.Kubernetes method)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.hardwares.sensors.LinuxEnergyConsumption.model_post_init">(tracarbon.hardwares.sensors.LinuxEnergyConsumption method)</a>
 </li>
@@ -988,6 +1006,8 @@
         <li><a href="api_reference.html#module-tracarbon.hardwares.gpu">tracarbon.hardwares.gpu</a>
 </li>
         <li><a href="api_reference.html#module-tracarbon.hardwares.hardware">tracarbon.hardwares.hardware</a>
+</li>
+        <li><a href="api_reference.html#module-tracarbon.hardwares.ioreport">tracarbon.hardwares.ioreport</a>
 </li>
         <li><a href="api_reference.html#module-tracarbon.hardwares.rapl">tracarbon.hardwares.rapl</a>
 </li>
@@ -1075,6 +1095,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#tracarbon.exporters.exporter.Tag">Tag (class in tracarbon.exporters.exporter)</a>
+</li>
+      <li><a href="api_reference.html#tracarbon.builder.TracarbonReport.total_co2g">total_co2g (tracarbon.builder.TracarbonReport property)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.builder.Tracarbon">Tracarbon (class in tracarbon.builder)</a>
 </li>
@@ -1193,6 +1215,13 @@
 </li>
       </ul></li>
       <li>
+    tracarbon.hardwares.ioreport
+
+      <ul>
+        <li><a href="api_reference.html#module-tracarbon.hardwares.ioreport">module</a>
+</li>
+      </ul></li>
+      <li>
     tracarbon.hardwares.rapl
 
       <ul>
@@ -1234,6 +1263,10 @@
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#tracarbon.exporters.exporter.Metric.unit">unit() (tracarbon.exporters.exporter.Metric method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#tracarbon.hardwares.energy.UsageType">UsageType (class in tracarbon.hardwares.energy)</a>
 </li>
   </ul></td>
@@ -1242,6 +1275,8 @@
 <h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#tracarbon.hardwares.energy.Power.watt_hours_from_watts_over">watt_hours_from_watts_over() (tracarbon.hardwares.energy.Power static method)</a>
+</li>
       <li><a href="api_reference.html#tracarbon.hardwares.energy.Power.watts_from_microjoules">watts_from_microjoules() (tracarbon.hardwares.energy.Power static method)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.hardwares.energy.Power.watts_to_watt_hours">watts_to_watt_hours() (tracarbon.hardwares.energy.Power static method)</a>
@@ -1298,7 +1333,7 @@
 
   <p class="copyright">
     
-      © Copyright 2023 Tracarbon contributors.
+      © Copyright 2023-2026 Tracarbon contributors.
       <br/>
     
   </p>

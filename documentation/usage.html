@@ -50,7 +50,7 @@
     <link rel="prev" title="Installation" href="installation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.10.2" />
+  <meta name="docsearch:version" content="0.11.0" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -427,10 +427,41 @@
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">TRACARBON_CO2SIGNAL_API_KEY</span><span class="o">=</span><span class="n">API_KEY</span> <span class="n">DATADOG_API_KEY</span><span class="o">=</span><span class="n">DATADOG_API_KEY</span> <span class="n">DATADOG_APP_KEY</span><span class="o">=</span><span class="n">DATADOG_APP_KEY</span> <span class="n">tracarbon</span> <span class="n">run</span> <span class="o">--</span><span class="n">exporter</span><span class="o">-</span><span class="n">name</span> <span class="n">Datadog</span>
 </pre></div>
 </div>
-<p>Run Tracarbon CLI on LinuxHardware with Kubernetes send send the metrics to Prometheus:</p>
+<p>Run Tracarbon CLI on Linux hardware with Kubernetes and send the metrics to Prometheus:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tracarbon</span> <span class="n">run</span> <span class="o">--</span><span class="n">exporter</span><span class="o">-</span><span class="n">name</span> <span class="n">Prometheus</span> <span class="o">--</span><span class="n">containers</span>
 </pre></div>
 </div>
+<p>With the default metric prefix, container metrics are exposed with these Prometheus names:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Metric</p></th>
+<th class="head"><p>Labels</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>tracarbon_energy_consumption_kubernetes_total</p></td>
+<td><p>pod_name, pod_namespace, container_name, platform, containers, location, units</p></td>
+</tr>
+<tr class="row-odd"><td><p>tracarbon_energy_consumption_kubernetes_cpu</p></td>
+<td><p>pod_name, pod_namespace, container_name, platform, containers, location, units</p></td>
+</tr>
+<tr class="row-even"><td><p>tracarbon_energy_consumption_kubernetes_memory</p></td>
+<td><p>pod_name, pod_namespace, container_name, platform, containers, location, units</p></td>
+</tr>
+<tr class="row-odd"><td><p>tracarbon_carbon_emission_kubernetes_total</p></td>
+<td><p>pod_name, pod_namespace, container_name, platform, containers, location, source, units</p></td>
+</tr>
+<tr class="row-even"><td><p>tracarbon_carbon_emission_kubernetes_cpu</p></td>
+<td><p>pod_name, pod_namespace, container_name, platform, containers, location, source, units</p></td>
+</tr>
+<tr class="row-odd"><td><p>tracarbon_carbon_emission_kubernetes_memory</p></td>
+<td><p>pod_name, pod_namespace, container_name, platform, containers, location, source, units</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Zero values are exported. If Kubernetes returns no pod metrics, the CLI logs
+<code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">Kubernetes</span> <span class="pre">container</span> <span class="pre">metrics</span> <span class="pre">were</span> <span class="pre">collected.</span></code> Host metrics are still exported.</p>
 </section>
 <section id="run-the-code">
 <h2>Run the code<a class="headerlink" href="#run-the-code" title="Link to this heading">#</a></h2>
@@ -440,14 +471,16 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tracarbon</span> <span class="o">=</span> <span class="n">TracarbonBuilder</span><span class="p">(</span><span class="n">configuration</span><span class="o">=</span><span class="n">configuration</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tracarbon</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Your code</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tracarbon</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">total_co2g</span> <span class="o">=</span> <span class="n">tracarbon</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">tracarbon</span><span class="p">:</span>
 <span class="gp">&gt;&gt;&gt; </span>   <span class="c1"># Your code</span>
 <span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">report</span> <span class="o">=</span> <span class="n">tracarbon</span><span class="o">.</span><span class="n">report</span> <span class="c1"># Get the report</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">total_co2g</span><span class="p">)</span>
 </pre></div>
 </div>
+<p><code class="docutils literal notranslate"><span class="pre">total_co2g</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> when no host carbon emission metric was collected. The total reflects collected samples.</p>
 </section>
 <section id="run-the-code-with-general-metrics">
 <h2>Run the code with general metrics<a class="headerlink" href="#run-the-code-with-general-metrics" title="Link to this heading">#</a></h2>
@@ -582,7 +615,7 @@
 
   <p class="copyright">
     
-      © Copyright 2023 Tracarbon contributors.
+      © Copyright 2023-2026 Tracarbon contributors.
       <br/>
     
   </p>
