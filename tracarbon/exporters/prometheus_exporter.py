@@ -5,6 +5,7 @@ from typing import Dict
 
 from loguru import logger
 from pydantic import Field
+from pydantic import PrivateAttr
 
 from tracarbon.conf import PROMETHEUS_INSTALLED
 from tracarbon.exporters.exporter import Exporter
@@ -23,6 +24,7 @@ if PROMETHEUS_INSTALLED:
         prometheus_metrics: Dict[str, Gauge] = Field(default_factory=dict)
         address: str | None = None
         port: int | None = None
+        _container_series: set[tuple[str, tuple[str, ...]]] = PrivateAttr(default_factory=set)
 
         def __init__(self, **data: Any) -> None:
             super().__init__(**data)
@@ -34,6 +36,17 @@ if PROMETHEUS_INSTALLED:
                 addr=addr,
                 port=port,
             )
+
+        async def _launch_all(self) -> None:
+            previous_series = self._container_series
+            self._container_series = set()
+            try:
+                await super()._launch_all()
+            except BaseException:
+                self._container_series.update(previous_series)
+                raise
+            for metric_name, labels in previous_series - self._container_series:
+                self.prometheus_metrics[metric_name].remove(*labels)
 
         async def launch(self, metric_generator: MetricGenerator) -> None:
             """
@@ -49,6 +62,9 @@ if PROMETHEUS_INSTALLED:
                         f"Tracarbon metric {metric_name}",
                         [tag.key for tag in metric.tags],
                     )
+                labels = tuple(tag.value for tag in metric.tags)
+                if any(tag.key == "pod_name" for tag in metric.tags):
+                    self._container_series.add((metric_name, labels))
                 metric_value = await metric.value()
                 if metric_value is not None:
                     await self.add_metric_to_report(metric=metric, value=metric_value)
@@ -56,7 +72,7 @@ if PROMETHEUS_INSTALLED:
                         f"Sending metric[{metric_name}] with value [{metric_value}] "
                         f"and labels{metric.format_tags()} to Prometheus."
                     )
-                    self.prometheus_metrics[metric_name].labels(*[tag.value for tag in metric.tags]).set(metric_value)
+                    self.prometheus_metrics[metric_name].labels(*labels).set(metric_value)
 
         @classmethod
         def get_name(cls) -> str:
