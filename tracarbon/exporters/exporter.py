@@ -5,7 +5,10 @@ from abc import ABCMeta
 from abc import abstractmethod
 from datetime import datetime
 from threading import Event
+from threading import RLock
+from threading import Thread
 from threading import Timer
+from threading import current_thread
 from typing import AsyncGenerator
 from typing import Awaitable
 from typing import Callable
@@ -170,6 +173,9 @@ class MetricGenerator(BaseModel):
     platform: str = HardwareInfo.get_platform()
     location: Location | None = None
 
+    def reset(self) -> None:
+        """Reset measurement state before a new exporter run."""
+
     async def generate(self) -> AsyncGenerator[Metric, None]:
         """
         Generate a metric.
@@ -187,6 +193,9 @@ class Exporter(BaseModel, metaclass=ABCMeta):
     metric_prefix_name: str | None = None
     metric_report: Dict[str, MetricReport] = Field(default_factory=dict)
     _timer: Timer | None = PrivateAttr(default=None)
+    _start_lock: RLock = PrivateAttr(default_factory=RLock)
+    _run_lock: RLock = PrivateAttr(default_factory=RLock)
+    _collection_thread: Thread | None = PrivateAttr(default=None)
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -200,39 +209,62 @@ class Exporter(BaseModel, metaclass=ABCMeta):
         """
         pass
 
+    def _check_start_thread(self) -> None:
+        if self._collection_thread is current_thread():
+            raise RuntimeError("Cannot start an exporter from its collection callback")
+
     def start(self, interval_in_seconds: int) -> None:
         """
         Start the exporter and a dedicated timer configured with the configured timeout.
 
         :param: interval_in_seconds: the interval for the timer
         """
-        self.stopped = False
-        if not self.event:
-            self.event = Event()
+        self._check_start_thread()
+        with self._start_lock:
+            self.stop()
+            stop_event = Event()
 
-        def _run() -> None:
-            asyncio.run(self._launch_all())
-            if self.event and not self.stopped and not self.event.is_set():
-                timer = Timer(interval_in_seconds, _run, [])
-                timer.daemon = True
-                self._timer = timer
-                timer.start()
+            def _run() -> None:
+                with self._run_lock:
+                    if stop_event.is_set():
+                        return
+                    self._collection_thread = current_thread()
+                    try:
+                        asyncio.run(self._launch_all())
+                    finally:
+                        self._collection_thread = None
+                    if not stop_event.is_set():
+                        timer = Timer(interval_in_seconds, _run, [])
+                        timer.daemon = True
+                        self._timer = timer
+                        timer.start()
 
-        self.metric_report = dict()
-        _run()
+            with self._run_lock:
+                self.stopped = False
+                self.event = stop_event
+                self.metric_report = dict()
+                for metric_generator in self.metric_generators:
+                    metric_generator.reset()
+                _run()
 
     def stop(self) -> None:
         """
-        Stop the explorer and the associated timer.
+        Stop scheduling and wait for collection, except when called by that collection.
 
         :return:
         """
         self.stopped = True
         if self.event:
             self.event.set()
-        if self._timer is not None:
-            self._timer.cancel()
-            self._timer = None
+        with self._run_lock:
+            timer = self._timer
+            if timer is not None:
+                timer.cancel()
+        if timer is not None and timer is not current_thread():
+            timer.join()
+            with self._run_lock:
+                if self._timer is timer:
+                    self._timer = None
 
     async def _launch_all(self) -> None:
         """

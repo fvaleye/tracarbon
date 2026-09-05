@@ -89,6 +89,11 @@ class CarbonEmission(Sensor):
 
     _measured_at: float | None = PrivateAttr(default=None)
 
+    def reset(self) -> None:
+        """Open a new measurement window without including time from an earlier run."""
+        self._measured_at = None
+        self.previous_energy_consumption_time = None
+
     def _seconds_since_the_previous_measurement(self, measured_at: float) -> float:
         """
         Get how long the window closing at this measurement lasted, zero when it opens the first.

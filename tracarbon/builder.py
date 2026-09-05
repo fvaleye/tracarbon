@@ -68,7 +68,9 @@ class Tracarbon:
         """
         Start Tracarbon.
         """
-        self.report.start_time = datetime.datetime.now()
+        self.exporter._check_start_thread()
+        self.exporter.stop()
+        self.report = TracarbonReport(start_time=datetime.datetime.now())
         self.exporter.start(interval_in_seconds=self.configuration.interval_in_seconds)
 
     def stop(self) -> float | None:
@@ -77,9 +79,9 @@ class Tracarbon:
 
         :return: the total CO2 grams the host emitted since Tracarbon started
         """
+        self.exporter.stop()
         self.report.metric_report = self.exporter.metric_report
         self.report.end_time = datetime.datetime.now()
-        self.exporter.stop()
         return self.report.total_co2g
 
 

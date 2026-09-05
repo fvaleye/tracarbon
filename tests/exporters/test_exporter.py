@@ -1,4 +1,8 @@
 import sys
+from threading import Event
+from threading import Thread
+from threading import Timer
+from threading import current_thread
 
 import psutil
 import pytest
@@ -10,6 +14,145 @@ from tracarbon.exporters import MetricReport
 from tracarbon.exporters import StdoutExporter
 from tracarbon.exporters import Tag
 from tracarbon.hardwares import EnergyUsageUnit
+
+
+def test_exporter_restarts_periodic_collection_and_can_stop_from_a_callback():
+    collected = Event()
+    readings = []
+    sampling_threads = []
+
+    async def sample() -> float:
+        readings.append(1.0)
+        if len(readings) == 2:
+            sampling_threads.append(current_thread())
+            exporter.stop()
+            collected.set()
+        return 1.0
+
+    exporter = StdoutExporter(metric_generators=[MetricGenerator(metrics=[Metric(name="sample", value=sample)])])
+    for _ in range(2):
+        readings.clear()
+        collected.clear()
+        try:
+            exporter.start(interval_in_seconds=0)
+            assert collected.wait(timeout=2)
+        finally:
+            exporter.stop()
+        sampling_threads[-1].join(timeout=2)
+        assert exporter.metric_report["sample"].call_count == 2
+
+
+@pytest.mark.parametrize("restart", [False, True])
+def test_exporter_settles_an_active_sample_before_stopping_or_restarting(mocker, restart):
+    sampling = Event()
+    release_sample = Event()
+    stop_requested = Event()
+    stopped = Event()
+    readings = []
+
+    async def sample() -> float:
+        if readings:
+            sampling.set()
+            release_sample.wait(timeout=2)
+        readings.append(1.0)
+        return 1.0
+
+    exporter = StdoutExporter(metric_generators=[MetricGenerator(metrics=[Metric(name="sample", value=sample)])])
+    exporter.start(interval_in_seconds=0)
+    assert sampling.wait(timeout=2)
+    previous_report = exporter.metric_report
+    timer = exporter._timer
+    set_stop_event = exporter.event.set
+
+    def request_stop() -> None:
+        set_stop_event()
+        stop_requested.set()
+
+    mocker.patch.object(exporter.event, "set", side_effect=request_stop)
+
+    def stop() -> None:
+        if restart:
+            exporter.start(interval_in_seconds=3600)
+        else:
+            exporter.stop()
+        stopped.set()
+
+    stopping = Thread(target=stop)
+    stopping.start()
+    try:
+        assert stop_requested.wait(timeout=2)
+        assert not stopped.wait(timeout=0.05)
+    finally:
+        release_sample.set()
+        stopping.join(timeout=2)
+        timer.join(timeout=2)
+        exporter.stop()
+
+    assert stopped.is_set()
+    assert previous_report["sample"].call_count == 2
+    assert exporter.metric_report["sample"].call_count == (1 if restart else 2)
+    assert not timer.is_alive()
+
+
+def test_exporter_rejects_restarting_from_a_collection_callback():
+    async def sample() -> float:
+        with pytest.raises(RuntimeError, match="collection callback"):
+            exporter.start(interval_in_seconds=1)
+        return 1.0
+
+    exporter = StdoutExporter(metric_generators=[MetricGenerator(metrics=[Metric(name="sample", value=sample)])])
+    try:
+        exporter.start(interval_in_seconds=3600)
+    finally:
+        exporter.stop()
+
+    assert exporter.metric_report["sample"].call_count == 1
+
+
+def test_exporter_serializes_concurrent_starts(mocker):
+    first_start_stopped = Event()
+    second_start_stopped = Event()
+    publish_first_start = Event()
+    timers = []
+    exporter = StdoutExporter(metric_generators=[])
+    original_stop = StdoutExporter.stop
+
+    def stop_before_start() -> None:
+        original_stop(exporter)
+        if first_start_stopped.is_set():
+            second_start_stopped.set()
+        else:
+            first_start_stopped.set()
+            publish_first_start.wait(timeout=2)
+
+    def create_timer(*args):
+        timer = Timer(*args)
+        timers.append(timer)
+        return timer
+
+    mocker.patch.object(StdoutExporter, "stop", side_effect=stop_before_start)
+    mocker.patch("tracarbon.exporters.exporter.Timer", side_effect=create_timer)
+    first_start = Thread(target=exporter.start, args=(3600,))
+    second_start = Thread(target=exporter.start, args=(3600,))
+    first_start.start()
+    try:
+        assert first_start_stopped.wait(timeout=2)
+        second_start.start()
+        assert not second_start_stopped.wait(timeout=0.05)
+        publish_first_start.set()
+        first_start.join(timeout=2)
+        second_start.join(timeout=2)
+        original_stop(exporter)
+        assert len(timers) == 2
+        assert all(not timer.is_alive() for timer in timers)
+    finally:
+        publish_first_start.set()
+        first_start.join(timeout=2)
+        if second_start.ident is not None:
+            second_start.join(timeout=2)
+        for timer in timers:
+            timer.cancel()
+            timer.join(timeout=2)
 
 
 def test_exporters_should_run_and_print_the_metrics(mocker, caplog):
