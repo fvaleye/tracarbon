@@ -9,7 +9,6 @@ from urllib.parse import urlparse
 
 import orjson
 import requests
-from aiocache import cached
 from loguru import logger
 from pydantic import PrivateAttr
 
@@ -256,7 +255,6 @@ class AWSLocation(Country):
                     f"The region [{region_name}] is not in the AWS grid emissions factors file."
                 )
 
-    @cached()
     async def get_latest_co2g_kwh(self) -> float:
         """
         Get the latest co2g_kwh for AWS.
@@ -331,7 +329,6 @@ class CloudLocation(Country):
                 f"The region [{region_name}] is not in the {provider_name} grid emissions factors file."
             )
 
-    @cached()
     async def get_latest_co2g_kwh(self) -> float:
         """
         Get the latest co2g_kwh for this cloud provider.
