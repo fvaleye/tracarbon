@@ -1,6 +1,7 @@
 import csv
 import importlib.resources
 import os
+import time
 from typing import Any
 from typing import cast
 from urllib.parse import urlencode
@@ -8,8 +9,8 @@ from urllib.parse import urlparse
 
 import orjson
 import requests
-from aiocache import cached
 from loguru import logger
+from pydantic import PrivateAttr
 
 from tracarbon.exceptions import CloudProviderRegionIsMissing
 from tracarbon.exceptions import CO2SignalAPIKeyIsMissing
@@ -39,6 +40,8 @@ class Country(Location):
 
     data_center_provider: str | None = None
     data_center_region: str | None = None
+    _carbon_intensity_cache_key: tuple[str, str] | None = PrivateAttr(default=None)
+    _carbon_intensity_expires_at: float = PrivateAttr(default=0.0)
 
     def _update_carbon_intensity_metadata(
         self,
@@ -164,9 +167,6 @@ class Country(Location):
             )
         return cls.from_eu_file(country_code_alpha_iso_2=country_code_alpha_iso_2)
 
-    @cached(
-        ttl=3600,
-    )
     async def get_latest_co2g_kwh(self) -> float:
         """
         Get the latest CO2g_kwh for the Location from Electricity Maps API or CO2 Signal API.
@@ -179,7 +179,6 @@ class Country(Location):
             self._update_carbon_intensity_metadata()
             return self.co2g_kwh
 
-        logger.info(f"Request the latest carbon intensity in Co2g/kwh for your country {self.name}.")
         if not self.co2signal_api_key:
             raise CO2SignalAPIKeyIsMissing()
 
@@ -196,6 +195,17 @@ class Country(Location):
         else:
             url = f"{self.co2signal_url}{self.name}"
 
+        cache_key = (url, self.co2signal_api_key)
+        cache_enabled = os.getenv("AIOCACHE_DISABLE") != "1"
+        if (
+            cache_enabled
+            and self._carbon_intensity_cache_key == cache_key
+            and self.co2g_kwh is not None
+            and time.monotonic() < self._carbon_intensity_expires_at
+        ):
+            return self.co2g_kwh
+
+        logger.info(f"Request the latest carbon intensity in Co2g/kwh for your country {self.name}.")
         response = {}
         try:
             response = await self.request(
@@ -218,6 +228,8 @@ class Country(Location):
                 f"Please check your API configuration."
                 f"Fallback to use the last known CO2g/kWh of your location {self.co2g_kwh}"
             )
+        self._carbon_intensity_cache_key = cache_key if cache_enabled else None
+        self._carbon_intensity_expires_at = time.monotonic() + 3600
         return self.co2g_kwh
 
     def __hash__(self) -> int:
@@ -243,7 +255,6 @@ class AWSLocation(Country):
                     f"The region [{region_name}] is not in the AWS grid emissions factors file."
                 )
 
-    @cached()
     async def get_latest_co2g_kwh(self) -> float:
         """
         Get the latest co2g_kwh for AWS.
@@ -318,7 +329,6 @@ class CloudLocation(Country):
                 f"The region [{region_name}] is not in the {provider_name} grid emissions factors file."
             )
 
-    @cached()
     async def get_latest_co2g_kwh(self) -> float:
         """
         Get the latest co2g_kwh for this cloud provider.

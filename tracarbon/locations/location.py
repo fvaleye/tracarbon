@@ -6,7 +6,6 @@ from typing import Dict
 
 import aiohttp
 import orjson
-from aiocache import cached
 from loguru import logger
 from pydantic import BaseModel
 from pydantic import Field
@@ -74,7 +73,6 @@ class Location(ABC, BaseModel):
                     raise exception
 
     @abstractmethod
-    @cached()
     async def get_latest_co2g_kwh(self) -> float:
         """
         Get the latest co2g_kwh for France.
