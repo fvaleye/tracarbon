@@ -9,6 +9,7 @@ from tracarbon import LinuxEnergyConsumption
 from tracarbon import TracarbonException
 from tracarbon.exceptions import AzureSensorException
 from tracarbon.exceptions import GCPSensorException
+from tracarbon.exceptions import HardwareIOReportException
 from tracarbon.exceptions import HardwareNoGPUDetectedException
 from tracarbon.hardwares import EnergyUsage
 from tracarbon.hardwares import HardwareInfo
@@ -19,9 +20,19 @@ from tracarbon.hardwares.cloud_providers import Azure
 from tracarbon.hardwares.cloud_providers import CloudProviders
 from tracarbon.hardwares.gpu import AppleSiliconPowerMetrics
 from tracarbon.hardwares.gpu import GPUInfo
+from tracarbon.hardwares.ioreport import IOReportEnergy
 from tracarbon.hardwares.sensors import AzureEnergyConsumption
 from tracarbon.hardwares.sensors import GCPEnergyConsumption
 from tracarbon.hardwares.sensors import MacEnergyConsumption
+
+
+@pytest.fixture(autouse=True)
+def without_the_energy_counters(mocker):
+    """
+    Keep the Mac sensor off the energy counters unless a test asks for them, so that the fallbacks
+    are exercised the same way on hardware that counts energy and on hardware that does not.
+    """
+    mocker.patch.object(IOReportEnergy, "is_available", return_value=False)
 
 
 @pytest.mark.darwin
@@ -67,8 +78,17 @@ async def test_mac_energy_consumption_powermetrics_no_ane(mocker):
     assert abs(energy_usage.host_energy_usage - 6.0) < 0.01
 
 
+@pytest.mark.parametrize(
+    ("reported_power", "expected_watts"),
+    [
+        (b"25.500000", 25.5),
+        (b"3051", 3.051),
+        (b"1101610469", 21.155221939086914),
+    ],
+    ids=["watts", "milliwatts", "encoded-float"],
+)
 @pytest.mark.asyncio
-async def test_mac_energy_consumption_fallback_to_ioreg(mocker):
+async def test_mac_energy_consumption_fallback_to_ioreg(mocker, reported_power, expected_watts):
     mocker.patch.object(
         AppleSiliconPowerMetrics,
         "get_power_breakdown",
@@ -76,14 +96,14 @@ async def test_mac_energy_consumption_fallback_to_ioreg(mocker):
     )
     mocker.patch(
         "tracarbon.hardwares.sensors.asyncio.create_subprocess_shell",
-        return_value=mocker.AsyncMock(communicate=mocker.AsyncMock(return_value=(b"25.5", None))),
+        return_value=mocker.AsyncMock(communicate=mocker.AsyncMock(return_value=(reported_power, None))),
     )
     mocker.patch.object(GPUInfo, "get_gpu_power_usage_or_none", return_value=3.5)
 
     mac_sensor = MacEnergyConsumption()
     energy_usage = await mac_sensor.get_energy_usage()
 
-    assert energy_usage.host_energy_usage == 25.5
+    assert energy_usage.host_energy_usage == pytest.approx(expected_watts)
     assert energy_usage.gpu_energy_usage == 3.5
     assert energy_usage.cpu_energy_usage is None
 
@@ -394,3 +414,36 @@ async def test_mac_energy_consumption_reports_no_power_when_ioreg_reports_neithe
     energy_usage = await mac_sensor.get_energy_usage()
 
     assert energy_usage.host_energy_usage == 0.0
+
+
+@pytest.mark.asyncio
+async def test_mac_energy_consumption_prefers_the_energy_counters(mocker):
+    counted = EnergyUsage(host_energy_usage=8.0, cpu_energy_usage=5.0, gpu_energy_usage=2.0, memory_energy_usage=1.0)
+    mocker.patch.object(IOReportEnergy, "is_available", return_value=True)
+    mocker.patch.object(IOReportEnergy, "__init__", return_value=None)
+    mocker.patch.object(IOReportEnergy, "get_energy_report", return_value=counted)
+    powermetrics = mocker.patch("tracarbon.hardwares.sensors.AppleSiliconPowerMetrics")
+
+    energy_usage = await MacEnergyConsumption().get_energy_usage()
+
+    assert energy_usage == counted
+    powermetrics.get_power_breakdown.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_mac_energy_consumption_falls_back_when_the_counters_cannot_be_read(mocker):
+    mocker.patch.object(IOReportEnergy, "is_available", return_value=True)
+    mocker.patch.object(IOReportEnergy, "__init__", return_value=None)
+    mocker.patch.object(
+        IOReportEnergy, "get_energy_report", side_effect=HardwareIOReportException("no energy between the samples")
+    )
+    mocker.patch.object(MacEnergyConsumption, "_read_power", return_value=30.0)
+    mocker.patch(
+        "tracarbon.hardwares.sensors.AppleSiliconPowerMetrics.get_power_breakdown",
+        side_effect=HardwareIOReportException("powermetrics failed to run."),
+    )
+    mocker.patch("tracarbon.hardwares.sensors.GPUInfo.get_gpu_power_usage_or_none", return_value=None)
+
+    energy_usage = await MacEnergyConsumption().get_energy_usage()
+
+    assert energy_usage.host_energy_usage == 30.0

@@ -1,5 +1,6 @@
 import os
 import re
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Dict
@@ -32,6 +33,7 @@ class RAPLResult(BaseModel):
     energy_uj: float
     max_energy_uj: float
     timestamp: datetime
+    monotonic_time: float | None = None
 
 
 class RAPL(BaseModel):
@@ -92,6 +94,8 @@ class RAPL(BaseModel):
                     name = f"{name_prefix}-{name}"
                     async with aiofiles.open(f"{file_path}/energy_uj") as rapl_energy:
                         energy_uj = float(await rapl_energy.read())
+                        monotonic_time = time.monotonic()
+                        timestamp = datetime.now()
                     async with aiofiles.open(f"{file_path}/max_energy_range_uj") as rapl_max_energy:
                         max_energy_uj = float(await rapl_max_energy.read())
                     if name not in self.max_power_watts:
@@ -101,7 +105,8 @@ class RAPL(BaseModel):
                             name=name,
                             energy_uj=energy_uj,
                             max_energy_uj=max_energy_uj,
-                            timestamp=datetime.now(),
+                            timestamp=timestamp,
+                            monotonic_time=monotonic_time,
                         )
                     )
         except Exception as exception:
@@ -179,21 +184,21 @@ class RAPL(BaseModel):
         memory_energy_usage_watts = 0.0
         gpu_energy_usage_watts = 0.0
         for rapl_result in rapl_results:
+            previous_rapl_result = self.rapl_results.get(rapl_result.name, rapl_result)
+            self.rapl_results[rapl_result.name] = rapl_result
             domain = self._classify_domain(rapl_result.name)
             zone_prefix = rapl_result.name.partition("-")[0]
             if any(
                 zone_prefix.startswith(f"{package_prefix}{self.rapl_separator}")
                 for package_prefix in restarted_package_prefixes
             ):
-                self.rapl_results[rapl_result.name] = rapl_result
                 continue
-            previous_rapl_result = self.rapl_results.get(rapl_result.name, rapl_result)
-            elapsed_seconds = max(
-                (rapl_result.timestamp - previous_rapl_result.timestamp).total_seconds(),
-                0.0,
-            )
-            # Round to the nearest second to make calculation stable over small IO delays
-            time_difference_seconds = max(round(elapsed_seconds), 1)
+            if rapl_result.monotonic_time is not None and previous_rapl_result.monotonic_time is not None:
+                elapsed_seconds = rapl_result.monotonic_time - previous_rapl_result.monotonic_time
+            else:
+                elapsed_seconds = (rapl_result.timestamp - previous_rapl_result.timestamp).total_seconds()
+            if elapsed_seconds <= 0:
+                continue
             energy_uj = rapl_result.energy_uj
             if previous_rapl_result.energy_uj > rapl_result.energy_uj:
                 logger.debug(
@@ -214,10 +219,8 @@ class RAPL(BaseModel):
                     )
                     if domain == "package":
                         restarted_package_prefixes.add(zone_prefix)
-                    self.rapl_results[rapl_result.name] = rapl_result
                     continue
-            watts = Power.watts_from_microjoules((energy_uj - previous_rapl_result.energy_uj) / time_difference_seconds)
-            self.rapl_results[rapl_result.name] = rapl_result
+            watts = Power.watts_from_microjoules((energy_uj - previous_rapl_result.energy_uj) / elapsed_seconds)
             if domain in ("package", "memory"):
                 host_energy_usage_watts += watts
             if domain == "cpu":

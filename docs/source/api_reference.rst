@@ -35,6 +35,9 @@ Hardware
 .. automodule:: tracarbon.hardwares.gpu
     :members:
 
+.. automodule:: tracarbon.hardwares.ioreport
+    :members:
+
 .. automodule:: tracarbon.hardwares.rapl
     :members:
 

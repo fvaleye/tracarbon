@@ -1,6 +1,7 @@
 import asyncio
 import csv
 import importlib.resources
+import struct
 from abc import ABC
 from abc import abstractmethod
 from typing import Any
@@ -22,7 +23,10 @@ from tracarbon.hardwares.energy import EnergyUsage
 from tracarbon.hardwares.gpu import AppleSiliconPowerMetrics
 from tracarbon.hardwares.gpu import GPUInfo
 from tracarbon.hardwares.hardware import HardwareInfo
+from tracarbon.hardwares.ioreport import IOReportEnergy
 from tracarbon.hardwares.rapl import RAPL
+
+_MAX_PLAUSIBLE_MAC_POWER_IN_WATTS = 1_000
 
 __all__ = [
     "Sensor",
@@ -109,12 +113,14 @@ class MacEnergyConsumption(EnergyConsumption):
     """
     Energy Consumption of a Mac in watts.
 
-    Uses powermetrics as the primary sensor for Apple Silicon, providing
-    per-component power breakdown (CPU, GPU, ANE). Works on battery and plugged in.
+    Reads the IOReport energy counters on Apple Silicon, which give the energy of an interval
+    rather than a power reading held over it, need no elevated privileges and cover CPU, GPU,
+    memory and ANE.
 
-    Falls back to ioreg SystemPower if powermetrics is not available (requires sudo).
-    SystemPower is what the system draws. AdapterPower would add the current charging the
-    battery on top, and is only read on hardware that reports no SystemPower.
+    Falls back to powermetrics, which measures the same components but has to be run as root, and
+    then to the system power ioreg reports. That last one is the power of the whole machine rather
+    than of the chip, and the battery only refreshes it every few tens of seconds, so it does not
+    follow what the machine computes and is a last resort.
     """
 
     shell_command: str = """ioreg -rw0 -a -c AppleSmartBattery | plutil -extract '0.BatteryData.SystemPower' raw -"""
@@ -122,6 +128,51 @@ class MacEnergyConsumption(EnergyConsumption):
         """ioreg -rw0 -a -c AppleSmartBattery | plutil -extract '0.BatteryData.AdapterPower' raw -"""
     )
     _active_sensor: str = ""
+    _ioreport: IOReportEnergy | None = None
+
+    @staticmethod
+    def _ioreg_power_in_watts(result: bytes) -> float | None:
+        try:
+            reported_power = result.decode().strip()
+            if any(marker in reported_power for marker in (".", "e", "E")):
+                watts = float(reported_power)
+            else:
+                # Integers are either milliwatts or the raw bits of a float in watts.
+                raw_power = int(reported_power)
+                if raw_power <= _MAX_PLAUSIBLE_MAC_POWER_IN_WATTS * 1000:
+                    watts = raw_power / 1000
+                else:
+                    watts = struct.unpack("!f", struct.pack("!I", raw_power))[0]
+        except (UnicodeDecodeError, ValueError, OverflowError, struct.error):
+            return None
+        return watts if 0 <= watts <= _MAX_PLAUSIBLE_MAC_POWER_IN_WATTS else None
+
+    async def _read_energy_counters(self) -> EnergyUsage | None:
+        """
+        Read the energy Apple Silicon counted since the previous measurement.
+
+        :return: the energy usage, or None on hardware that counts no energy
+        """
+        if self._ioreport is None:
+            if not IOReportEnergy.is_available():
+                return None
+            try:
+                self._ioreport = IOReportEnergy()
+            except Exception as exception:
+                logger.debug(f"The energy counters could not be subscribed to: {exception}")
+                self._ioreport = None
+                return None
+        try:
+            energy_usage = await self._ioreport.get_energy_report()
+        except Exception as exception:
+            # Reading them goes through a private framework, so the fallbacks below are what
+            # anything unexpected coming back out of it should reach.
+            logger.debug(f"The energy counters could not be read: {exception}")
+            return None
+        if self._active_sensor != "IOReport":
+            logger.info("Using the IOReport energy counters for energy measurement (CPU + GPU + memory + ANE)")
+            self._active_sensor = "IOReport"
+        return energy_usage
 
     @staticmethod
     async def _read_power(shell_command: str) -> float | None:
@@ -137,20 +188,21 @@ class MacEnergyConsumption(EnergyConsumption):
             stderr=asyncio.subprocess.PIPE,
         )
         result, _ = await proc.communicate()
-        try:
-            return float(result)
-        except ValueError:
-            return None
+        return MacEnergyConsumption._ioreg_power_in_watts(result)
 
     async def get_energy_usage(self) -> EnergyUsage:
         """
         Run the sensor and generate energy usage.
 
-        Tries powermetrics first for per-component breakdown (CPU, GPU, ANE),
-        falls back to ioreg SystemPower + separate GPU query.
+        Tries the IOReport energy counters first, then powermetrics for the same components, then
+        the system power ioreg reports for the whole machine.
 
         :return: the generated energy usage.
         """
+        energy_usage = await self._read_energy_counters()
+        if energy_usage is not None:
+            return energy_usage
+
         try:
             cpu_power, gpu_power, ane_power = AppleSiliconPowerMetrics.get_power_breakdown()
             if cpu_power is not None or gpu_power is not None:
