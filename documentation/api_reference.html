@@ -50,7 +50,7 @@
     <link rel="prev" title="Usage" href="usage.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.11.0" />
+  <meta name="docsearch:version" content="0.11.1" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -2479,7 +2479,7 @@ context: The context.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="tracarbon.exporters.exporter.Exporter.stop">
 <span class="sig-name descname"><span class="pre">stop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.Exporter.stop" title="Link to this definition">#</a></dt>
-<dd><p>Stop the explorer and the associated timer.</p>
+<dd><p>Stop scheduling and wait for collection, except when called by that collection.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p></p>
@@ -2586,6 +2586,17 @@ context: The context.</p>
 <dt class="sig sig-object py" id="tracarbon.exporters.exporter.MetricGenerator.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#tracarbon.exporters.exporter.MetricGenerator.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.exporters.exporter.MetricGenerator.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.MetricGenerator.reset" title="Link to this definition">#</a></dt>
+<dd><p>Reset measurement state before a new exporter run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -3075,6 +3086,17 @@ context: The context.</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.emissions.carbon_emissions.CarbonEmission.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.emissions.carbon_emissions.CarbonEmission.reset" title="Link to this definition">#</a></dt>
+<dd><p>Open a new measurement window without including time from an earlier run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -3299,6 +3321,29 @@ context: The context.</p>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.locations.country.AWSLocation.model_post_init">
+<span class="sig-name descname"><span class="pre">model_post_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.AWSLocation.model_post_init" title="Link to this definition">#</a></dt>
+<dd><p>This function is meant to behave like a BaseModel method to initialize private attributes.</p>
+<p>It takes context as an argument since that’s what pydantic-core passes when calling it.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>self: The BaseModel instance.
+context: The context.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<em>BaseModel</em>)</p></li>
+<li><p><strong>context</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -3325,6 +3370,29 @@ context: The context.</p>
 <dt class="sig sig-object py" id="tracarbon.locations.country.AzureLocation.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#tracarbon.locations.country.AzureLocation.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.locations.country.AzureLocation.model_post_init">
+<span class="sig-name descname"><span class="pre">model_post_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.AzureLocation.model_post_init" title="Link to this definition">#</a></dt>
+<dd><p>This function is meant to behave like a BaseModel method to initialize private attributes.</p>
+<p>It takes context as an argument since that’s what pydantic-core passes when calling it.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>self: The BaseModel instance.
+context: The context.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<em>BaseModel</em>)</p></li>
+<li><p><strong>context</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -3381,6 +3449,29 @@ context: The context.</p>
 <dt class="sig sig-object py" id="tracarbon.locations.country.CloudLocation.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#tracarbon.locations.country.CloudLocation.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.locations.country.CloudLocation.model_post_init">
+<span class="sig-name descname"><span class="pre">model_post_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.CloudLocation.model_post_init" title="Link to this definition">#</a></dt>
+<dd><p>This function is meant to behave like a BaseModel method to initialize private attributes.</p>
+<p>It takes context as an argument since that’s what pydantic-core passes when calling it.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>self: The BaseModel instance.
+context: The context.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<em>BaseModel</em>)</p></li>
+<li><p><strong>context</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -3485,6 +3576,29 @@ falling back to the TRACARBON_IPINFO_TOKEN environment variable</p></li>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.locations.country.Country.model_post_init">
+<span class="sig-name descname"><span class="pre">model_post_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.Country.model_post_init" title="Link to this definition">#</a></dt>
+<dd><p>This function is meant to behave like a BaseModel method to initialize private attributes.</p>
+<p>It takes context as an argument since that’s what pydantic-core passes when calling it.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>self: The BaseModel instance.
+context: The context.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<em>BaseModel</em>)</p></li>
+<li><p><strong>context</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -3511,6 +3625,29 @@ falling back to the TRACARBON_IPINFO_TOKEN environment variable</p></li>
 <dt class="sig sig-object py" id="tracarbon.locations.country.GCPLocation.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#tracarbon.locations.country.GCPLocation.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.locations.country.GCPLocation.model_post_init">
+<span class="sig-name descname"><span class="pre">model_post_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.locations.country.GCPLocation.model_post_init" title="Link to this definition">#</a></dt>
+<dd><p>This function is meant to behave like a BaseModel method to initialize private attributes.</p>
+<p>It takes context as an argument since that’s what pydantic-core passes when calling it.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>self: The BaseModel instance.
+context: The context.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> (<em>BaseModel</em>)</p></li>
+<li><p><strong>context</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -3616,6 +3753,17 @@ falling back to the TRACARBON_IPINFO_TOKEN environment variable</p></li>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.general_metrics.CarbonEmissionGenerator.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.general_metrics.CarbonEmissionGenerator.reset" title="Link to this definition">#</a></dt>
+<dd><p>Reset measurement state before a new exporter run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -3652,6 +3800,17 @@ falling back to the TRACARBON_IPINFO_TOKEN environment variable</p></li>
 <dt class="sig sig-object py" id="tracarbon.general_metrics.CarbonEmissionKubernetesGenerator.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#tracarbon.general_metrics.CarbonEmissionKubernetesGenerator.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.general_metrics.CarbonEmissionKubernetesGenerator.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.general_metrics.CarbonEmissionKubernetesGenerator.reset" title="Link to this definition">#</a></dt>
+<dd><p>Reset measurement state before a new exporter run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -4030,6 +4189,7 @@ falling back to the TRACARBON_IPINFO_TOKEN environment variable</p></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.MetricGenerator"><code class="docutils literal notranslate"><span class="pre">MetricGenerator</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.MetricGenerator.generate"><code class="docutils literal notranslate"><span class="pre">MetricGenerator.generate()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.MetricGenerator.model_config"><code class="docutils literal notranslate"><span class="pre">MetricGenerator.model_config</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.MetricGenerator.reset"><code class="docutils literal notranslate"><span class="pre">MetricGenerator.reset()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.MetricReport"><code class="docutils literal notranslate"><span class="pre">MetricReport</span></code></a><ul class="nav section-nav flex-column">
@@ -4079,6 +4239,7 @@ falling back to the TRACARBON_IPINFO_TOKEN environment variable</p></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.emissions.carbon_emissions.CarbonEmission.get_energy_usage"><code class="docutils literal notranslate"><span class="pre">CarbonEmission.get_energy_usage()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.emissions.carbon_emissions.CarbonEmission.model_config"><code class="docutils literal notranslate"><span class="pre">CarbonEmission.model_config</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.emissions.carbon_emissions.CarbonEmission.model_post_init"><code class="docutils literal notranslate"><span class="pre">CarbonEmission.model_post_init()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.emissions.carbon_emissions.CarbonEmission.reset"><code class="docutils literal notranslate"><span class="pre">CarbonEmission.reset()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.emissions.carbon_emissions.CarbonUsage"><code class="docutils literal notranslate"><span class="pre">CarbonUsage</span></code></a><ul class="nav section-nav flex-column">
@@ -4107,16 +4268,19 @@ falling back to the TRACARBON_IPINFO_TOKEN environment variable</p></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.AWSLocation.get_co2g_kwh"><code class="docutils literal notranslate"><span class="pre">AWSLocation.get_co2g_kwh()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.AWSLocation.get_latest_co2g_kwh"><code class="docutils literal notranslate"><span class="pre">AWSLocation.get_latest_co2g_kwh()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.AWSLocation.model_config"><code class="docutils literal notranslate"><span class="pre">AWSLocation.model_config</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.AWSLocation.model_post_init"><code class="docutils literal notranslate"><span class="pre">AWSLocation.model_post_init()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.AzureLocation"><code class="docutils literal notranslate"><span class="pre">AzureLocation</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.AzureLocation.model_config"><code class="docutils literal notranslate"><span class="pre">AzureLocation.model_config</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.AzureLocation.model_post_init"><code class="docutils literal notranslate"><span class="pre">AzureLocation.model_post_init()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.CloudLocation"><code class="docutils literal notranslate"><span class="pre">CloudLocation</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.CloudLocation.get_co2g_kwh"><code class="docutils literal notranslate"><span class="pre">CloudLocation.get_co2g_kwh()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.CloudLocation.get_latest_co2g_kwh"><code class="docutils literal notranslate"><span class="pre">CloudLocation.get_latest_co2g_kwh()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.CloudLocation.model_config"><code class="docutils literal notranslate"><span class="pre">CloudLocation.model_config</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.CloudLocation.model_post_init"><code class="docutils literal notranslate"><span class="pre">CloudLocation.model_post_init()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.Country"><code class="docutils literal notranslate"><span class="pre">Country</span></code></a><ul class="nav section-nav flex-column">
@@ -4125,10 +4289,12 @@ falling back to the TRACARBON_IPINFO_TOKEN environment variable</p></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.Country.get_latest_co2g_kwh"><code class="docutils literal notranslate"><span class="pre">Country.get_latest_co2g_kwh()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.Country.get_location"><code class="docutils literal notranslate"><span class="pre">Country.get_location()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.Country.model_config"><code class="docutils literal notranslate"><span class="pre">Country.model_config</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.Country.model_post_init"><code class="docutils literal notranslate"><span class="pre">Country.model_post_init()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.GCPLocation"><code class="docutils literal notranslate"><span class="pre">GCPLocation</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.GCPLocation.model_config"><code class="docutils literal notranslate"><span class="pre">GCPLocation.model_config</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.locations.country.GCPLocation.model_post_init"><code class="docutils literal notranslate"><span class="pre">GCPLocation.model_post_init()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -4150,11 +4316,13 @@ falling back to the TRACARBON_IPINFO_TOKEN environment variable</p></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.general_metrics.CarbonEmissionGenerator"><code class="docutils literal notranslate"><span class="pre">CarbonEmissionGenerator</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.general_metrics.CarbonEmissionGenerator.generate"><code class="docutils literal notranslate"><span class="pre">CarbonEmissionGenerator.generate()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.general_metrics.CarbonEmissionGenerator.model_config"><code class="docutils literal notranslate"><span class="pre">CarbonEmissionGenerator.model_config</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.general_metrics.CarbonEmissionGenerator.reset"><code class="docutils literal notranslate"><span class="pre">CarbonEmissionGenerator.reset()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.general_metrics.CarbonEmissionKubernetesGenerator"><code class="docutils literal notranslate"><span class="pre">CarbonEmissionKubernetesGenerator</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.general_metrics.CarbonEmissionKubernetesGenerator.generate"><code class="docutils literal notranslate"><span class="pre">CarbonEmissionKubernetesGenerator.generate()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.general_metrics.CarbonEmissionKubernetesGenerator.model_config"><code class="docutils literal notranslate"><span class="pre">CarbonEmissionKubernetesGenerator.model_config</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.general_metrics.CarbonEmissionKubernetesGenerator.reset"><code class="docutils literal notranslate"><span class="pre">CarbonEmissionKubernetesGenerator.reset()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.general_metrics.EnergyConsumptionGenerator"><code class="docutils literal notranslate"><span class="pre">EnergyConsumptionGenerator</span></code></a><ul class="nav section-nav flex-column">
