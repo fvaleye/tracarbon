@@ -135,7 +135,7 @@ async def test_energy_consumption_kubernetes_generator(mocker):
             ],
         ),
     ]
-    milliwatts_expected = 6.7916
+    milliwatts_expected = 6.8357
     mocker.patch.object(Kubernetes, "get_pods_usage", return_value=pods_usage)
 
     location = Country(name=location_name, co2g_kwh=51.1)
@@ -171,7 +171,7 @@ async def test_energy_consumption_kubernetes_generator(mocker):
         "units:milliwatts",
     ] == metric.format_tags()
 
-    milliwatts_expected = 1.8368
+    milliwatts_expected = 1.8809
     metric = await async_generator.__anext__()
     assert round(await metric.value(), 4) == milliwatts_expected
     assert "energy_consumption_kubernetes_memory" == metric.name
@@ -214,7 +214,7 @@ async def test_carbon_emission_kubernetes_generator(mocker):
             ],
         ),
     ]
-    carbon_usage_expected = 300.00
+    carbon_usage_expected = 307.3742
     mocker.patch.object(Kubernetes, "get_pods_usage", return_value=pods_usage)
 
     location = Country(name=location_name, co2g_kwh=55)
@@ -251,7 +251,7 @@ async def test_carbon_emission_kubernetes_generator(mocker):
         "units:co2mg",
     ] == metric.format_tags()
 
-    carbon_usage_expected = 100.00
+    carbon_usage_expected = 107.3742
 
     metric = await async_generator.__anext__()
     assert round(await metric.value(), 4) == carbon_usage_expected

@@ -17,6 +17,7 @@ if KUBERNETES_INSTALLED:
     from kubernetes import config
     from kubernetes.client import CoreV1Api
     from kubernetes.client import CustomObjectsApi
+    from kubernetes.utils.quantity import parse_quantity
 
     class Container(BaseModel):
         """
@@ -34,20 +35,10 @@ if KUBERNETES_INSTALLED:
             cores = HardwareInfo.get_number_of_cores()
             memory_total = HardwareInfo.get_memory_total()
             if isinstance(data["cpu_usage"], str):
-                if "n" in data["cpu_usage"]:
-                    data["cpu_usage"] = (float(data["cpu_usage"].replace("n", "")) / 1000000000) / cores
-                elif "u" in data["cpu_usage"]:
-                    data["cpu_usage"] = (float(data["cpu_usage"].replace("u", "")) / 1000000) / cores
-                elif "m" in data["cpu_usage"]:
-                    data["cpu_usage"] = (float(data["cpu_usage"].replace("m", "")) / 1000) / cores
+                data["cpu_usage"] = float(parse_quantity(data["cpu_usage"])) / cores
 
             if isinstance(data["memory_usage"], str):
-                if "Ki" in data["memory_usage"]:
-                    data["memory_usage"] = (float(data["memory_usage"].replace("Ki", "")) * 1000) / memory_total
-                elif "Mi" in data["memory_usage"]:
-                    data["memory_usage"] = (float(data["memory_usage"].replace("Mi", "")) * 1000000) / memory_total
-                elif "Gi" in data["memory_usage"]:
-                    data["memory_usage"] = (float(data["memory_usage"].replace("Gi", "")) * 1000000000) / memory_total
+                data["memory_usage"] = float(parse_quantity(data["memory_usage"])) / memory_total
 
             super().__init__(**data)
 

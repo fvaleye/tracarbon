@@ -1,3 +1,4 @@
+import pytest
 from kubernetes import config
 from kubernetes.client import CoreV1Api
 from kubernetes.client import CustomObjectsApi
@@ -11,6 +12,29 @@ from tracarbon import HardwareInfo
 from tracarbon.hardwares.containers import Container
 from tracarbon.hardwares.containers import Kubernetes
 from tracarbon.hardwares.containers import Pod
+
+
+@pytest.mark.parametrize(
+    ("cpu_usage", "memory_usage", "expected_cpu", "expected_memory"),
+    [
+        ("1000000000n", "1048576Ki", 0.125, 0.125),
+        ("1000000u", "1024Mi", 0.125, 0.125),
+        ("1000m", "1Gi", 0.125, 0.125),
+        ("1", "1073741824", 0.125, 0.125),
+        ("0.5", "1G", 0.0625, 1000000000 / (8 * 1024**3)),
+        ("1e0", "1073741824e0", 0.125, 0.125),
+        ("0", "0", 0.0, 0.0),
+        (0.25, 0.5, 0.25, 0.5),
+        (1, 1, 1.0, 1.0),
+    ],
+)
+def test_container_normalizes_kubernetes_quantities(mocker, cpu_usage, memory_usage, expected_cpu, expected_memory):
+    mocker.patch.object(HardwareInfo, "get_number_of_cores", return_value=8)
+    mocker.patch.object(HardwareInfo, "get_memory_total", return_value=8 * 1024**3)
+
+    container = Container(name="worker", cpu_usage=cpu_usage, memory_usage=memory_usage)
+
+    assert (container.cpu_usage, container.memory_usage) == pytest.approx((expected_cpu, expected_memory))
 
 
 def test_get_pods_usage(mocker):
@@ -87,17 +111,17 @@ def test_get_pods_usage(mocker):
         Pod(
             name="grafana-5745b58656-8q4q8",
             namespace="default",
-            containers=[Container(name="grafana", cpu_usage=0.5, memory_usage=0.5)],
+            containers=[Container(name="grafana", cpu_usage=0.5, memory_usage=0.524288)],
         ),
         Pod(
             name="shorty-5469f85799-n4k2x",
             namespace="default",
-            containers=[Container(name="shorty", cpu_usage=0.000190222, memory_usage=0.003304)],
+            containers=[Container(name="shorty", cpu_usage=0.000190222, memory_usage=0.003383296)],
         ),
         Pod(
             name="subnet-router",
             namespace="default",
-            containers=[Container(name="tailscale", cpu_usage=0.0070081, memory_usage=0.014912)],
+            containers=[Container(name="tailscale", cpu_usage=0.0070081, memory_usage=0.015269888)],
         ),
     ]
 
@@ -161,7 +185,7 @@ def test_get_pods_usage_filters_by_node_name(mocker):
         Pod(
             name="grafana-5745b58656-8q4q8",
             namespace="default",
-            containers=[Container(name="grafana", cpu_usage=0.004779815, memory_usage=0.022244)],
+            containers=[Container(name="grafana", cpu_usage=0.004779815, memory_usage=0.022777856)],
         )
     ]
     list_namespaced_pod.assert_called_once_with(namespace="default", field_selector="spec.nodeName=node-a")
