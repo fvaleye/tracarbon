@@ -8,6 +8,7 @@ import pytest
 
 from tracarbon import Country
 from tracarbon import MetricGenerator
+from tracarbon import TracarbonBuilder
 from tracarbon.exporters import JSONExporter
 from tracarbon.exporters import Metric
 from tracarbon.exporters import Tag
@@ -93,7 +94,7 @@ def test_json_exporter_can_append_to_an_empty_array_and_stop_from_a_callback(tmp
         exporter.stop()
 
 
-async def test_json_exporter_keeps_collected_records_readable_if_a_later_metric_fails(tmp_path):
+def test_json_exporter_preserves_report_and_records_when_final_collection_fails(tmp_path):
     async def value() -> float:
         return 1.0
 
@@ -101,15 +102,18 @@ async def test_json_exporter_keeps_collected_records_readable_if_a_later_metric_
         raise ValueError("A sensor failed")
 
     output = tmp_path / "metrics.json"
-    exporter = JSONExporter(
-        path=str(output),
-        metric_generators=[
-            MetricGenerator(metrics=[Metric(name="good", value=value), Metric(name="failed", value=failing_value)])
-        ],
-    )
-    with pytest.raises(ValueError, match="A sensor failed"):
-        await exporter._launch_all()
+    generator = MetricGenerator(metrics=[Metric(name="carbon_emission_host", value=value)])
+    exporter = JSONExporter(path=str(output), metric_generators=[generator])
+    tracarbon = TracarbonBuilder(exporter=exporter, location=Country(name="fr", co2g_kwh=400.0)).build()
+    try:
+        tracarbon.start()
+        generator.metrics.append(Metric(name="failed", value=failing_value))
+        with pytest.raises(ValueError, match="A sensor failed"):
+            tracarbon.stop()
 
-    records = orjson.loads(output.read_bytes())
-    assert len(records) == 1
-    assert records[0]["metric_name"] == "good"
+        assert tracarbon.report.total_co2g == 2.0
+        assert tracarbon.report.end_time is not None
+        records = orjson.loads(output.read_bytes())
+        assert [record["metric_name"] for record in records] == ["carbon_emission_host", "carbon_emission_host"]
+    finally:
+        exporter.stop()

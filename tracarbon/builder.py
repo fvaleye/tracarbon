@@ -75,13 +75,15 @@ class Tracarbon:
 
     def stop(self) -> float | None:
         """
-        Stop Tracarbon.
+        Collect the final interval and stop Tracarbon.
 
         :return: the total CO2 grams the host emitted since Tracarbon started
         """
-        self.exporter.stop()
-        self.report.metric_report = self.exporter.metric_report
-        self.report.end_time = datetime.datetime.now()
+        try:
+            self.exporter.finish()
+        finally:
+            self.report.metric_report = self.exporter.metric_report
+            self.report.end_time = datetime.datetime.now()
         return self.report.total_co2g
 
 
