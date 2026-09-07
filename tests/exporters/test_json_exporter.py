@@ -4,6 +4,7 @@ from datetime import timezone
 
 import orjson
 import psutil
+import pytest
 
 from tracarbon import Country
 from tracarbon import MetricGenerator
@@ -58,7 +59,6 @@ def test_json_exporter_should_write_well_formatted_metrics_in_json_file(mocker, 
 
     exporter.start(interval_in_seconds=interval_in_seconds)
     exporter.stop()
-    exporter.flush()
 
     with open(test_json_file, "rb") as file:
         assert orjson.loads(file.read()) == expected
@@ -70,3 +70,46 @@ def test_json_exporter_should_write_well_formatted_metrics_in_json_file(mocker, 
     assert exporter.metric_report["test_metric_1"].minimum < sys.float_info.max
     assert exporter.metric_report["test_metric_1"].maximum > 0
     assert exporter.metric_report["test_metric_1"].call_count == 1
+
+
+@pytest.mark.parametrize("initial_content", ["", "[\n  ]\n"])
+def test_json_exporter_can_append_to_an_empty_array_and_stop_from_a_callback(tmp_path, initial_content):
+    output = tmp_path / "metrics.json"
+    output.write_text(initial_content)
+
+    async def value() -> float:
+        exporter.stop()
+        return 0.0
+
+    exporter = JSONExporter(
+        path=str(output), metric_generators=[MetricGenerator(metrics=[Metric(name="zero", value=value)])]
+    )
+    try:
+        exporter.start(interval_in_seconds=60)
+        records = orjson.loads(output.read_bytes())
+        assert len(records) == 1
+        assert records[0]["metric_value"] == 0.0
+    finally:
+        exporter.stop()
+
+
+async def test_json_exporter_keeps_collected_records_readable_if_a_later_metric_fails(tmp_path):
+    async def value() -> float:
+        return 1.0
+
+    async def failing_value() -> float:
+        raise ValueError("A sensor failed")
+
+    output = tmp_path / "metrics.json"
+    exporter = JSONExporter(
+        path=str(output),
+        metric_generators=[
+            MetricGenerator(metrics=[Metric(name="good", value=value), Metric(name="failed", value=failing_value)])
+        ],
+    )
+    with pytest.raises(ValueError, match="A sensor failed"):
+        await exporter._launch_all()
+
+    records = orjson.loads(output.read_bytes())
+    assert len(records) == 1
+    assert records[0]["metric_name"] == "good"
