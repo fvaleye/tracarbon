@@ -1,6 +1,7 @@
 import asyncio
 import csv
 import importlib.resources
+import math
 import struct
 from abc import ABC
 from abc import abstractmethod
@@ -13,6 +14,7 @@ from pydantic import ConfigDict
 from tracarbon.exceptions import AWSSensorException
 from tracarbon.exceptions import AzureSensorException
 from tracarbon.exceptions import GCPSensorException
+from tracarbon.exceptions import HardwareNoGPUDetectedException
 from tracarbon.exceptions import TracarbonException
 from tracarbon.hardwares.amd_rapl import AMDRAPL
 from tracarbon.hardwares.cloud_providers import AWS
@@ -20,8 +22,10 @@ from tracarbon.hardwares.cloud_providers import GCP
 from tracarbon.hardwares.cloud_providers import Azure
 from tracarbon.hardwares.cloud_providers import CloudProviders
 from tracarbon.hardwares.energy import EnergyUsage
+from tracarbon.hardwares.gpu import AMDGPU
 from tracarbon.hardwares.gpu import AppleSiliconPowerMetrics
 from tracarbon.hardwares.gpu import GPUInfo
+from tracarbon.hardwares.gpu import NvidiaGPU
 from tracarbon.hardwares.hardware import HardwareInfo
 from tracarbon.hardwares.ioreport import IOReportEnergy
 from tracarbon.hardwares.rapl import RAPL
@@ -261,7 +265,8 @@ class LinuxEnergyConsumption(EnergyConsumption):
         1. Intel RAPL (powercap) - works for Intel and AMD on kernel 5.8+
         2. AMD RAPL (HWMON) - fallback for AMD with amd_energy driver
 
-        GPU power is also queried if available (NVIDIA or AMD GPU).
+        NVIDIA power is added to the RAPL host and GPU readings. AMD power remains
+        a component fallback because its CLI aggregate can include an APU's CPU.
 
         :return: the generated energy usage.
         """
@@ -283,7 +288,24 @@ class LinuxEnergyConsumption(EnergyConsumption):
                 "AMD RAPL requires kernel 5.8+ or amd_energy driver."
             )
 
-        energy_usage.gpu_energy_usage = GPUInfo.get_gpu_power_usage_or_none()
+        for gpu_type in (NvidiaGPU, AMDGPU):
+            try:
+                gpu_power = gpu_type.get_gpu_power_usage()
+            except HardwareNoGPUDetectedException as exception:
+                logger.debug(f"{gpu_type.__name__} not available: {exception}")
+                continue
+            except Exception as exception:
+                logger.opt(exception=exception).warning(f"{gpu_type.__name__} probe failed")
+                continue
+            if not math.isfinite(gpu_power) or gpu_power < 0.0:
+                logger.warning(f"Ignoring invalid {gpu_type.__name__} power reading: {gpu_power}")
+                continue
+            if gpu_type is NvidiaGPU:
+                energy_usage.host_energy_usage += gpu_power
+                energy_usage.gpu_energy_usage = (energy_usage.gpu_energy_usage or 0.0) + gpu_power
+            else:
+                energy_usage.gpu_energy_usage = gpu_power
+            break
         return energy_usage
 
 

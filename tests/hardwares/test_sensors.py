@@ -1,3 +1,5 @@
+import subprocess
+
 import pytest
 import requests
 from pytest_mock import MockerFixture
@@ -19,8 +21,10 @@ from tracarbon.hardwares.cloud_providers import AWS
 from tracarbon.hardwares.cloud_providers import GCP
 from tracarbon.hardwares.cloud_providers import Azure
 from tracarbon.hardwares.cloud_providers import CloudProviders
+from tracarbon.hardwares.gpu import AMDGPU
 from tracarbon.hardwares.gpu import AppleSiliconPowerMetrics
 from tracarbon.hardwares.gpu import GPUInfo
+from tracarbon.hardwares.gpu import NvidiaGPU
 from tracarbon.hardwares.ioreport import IOReportEnergy
 from tracarbon.hardwares.sensors import AzureEnergyConsumption
 from tracarbon.hardwares.sensors import GCPEnergyConsumption
@@ -333,19 +337,70 @@ async def test_get_platform_should_return_the_platform_energy_consumption_linux(
 
 
 @pytest.mark.asyncio
-async def test_get_platform_should_return_amd_rapl_when_intel_not_available(mocker):
-    energy_usage = EnergyUsage(host_energy_usage=2.5)
+async def test_linux_adds_nvidia_power_to_amd_rapl_when_powercap_unavailable(mocker):
     mocker.patch.object(RAPL, "is_rapl_compatible", return_value=False)
     mocker.patch.object(AMDRAPL, "is_amd_rapl_compatible", return_value=True)
-    mocker.patch.object(
-        AMDRAPL,
-        "get_energy_report",
-        return_value=energy_usage,
-    )
+    mocker.patch.object(AMDRAPL, "get_energy_report", return_value=EnergyUsage(host_energy_usage=100.0))
+    mocker.patch.object(NvidiaGPU, "launch_shell_command", return_value=(b"300 W", 0))
 
     results = await LinuxEnergyConsumption().get_energy_usage()
 
-    assert results == energy_usage
+    assert results.host_energy_usage == 400.0
+    assert results.gpu_energy_usage == 300.0
+
+
+@pytest.mark.parametrize(
+    ("rapl_gpu", "nvidia_output", "expected_host", "expected_gpu"),
+    [
+        (None, b"300 W", 400.0, 300.0),
+        (15.0, b"100 W\n200 W", 400.0, 315.0),
+        (15.0, b"[N/A]", 100.0, 15.0),
+        (15.0, b"-1 W", 100.0, 15.0),
+        (15.0, b"nan W", 100.0, 15.0),
+        (15.0, b"inf W", 100.0, 15.0),
+        (None, b"0 W", 100.0, 0.0),
+        (15.0, b"0 W", 100.0, 15.0),
+    ],
+)
+@pytest.mark.asyncio
+async def test_linux_adds_nvidia_power_once_and_preserves_rapl_gpu(
+    mocker, rapl_gpu, nvidia_output, expected_host, expected_gpu
+):
+    mocker.patch.object(RAPL, "is_rapl_compatible", return_value=True)
+    mocker.patch.object(
+        RAPL,
+        "get_energy_report",
+        return_value=EnergyUsage(host_energy_usage=100.0, gpu_energy_usage=rapl_gpu),
+    )
+    mocker.patch.object(NvidiaGPU, "launch_shell_command", return_value=(nvidia_output, 0))
+    mocker.patch.object(AMDGPU, "launch_shell_command", return_value=(b"", 1))
+
+    energy_usage = await LinuxEnergyConsumption().get_energy_usage()
+
+    assert energy_usage.host_energy_usage == expected_host
+    assert energy_usage.gpu_energy_usage == expected_gpu
+
+
+@pytest.mark.parametrize("rapl_gpu", [None, 15.0])
+@pytest.mark.asyncio
+async def test_linux_keeps_amd_fallback_out_of_rapl_host_power(mocker, rapl_gpu):
+    mocker.patch.object(RAPL, "is_rapl_compatible", return_value=True)
+    mocker.patch.object(
+        RAPL,
+        "get_energy_report",
+        return_value=EnergyUsage(host_energy_usage=100.0, gpu_energy_usage=rapl_gpu),
+    )
+    mocker.patch.object(NvidiaGPU, "launch_shell_command", side_effect=subprocess.TimeoutExpired("nvidia-smi", 10))
+    mocker.patch.object(
+        AMDGPU,
+        "launch_shell_command",
+        return_value=(b"GPU[0] : Average Graphics Package Power (W): 45.0", 0),
+    )
+
+    energy_usage = await LinuxEnergyConsumption().get_energy_usage()
+
+    assert energy_usage.host_energy_usage == 100.0
+    assert energy_usage.gpu_energy_usage == 45.0
 
 
 @pytest.mark.asyncio
