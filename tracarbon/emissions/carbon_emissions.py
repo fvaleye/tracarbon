@@ -66,15 +66,19 @@ class CarbonUsage(BaseModel):
         if self.unit != unit:
             if unit == CarbonUsageUnit.CO2_G and self.unit == CarbonUsageUnit.CO2_MG:
                 self.host_carbon_usage = self.host_carbon_usage / 1000
-                self.cpu_carbon_usage = self.cpu_carbon_usage / 1000 if self.cpu_carbon_usage else None
-                self.memory_carbon_usage = self.memory_carbon_usage / 1000 if self.memory_carbon_usage else None
-                self.gpu_carbon_usage = self.gpu_carbon_usage / 1000 if self.gpu_carbon_usage else None
+                self.cpu_carbon_usage = self.cpu_carbon_usage / 1000 if self.cpu_carbon_usage is not None else None
+                self.memory_carbon_usage = (
+                    self.memory_carbon_usage / 1000 if self.memory_carbon_usage is not None else None
+                )
+                self.gpu_carbon_usage = self.gpu_carbon_usage / 1000 if self.gpu_carbon_usage is not None else None
                 self.unit = CarbonUsageUnit.CO2_G
             elif unit == CarbonUsageUnit.CO2_MG and self.unit == CarbonUsageUnit.CO2_G:
                 self.host_carbon_usage = self.host_carbon_usage * 1000
-                self.cpu_carbon_usage = self.cpu_carbon_usage * 1000 if self.cpu_carbon_usage else None
-                self.memory_carbon_usage = self.memory_carbon_usage * 1000 if self.memory_carbon_usage else None
-                self.gpu_carbon_usage = self.gpu_carbon_usage * 1000 if self.gpu_carbon_usage else None
+                self.cpu_carbon_usage = self.cpu_carbon_usage * 1000 if self.cpu_carbon_usage is not None else None
+                self.memory_carbon_usage = (
+                    self.memory_carbon_usage * 1000 if self.memory_carbon_usage is not None else None
+                )
+                self.gpu_carbon_usage = self.gpu_carbon_usage * 1000 if self.gpu_carbon_usage is not None else None
                 self.unit = CarbonUsageUnit.CO2_MG
 
 
@@ -140,8 +144,10 @@ class CarbonEmission(Sensor):
         logger.debug(f"Carbon Emission of the location: {co2g_per_kwh}g CO2 eq/kWh")
 
         def co2g_from(watts: float | None) -> float | None:
-            watt_hours = Power.watt_hours_from_watts_over(watts=watts or 0.0, seconds=seconds)
-            return Power.co2g_from_watts_hour(watt_hours, co2g_per_kwh=co2g_per_kwh) or None
+            if watts is None or seconds <= 0:
+                return None
+            watt_hours = Power.watt_hours_from_watts_over(watts=watts, seconds=seconds)
+            return Power.co2g_from_watts_hour(watt_hours, co2g_per_kwh=co2g_per_kwh)
 
         self.previous_energy_consumption_time = datetime.now()
         self._measured_at = measured_at

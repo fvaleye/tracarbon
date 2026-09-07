@@ -163,6 +163,43 @@ def test_carbon_usage_with_type_and_conversion():
     assert carbon_usage.unit == CarbonUsageUnit.CO2_MG
 
 
+@pytest.mark.parametrize("watts, carbon_intensity", [(0.0, 400.0), (100.0, 0.0)])
+async def test_carbon_emission_preserves_zero_without_filling_missing_components(mocker, watts, carbon_intensity):
+    mocker.patch.object(
+        MacEnergyConsumption,
+        "get_energy_usage",
+        return_value=EnergyUsage(host_energy_usage=watts, cpu_energy_usage=watts, gpu_energy_usage=watts),
+    )
+    clock = mock.Mock()
+    clock.monotonic.side_effect = [0.0, 60.0]
+    mocker.patch.object(carbon_emissions, "time", clock)
+    carbon_emission = CarbonEmission(
+        location=Country(name="fr", co2g_kwh=carbon_intensity), energy_consumption=MacEnergyConsumption()
+    )
+    await carbon_emission.get_co2_usage()
+
+    carbon_usage = await carbon_emission.get_co2_usage()
+
+    assert carbon_usage.host_carbon_usage == 0.0
+    assert carbon_usage.cpu_carbon_usage == 0.0
+    assert carbon_usage.gpu_carbon_usage == 0.0
+    assert carbon_usage.memory_carbon_usage is None
+
+
+@pytest.mark.parametrize("grams, milligrams", [(0.0, 0.0), (None, None), (1.5, 1500.0)])
+def test_carbon_unit_conversion_preserves_zero_and_missing_components(grams, milligrams):
+    carbon_usage = CarbonUsage(cpu_carbon_usage=grams, memory_carbon_usage=grams, gpu_carbon_usage=grams)
+
+    for unit, expected in ((CarbonUsageUnit.CO2_MG, milligrams), (CarbonUsageUnit.CO2_G, grams)):
+        carbon_usage.convert_unit(unit)
+
+        assert (carbon_usage.cpu_carbon_usage, carbon_usage.memory_carbon_usage, carbon_usage.gpu_carbon_usage) == (
+            expected,
+            expected,
+            expected,
+        )
+
+
 @pytest.mark.asyncio
 @pytest.mark.darwin
 async def test_carbon_usage_includes_carbon_intensity_metadata(mocker):
