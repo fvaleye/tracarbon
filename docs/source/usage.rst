@@ -64,61 +64,27 @@ Run the code
 >>> report = tracarbon.report # Get the report
 >>> print(report.total_co2g)
 
-``total_co2g`` is ``None`` when no host carbon emission metric was collected.
-``stop()`` collects a final sample so short workloads are measured too. Repeated
-calls do not collect again. From a metric callback, it finishes the current sample.
+``stop()`` returns total CO2 in grams, or ``None`` if unavailable.
 
 Measure a local LLM on Apple Silicon
 ====================================
 
-Measure energy and carbon per output token with Alibaba's
-`Qwen3.8-27B <https://huggingface.co/Qwen/Qwen3.8-27B>`_ (Apache 2.0), using
-`MLX Community's 4-bit conversion <https://huggingface.co/mlx-community/Qwen3.8-27B-4bit>`_.
-Requires Apple Silicon, readable IOReport counters and a 16.1 GB model download.
-
-Run from the repository checkout. MLX is installed only for this example:
+Run `Qwen3.8-27B <https://huggingface.co/Qwen/Qwen3.8-27B>`_ with
+`MLX Community's 4-bit weights <https://huggingface.co/mlx-community/Qwen3.8-27B-4bit>`_
+(16.1 GB download). From this checkout:
 
 .. code-block:: console
 
    uv run --frozen --with mlx-lm==0.31.3 --with mlx==0.32.2 python examples/measure_mlx.py \
      --revision 3e6447f082e89cc7f0bc6e5441afd38dfce760ff > measurement.json
 
-The command pins the package versions and conversion's revision. Use ``--model``
-and ``--revision`` for another MLX-compatible chat model.
+``measurement.json`` contains energy, CO2 and per-token averages. See ``--help`` for options.
 
-The default prompt asks how to use Tracarbon. The script runs 20 sequential
-requests, capped at 128 output tokens each, with greedy sampling and thinking
-disabled. Adjust ``--prompt``, ``--max-tokens`` and ``--repeats`` to change the workload.
+Country is detected by IP; ``--country fr`` overrides it. Carbon estimates use
+bundled static factors for 28 European countries.
 
-Loading and warmup happen before measurement. Each request uses a fresh prompt
-cache and finishes before measurement stops. Prompt processing and measurement
-overhead count toward energy use.
-
-``measurement.json`` records the run settings, device, country, last response
-and measurements:
-
-* ``energy_wh``: chip energy in watt-hours.
-* ``joules_per_output_token``: ``energy_wh * 3600 / output_tokens``.
-* ``co2g_per_output_token``: electricity emissions divided by output tokens.
-
-Tracarbon detects your country from your public IP through ipinfo.io. Use
-``--country fr`` to override detection or run offline with cached weights.
-The example uses Tracarbon's bundled static factors for 28 European countries
-(74 g/kWh for France). The JSON records the selected factor and source.
-Carbon estimates cover electricity use; training and hardware manufacturing are excluded.
-
-CPU, GPU and memory counters include other applications' activity, plus ANE energy
-where reported. They measure shared chip energy, not wall power or one process.
-Missing required counters, sampling errors or no positive energy interval stop the run.
-
-Run on a quiet machine. Repeat requests over a longer window to reduce timing
-error on short generations. Keep the prompt, revision, quantization, token limits
-and hardware fixed when comparing runs. Across models, check answer quality and
-tokenizer differences too: MLX counts output tokens, including an end-of-sequence
-token when emitted.
-
-For a remote API, local sensors measure the client. Measuring server emissions
-requires data from the server or provider.
+Readings cover shared chip activity, including other apps. Loading and warmup
+are excluded. Run on a quiet machine.
 
 Run the code with general metrics
 =================================
