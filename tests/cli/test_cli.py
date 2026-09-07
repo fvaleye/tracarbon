@@ -4,6 +4,7 @@ from kubernetes import config
 from tracarbon import CarbonEmission
 from tracarbon import CarbonUsage
 from tracarbon import Country
+from tracarbon import EnergyConsumption
 from tracarbon import EnergyUsage
 from tracarbon import Kubernetes
 from tracarbon import MacEnergyConsumption
@@ -13,6 +14,8 @@ from tracarbon.exporters import DatadogExporter
 from tracarbon.exporters import StdoutExporter
 from tracarbon.hardwares import Container
 from tracarbon.hardwares import Pod
+from tracarbon.hardwares import WindowsEnergyConsumption
+from tracarbon.hardwares.gpu import NvidiaGPU
 
 
 def test_get_exporter_by_name():
@@ -28,6 +31,18 @@ def test_get_exporter_by_name_should_raise_error():
         get_exporter(exporter_name="unknown", metric_generators=[])
 
     assert "This exporter is not available in the list:" in exception.value.args[0]
+
+
+def test_run_metrics_reports_gpu_carbon_when_host_measurement_is_unavailable(mocker, caplog):
+    mocker.patch.object(Country, "get_location", return_value=Country.from_eu_file("fr"))
+    mocker.patch.object(EnergyConsumption, "from_platform", return_value=WindowsEnergyConsumption())
+    mocker.patch.object(NvidiaGPU, "get_gpu_power_usage", return_value=50.0)
+    run_metrics(exporter_name="Stdout", running=False)
+
+    assert "carbon_emission_gpu" in caplog.text
+    assert "Total CO2 emitted: unavailable" in caplog.text
+    assert "GPU CO2 emitted:" in caplog.text
+    assert "end_time=None" not in caplog.text
 
 
 @pytest.mark.darwin

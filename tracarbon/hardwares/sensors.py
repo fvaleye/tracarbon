@@ -301,7 +301,8 @@ class LinuxEnergyConsumption(EnergyConsumption):
                 logger.warning(f"Ignoring invalid {gpu_type.__name__} power reading: {gpu_power}")
                 continue
             if gpu_type is NvidiaGPU:
-                energy_usage.host_energy_usage += gpu_power
+                if energy_usage.host_energy_usage is not None:
+                    energy_usage.host_energy_usage += gpu_power
                 energy_usage.gpu_energy_usage = (energy_usage.gpu_energy_usage or 0.0) + gpu_power
             else:
                 energy_usage.gpu_energy_usage = gpu_power
@@ -311,7 +312,7 @@ class LinuxEnergyConsumption(EnergyConsumption):
 
 class WindowsEnergyConsumption(EnergyConsumption):
     """
-    Energy Consumption of a Windows device: https://github.com/fvaleye/tracarbon/issues/2
+    NVIDIA GPU power on Windows. CPU, memory and host power are unavailable.
     """
 
     async def get_energy_usage(self) -> EnergyUsage:
@@ -320,7 +321,7 @@ class WindowsEnergyConsumption(EnergyConsumption):
 
         :return: the generated energy usage.
         """
-        raise TracarbonException("This Windows hardware is not yet supported.")
+        return EnergyUsage(host_energy_usage=None, gpu_energy_usage=NvidiaGPU.get_gpu_power_usage())
 
 
 class AWSEC2EnergyConsumption(EnergyConsumption):

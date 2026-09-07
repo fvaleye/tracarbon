@@ -404,10 +404,16 @@ async def test_linux_keeps_amd_fallback_out_of_rapl_host_power(mocker, rapl_gpu)
 
 
 @pytest.mark.asyncio
-async def test_get_platform_should_return_the_platform_energy_consumption_windows_error():
-    with pytest.raises(TracarbonException) as exception:
-        await WindowsEnergyConsumption().get_energy_usage()
-        assert exception.value.args[0] == "This Windows hardware is not yet supported."
+@pytest.mark.parametrize("gpu_power", [0.0, 50.0])
+async def test_windows_reports_gpu_power_without_inventing_host_power(mocker, gpu_power):
+    mocker.patch.object(NvidiaGPU, "get_gpu_power_usage", return_value=gpu_power)
+
+    energy = await WindowsEnergyConsumption().get_energy_usage()
+
+    assert energy.host_energy_usage is None
+    assert energy.cpu_energy_usage is None
+    assert energy.memory_energy_usage is None
+    assert energy.gpu_energy_usage == gpu_power
 
 
 def test_is_gcp_should_return_false_on_exception():

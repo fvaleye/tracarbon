@@ -128,6 +128,9 @@ def run_metrics(
         total_co2g = tracarbon.report.total_co2g
         if total_co2g is None:
             logger.warning("Tracarbon CLI exited. Total CO2 emitted: unavailable")
+            gpu_carbon = tracarbon.report.metric_report.get("carbon_emission_gpu")
+            if gpu_carbon is not None:
+                logger.info(f"GPU CO2 emitted: {gpu_carbon.total:.4f}g")
         else:
             logger.info(f"Tracarbon CLI exited. Total CO2 emitted: {total_co2g:.4f}g")
         logger.info(f"Tracarbon report: {tracarbon.report}")

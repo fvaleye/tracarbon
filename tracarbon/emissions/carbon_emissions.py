@@ -33,7 +33,7 @@ class CarbonUsage(BaseModel):
     Carbon Usage of the different types.
     """
 
-    host_carbon_usage: float = 0.0
+    host_carbon_usage: float | None = 0.0
     cpu_carbon_usage: float | None = None
     memory_carbon_usage: float | None = None
     gpu_carbon_usage: float | None = None
@@ -65,7 +65,7 @@ class CarbonUsage(BaseModel):
         """
         if self.unit != unit:
             if unit == CarbonUsageUnit.CO2_G and self.unit == CarbonUsageUnit.CO2_MG:
-                self.host_carbon_usage = self.host_carbon_usage / 1000
+                self.host_carbon_usage = self.host_carbon_usage / 1000 if self.host_carbon_usage is not None else None
                 self.cpu_carbon_usage = self.cpu_carbon_usage / 1000 if self.cpu_carbon_usage is not None else None
                 self.memory_carbon_usage = (
                     self.memory_carbon_usage / 1000 if self.memory_carbon_usage is not None else None
@@ -73,7 +73,7 @@ class CarbonUsage(BaseModel):
                 self.gpu_carbon_usage = self.gpu_carbon_usage / 1000 if self.gpu_carbon_usage is not None else None
                 self.unit = CarbonUsageUnit.CO2_G
             elif unit == CarbonUsageUnit.CO2_MG and self.unit == CarbonUsageUnit.CO2_G:
-                self.host_carbon_usage = self.host_carbon_usage * 1000
+                self.host_carbon_usage = self.host_carbon_usage * 1000 if self.host_carbon_usage is not None else None
                 self.cpu_carbon_usage = self.cpu_carbon_usage * 1000 if self.cpu_carbon_usage is not None else None
                 self.memory_carbon_usage = (
                     self.memory_carbon_usage * 1000 if self.memory_carbon_usage is not None else None
@@ -152,7 +152,9 @@ class CarbonEmission(Sensor):
         self.previous_energy_consumption_time = datetime.now()
         self._measured_at = measured_at
         return CarbonUsage(
-            host_carbon_usage=co2g_from(energy_usage.host_energy_usage) or 0.0,
+            host_carbon_usage=(co2g_from(energy_usage.host_energy_usage) or 0.0)
+            if energy_usage.host_energy_usage is not None
+            else None,
             cpu_carbon_usage=co2g_from(energy_usage.cpu_energy_usage),
             memory_carbon_usage=co2g_from(energy_usage.memory_energy_usage),
             gpu_carbon_usage=co2g_from(energy_usage.gpu_energy_usage),

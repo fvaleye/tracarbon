@@ -6,6 +6,16 @@ from tracarbon import UsageType
 from tracarbon.hardwares import Power
 
 
+def test_energy_unit_conversion_preserves_unavailable_host():
+    energy = EnergyUsage(host_energy_usage=None, gpu_energy_usage=2.0)
+    energy.convert_unit(EnergyUsageUnit.MILLIWATT)
+    assert energy.host_energy_usage is None
+    assert energy.gpu_energy_usage == 2000.0
+    energy.convert_unit(EnergyUsageUnit.WATT)
+    assert energy.host_energy_usage is None
+    assert energy.gpu_energy_usage == 2.0
+
+
 def test_power_should_convert_watt_hours_to_co2g():
     co2g_per_kwh = 20.3
     watts_hour = 10.1

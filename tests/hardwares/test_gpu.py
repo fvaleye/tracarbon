@@ -60,8 +60,9 @@ def test_get_nvidia_gpu_power_usage_skips_a_gpu_without_power_telemetry(mocker):
     assert gpu_usage == gpu_usage_expected
 
 
-def test_get_nvidia_gpu_power_usage_when_no_gpu_reports_power(mocker):
-    mocker.patch.object(NvidiaGPU, "launch_shell_command", return_value=(b"[N/A]", 0))
+@pytest.mark.parametrize("output", [b"[N/A]", b"nan W", b"inf W", b"-1 W"])
+def test_get_nvidia_gpu_power_usage_when_no_gpu_reports_power(mocker, output):
+    mocker.patch.object(NvidiaGPU, "launch_shell_command", return_value=(output, 0))
 
     with pytest.raises(HardwareNoGPUDetectedException) as exception:
         NvidiaGPU.get_gpu_power_usage()

@@ -2,35 +2,107 @@
 Usage
 *****
 
-Tracarbon
-=========
+After :doc:`installation`, use the CLI to monitor your device or the Python API
+to measure a workload.
 
-1. Set the environment variable or directly set the configuration.
-2. Choose :class:`.Exporter` with your list of :class:`.Metric`.
-3. Launch Tracarbon!
+CLI
+===
 
-Run the CLI
-===========
+Start tracking:
 
-Print metrics using the CO2 Signal API:
+.. code-block:: console
 
->>> TRACARBON_CO2SIGNAL_API_KEY=API_KEY tracarbon run
+   tracarbon run
 
-Run without an API key:
+Press ``Ctrl+C`` to stop. No API key is required.
 
->>> tracarbon run
+Keep Tracarbon running while you use your local LLM. See the
+`local LLM example <https://github.com/fvaleye/tracarbon/tree/main/examples>`_.
+
+Python API
+==========
+
+Wrap your workload in a tracker:
+
+.. code-block:: python
+
+   from tracarbon import TracarbonBuilder
+
+   with TracarbonBuilder().build() as tracker:
+       run_workload()
+
+   print(tracker.report.total_co2g)
+
+The block starts and stops tracking. ``total_co2g`` is the total CO2 in grams,
+or ``None`` if unavailable. For manual control, use ``tracker.start()`` and
+``tracker.stop()``.
+
+Configuration
+=============
 
 Choose a country:
 
->>> tracarbon run --country-code-alpha-iso-2 fr
+.. code-block:: console
+
+   tracarbon run --country-code-alpha-iso-2 fr
+
+Set an API key for live carbon intensity:
+
+.. code-block:: console
+
+   TRACARBON_CO2SIGNAL_API_KEY=API_KEY tracarbon run
+
+In Python, pass a :class:`.TracarbonConfiguration` to the builder:
+
+.. code-block:: python
+
+   from tracarbon import TracarbonBuilder, TracarbonConfiguration
+
+   configuration = TracarbonConfiguration(interval_in_seconds=1)
+   tracker = TracarbonBuilder(configuration=configuration).build()
+
+Choose metrics
+==============
+
+To collect both energy consumption and carbon emissions:
+
+.. code-block:: python
+
+   from tracarbon import TracarbonBuilder
+   from tracarbon.exporters import StdoutExporter
+   from tracarbon.general_metrics import CarbonEmissionGenerator, EnergyConsumptionGenerator
+
+   metrics = [EnergyConsumptionGenerator(), CarbonEmissionGenerator()]
+   exporter = StdoutExporter(metric_generators=metrics)
+   with TracarbonBuilder(exporter=exporter).build() as tracker:
+       run_workload()
+
+For custom metrics, pass your async measurement function as ``value``:
+
+.. code-block:: python
+
+   from tracarbon import TracarbonBuilder
+   from tracarbon.exporters import Metric, MetricGenerator, StdoutExporter
+
+   metric = Metric(name="custom_metric", value=read_metric)
+   exporter = StdoutExporter(metric_generators=[MetricGenerator(metrics=[metric])])
+   with TracarbonBuilder(exporter=exporter).build() as tracker:
+       run_workload()
+
+Export metrics
+==============
 
 Send metrics to Datadog:
 
->>> TRACARBON_CO2SIGNAL_API_KEY=API_KEY DATADOG_API_KEY=DATADOG_API_KEY DATADOG_APP_KEY=DATADOG_APP_KEY tracarbon run --exporter-name Datadog
+.. code-block:: console
+
+   DATADOG_API_KEY=API_KEY DATADOG_APP_KEY=APP_KEY tracarbon run --exporter-name Datadog
 
 Export Kubernetes container metrics to Prometheus on Linux:
 
->>> tracarbon run --exporter-name Prometheus --containers
+.. code-block:: console
+
+   tracarbon run --exporter-name Prometheus --containers
 
 With the default metric prefix, container metrics are exposed with these Prometheus names:
 
@@ -47,79 +119,3 @@ tracarbon_carbon_emission_kubernetes_memory      pod_name, pod_namespace, contai
 
 Zero values are exported. If Kubernetes returns no pod metrics, the CLI logs
 ``No Kubernetes container metrics were collected.`` Host metrics are still exported.
-
-Run the code
-============
->>> from tracarbon import TracarbonBuilder, TracarbonConfiguration
->>>
->>> configuration = TracarbonConfiguration(co2signal_api_key="API_KEY")  # Your configuration
->>> tracarbon = TracarbonBuilder(configuration=configuration).build()
->>> tracarbon.start()
->>> # Your code
->>> total_co2g = tracarbon.stop()
->>>
->>> with tracarbon:
->>>    # Your code
->>>
->>> report = tracarbon.report # Get the report
->>> print(report.total_co2g)
-
-``stop()`` returns total CO2 in grams, or ``None`` if unavailable.
-
-Measure a local LLM on Apple Silicon
-====================================
-
-Run `Qwen3.8-27B <https://huggingface.co/Qwen/Qwen3.8-27B>`_ with
-`MLX Community's 4-bit weights <https://huggingface.co/mlx-community/Qwen3.8-27B-4bit>`_
-(16.1 GB download). From this checkout:
-
-.. code-block:: console
-
-   uv run --frozen --with mlx-lm==0.31.3 --with mlx==0.32.2 python examples/measure_mlx.py \
-     --revision 3e6447f082e89cc7f0bc6e5441afd38dfce760ff > measurement.json
-
-``measurement.json`` contains energy, CO2 and per-token averages. See ``--help`` for options.
-
-Country is detected by IP; ``--country fr`` overrides it. Carbon estimates use
-bundled static factors for 28 European countries.
-
-Readings cover shared chip activity, including other apps. Loading and warmup
-are excluded. Run on a quiet machine.
-
-Run the code with general metrics
-=================================
->>> from tracarbon import TracarbonBuilder, TracarbonConfiguration
->>> from tracarbon.exporters import StdoutExporter
->>> from tracarbon.general_metrics import CarbonEmissionGenerator, EnergyConsumptionGenerator
->>>
->>> configuration = TracarbonConfiguration(co2signal_api_key="API_KEY")  # Your configuration
->>> metric_generators = [EnergyConsumptionGenerator(), CarbonEmissionGenerator()]
->>> exporter = StdoutExporter(metric_generators=metric_generators) # Your exporter
->>> tracarbon = TracarbonBuilder(configuration=configuration).with_exporter(exporter=exporter).build()
->>> tracarbon.start()
->>> # Your code
->>> tracarbon.stop()
->>>
->>> with tracarbon:
->>>    # Your code
->>>
->>> report = tracarbon.report # Get the report
-
-Run the code with a custom configuration
-=========================================
->>> from tracarbon import TracarbonBuilder, TracarbonConfiguration
->>> from tracarbon.exporters import StdoutExporter, MetricGenerator, Metric, Tag
->>> from tracarbon.emissions import CarbonEmission
->>>
->>> configuration = TracarbonConfiguration(co2signal_api_key="API_KEY")  # Your configuration
->>> metric_generators = [MetricGenerator(metrics=[Metric(name="custom_metric", value=CustomClass().run, tags=[Tag(key="key", value="value")])])]  # Your custom metrics
->>> exporter = StdoutExporter(metric_generators=metric_generators) # Your exporter
->>> tracarbon = TracarbonBuilder(configuration=configuration).with_exporter(exporter=exporter).build()
->>> tracarbon.start()
->>> # Your code
->>> tracarbon.stop()
->>>
->>> with tracarbon:
->>>    # Your code
->>>
->>> report = tracarbon.report # Get the report
