@@ -49,6 +49,12 @@ pip install 'tracarbon[datadog,prometheus,kubernetes]'
 | Apple Silicon  | ✅ Integrated GPU power via IOReport, without sudo. Falls back to `powermetrics` (requires sudo). |
 | Intel          | ❌ Not yet implemented.                                                                                                         |
 
+Linux host totals include RAPL package and memory power plus NVIDIA power. The RAPL GPU
+breakdown stays available and is not added to the host again. AMD CLI power remains a GPU
+component fallback when neither NVIDIA nor RAPL provides one. It is excluded from host totals,
+including on mixed NVIDIA/AMD machines, because [AMD APU power can include the CPU](https://docs.kernel.org/gpu/amdgpu/thermal.html#hwmon-interfaces).
+Adding AMD power safely requires identifying the devices behind the CLI aggregate.
+
 ## 📡 Exporters
 
 | **Exporter** |          **Description**          |
