@@ -155,3 +155,12 @@ make test-unit
 ## 📚 Documentation
 
 The documentation is hosted here: https://fvaleye.github.io/tracarbon/documentation
+
+## 📖 Cited in
+
+- 2025-11 [Carbon Emission Quantification of Machine Learning: A Review](https://doi.org/10.1109/TSUSC.2025.3578834)
+- 2025-04-25 [A Critical Analysis of Machine Learning Eco-feedback Tools through the Lens of Sustainable HCI](https://doi.org/10.1145/3706598.3713198)
+- 2025-04-25 ["Should I choose a smaller model?": Understanding ML Model Selection and Its Impact on Sustainability](https://doi.org/10.1145/3706598.3713240)
+- 2024-07-08 [Balancing computational chemistry's potential with its environmental impact](https://doi.org/10.1039/D4GC01745E)
+- 2023-06-26 [GREENER principles for environmentally sustainable computational science](https://doi.org/10.1038/s43588-023-00461-y)
+- 2023-01-19 [eco2AI: Carbon Emissions Tracking of Machine Learning Models as the First Step Towards Sustainable AI](https://doi.org/10.1134/S1064562422060230)
