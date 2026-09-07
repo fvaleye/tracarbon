@@ -1,5 +1,3 @@
-"""Measure local MLX generation on Apple Silicon. See docs/source/usage.rst."""
-
 import argparse
 import asyncio
 import json
@@ -23,8 +21,8 @@ from tracarbon.locations import Country
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--model", default="HuggingFaceTB/SmolLM2-135M-Instruct")
+    parser = argparse.ArgumentParser(description="Measure local text generation with Tracarbon and MLX.")
+    parser.add_argument("--model", default="mlx-community/Qwen3.8-27B-4bit")
     parser.add_argument("--revision", help="Model commit hash for reproducible comparisons")
     parser.add_argument("--prompt", default="Explain how a computer generates text, in plain English.")
     parser.add_argument("--max-tokens", type=int, default=128)
@@ -50,7 +48,10 @@ def main() -> None:
             args.model, revision=args.revision, return_config=True, tokenizer_config={"trust_remote_code": False}
         )
     prompt = tokenizer.apply_chat_template(
-        [{"role": "user", "content": args.prompt}], tokenize=True, add_generation_prompt=True
+        [{"role": "user", "content": args.prompt}],
+        tokenize=True,
+        add_generation_prompt=True,
+        enable_thinking=False,
     )
     sampler = make_sampler(temp=0.0)
 
@@ -118,6 +119,7 @@ def main() -> None:
                 "prompt": args.prompt,
                 "max_tokens": args.max_tokens,
                 "temperature": 0.0,
+                "enable_thinking": False,
                 "repeats": args.repeats,
                 "warmup_requests": 1,
                 "prompt_cache_reused": False,
