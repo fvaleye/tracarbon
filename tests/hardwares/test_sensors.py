@@ -260,7 +260,6 @@ async def test_linux_adds_nvidia_power_to_amd_rapl_when_powercap_unavailable(moc
     mocker.patch.object(RAPL, "is_rapl_compatible", return_value=False)
     mocker.patch.object(AMDRAPL, "is_amd_rapl_compatible", return_value=True)
     mocker.patch.object(AMDRAPL, "get_energy_report", return_value=EnergyUsage(host_energy_usage=100.0))
-    mocker.patch("tracarbon.hardwares.gpu.platform.system", return_value="Linux")
     mocker.patch.object(NvidiaGPU, "launch_shell_command", return_value=(b"300 W", 0))
 
     results = await LinuxEnergyConsumption().get_energy_usage()
@@ -292,7 +291,6 @@ async def test_linux_adds_nvidia_power_once_and_preserves_rapl_gpu(
         "get_energy_report",
         return_value=EnergyUsage(host_energy_usage=100.0, gpu_energy_usage=rapl_gpu),
     )
-    mocker.patch("tracarbon.hardwares.gpu.platform.system", return_value="Linux")
     mocker.patch.object(NvidiaGPU, "launch_shell_command", return_value=(nvidia_output, 0))
     mocker.patch.object(AMDGPU, "launch_shell_command", return_value=(b"", 1))
 
@@ -302,16 +300,15 @@ async def test_linux_adds_nvidia_power_once_and_preserves_rapl_gpu(
     assert energy_usage.gpu_energy_usage == expected_gpu
 
 
-@pytest.mark.parametrize(("rapl_gpu", "expected_gpu"), [(None, 45.0), (15.0, 15.0)])
+@pytest.mark.parametrize("rapl_gpu", [None, 15.0])
 @pytest.mark.asyncio
-async def test_linux_keeps_amd_fallback_out_of_rapl_host_power(mocker, rapl_gpu, expected_gpu):
+async def test_linux_keeps_amd_fallback_out_of_rapl_host_power(mocker, rapl_gpu):
     mocker.patch.object(RAPL, "is_rapl_compatible", return_value=True)
     mocker.patch.object(
         RAPL,
         "get_energy_report",
         return_value=EnergyUsage(host_energy_usage=100.0, gpu_energy_usage=rapl_gpu),
     )
-    mocker.patch("tracarbon.hardwares.gpu.platform.system", return_value="Linux")
     mocker.patch.object(NvidiaGPU, "launch_shell_command", side_effect=subprocess.TimeoutExpired("nvidia-smi", 10))
     mocker.patch.object(
         AMDGPU,
@@ -322,7 +319,7 @@ async def test_linux_keeps_amd_fallback_out_of_rapl_host_power(mocker, rapl_gpu,
     energy_usage = await LinuxEnergyConsumption().get_energy_usage()
 
     assert energy_usage.host_energy_usage == 100.0
-    assert energy_usage.gpu_energy_usage == expected_gpu
+    assert energy_usage.gpu_energy_usage == 45.0
 
 
 @pytest.mark.asyncio

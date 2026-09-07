@@ -303,8 +303,7 @@ class LinuxEnergyConsumption(EnergyConsumption):
             if gpu_type is NvidiaGPU:
                 energy_usage.host_energy_usage += gpu_power
                 energy_usage.gpu_energy_usage = (energy_usage.gpu_energy_usage or 0.0) + gpu_power
-            elif energy_usage.gpu_energy_usage is None:
-                # ponytail: AMD aggregates can include APU CPU power; classify per-device before adding to host.
+            else:
                 energy_usage.gpu_energy_usage = gpu_power
             break
         return energy_usage
