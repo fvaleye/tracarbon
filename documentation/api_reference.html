@@ -50,7 +50,7 @@
     <link rel="prev" title="Usage" href="usage.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.11.1" />
+  <meta name="docsearch:version" content="0.12.0" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -570,7 +570,7 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="tracarbon.builder.Tracarbon.stop">
 <span class="sig-name descname"><span class="pre">stop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.builder.Tracarbon.stop" title="Link to this definition">#</a></dt>
-<dd><p>Stop Tracarbon.</p>
+<dd><p>Collect the final interval and stop Tracarbon.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>the total CO2 grams the host emitted since Tracarbon started</p>
@@ -915,7 +915,7 @@ context: The context.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>host_energy_usage</strong> (<em>float</em>)</p></li>
+<li><p><strong>host_energy_usage</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>cpu_energy_usage</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>memory_energy_usage</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>gpu_energy_usage</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
@@ -1866,7 +1866,7 @@ Uses linear interpolation between min and max watts based on CPU usage.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>host_energy_usage</strong> (<em>float</em>)</p></li>
+<li><p><strong>host_energy_usage</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>cpu_energy_usage</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>memory_energy_usage</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>gpu_energy_usage</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
@@ -2115,7 +2115,8 @@ Auto-detects GPU type and falls back to 0.0 if no GPU is found.</p>
 <p>Tries sensors in order of preference:
 1. Intel RAPL (powercap) - works for Intel and AMD on kernel 5.8+
 2. AMD RAPL (HWMON) - fallback for AMD with amd_energy driver</p>
-<p>GPU power is also queried if available (NVIDIA or AMD GPU).</p>
+<p>NVIDIA power is added to the RAPL host and GPU readings. AMD power remains
+a component fallback because its CLI aggregate can include an APU’s CPU.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>the generated energy usage.</p>
@@ -2335,7 +2336,7 @@ In this case, max_energy_range_uj contanst must be returned.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.hardwares.sensors.WindowsEnergyConsumption">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.sensors.</span></span><span class="sig-name descname"><span class="pre">WindowsEnergyConsumption</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.WindowsEnergyConsumption" title="Link to this definition">#</a></dt>
-<dd><p>Energy Consumption of a Windows device: <a class="github reference external" href="https://github.com/fvaleye/tracarbon/issues/2">fvaleye/tracarbon#2</a></p>
+<dd><p>NVIDIA GPU power on Windows. CPU, memory and host power are unavailable.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>init</strong> (<em>bool</em>)</p>
@@ -2397,6 +2398,17 @@ In this case, max_energy_range_uj contanst must be returned.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#tracarbon.exporters.exporter.MetricReport" title="tracarbon.exporters.exporter.MetricReport"><em>MetricReport</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tracarbon.exporters.exporter.Exporter.finish">
+<span class="sig-name descname"><span class="pre">finish</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.exporter.Exporter.finish" title="Link to this definition">#</a></dt>
+<dd><p>Stop periodic collection and collect the last interval once.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -3106,7 +3118,7 @@ context: The context.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>host_carbon_usage</strong> (<em>float</em>)</p></li>
+<li><p><strong>host_carbon_usage</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>cpu_carbon_usage</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>memory_carbon_usage</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>gpu_carbon_usage</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
@@ -4171,6 +4183,7 @@ context: The context.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-tracarbon.exporters.exporter">Exporters</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Exporter"><code class="docutils literal notranslate"><span class="pre">Exporter</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Exporter.add_metric_to_report"><code class="docutils literal notranslate"><span class="pre">Exporter.add_metric_to_report()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Exporter.finish"><code class="docutils literal notranslate"><span class="pre">Exporter.finish()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Exporter.get_name"><code class="docutils literal notranslate"><span class="pre">Exporter.get_name()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Exporter.launch"><code class="docutils literal notranslate"><span class="pre">Exporter.launch()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.exporters.exporter.Exporter.model_config"><code class="docutils literal notranslate"><span class="pre">Exporter.model_config</span></code></a></li>
