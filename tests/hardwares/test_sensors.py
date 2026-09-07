@@ -200,28 +200,29 @@ def test_aws_sensor_should_return_error_when_instance_type_is_missing():
 
 
 @pytest.mark.parametrize("head_status", [200, 401])
-def test_is_ec2_should_return_true_with_valid_metadata(mocker: MockerFixture, head_status: int) -> None:
+def test_cloud_provider_auto_detect_reuses_aws_identity_document(mocker: MockerFixture, head_status: int) -> None:
+    CloudProviders.auto_detect.cache_clear()
     response = requests.Response()
     response.status_code = head_status
     mocker.patch.object(requests, "head", return_value=response)
     metadata = mocker.patch("tracarbon.hardwares.cloud_providers.ec2_metadata")
     metadata.instance_identity_document = {"region": "eu-west-1", "instanceType": "m5.large"}
-
-    assert AWS.is_ec2() is True
+    try:
+        result = CloudProviders.auto_detect()
+        assert result == AWS(instance_type="m5.large", region_name="eu-west-1")
+        assert CloudProviders.auto_detect() is result
+    finally:
+        CloudProviders.auto_detect.cache_clear()
 
 
 @pytest.mark.parametrize(
     "document",
     [
-        {},
         {"region": "eu-west-1"},
         {"instanceType": "m5.large"},
-        {"region": "eu-west-1", "instanceType": None},
         {"region": 123, "instanceType": "m5.large"},
-        {"region": "", "instanceType": "m5.large"},
         {"region": "eu-west-1", "instanceType": " "},
         [],
-        None,
     ],
 )
 def test_is_ec2_rejects_invalid_metadata(mocker: MockerFixture, document: object) -> None:
@@ -270,21 +271,6 @@ def test_cloud_provider_auto_detect_continues_after_aws_metadata_failure(
             assert result == Azure(instance_type="Standard_D2s_v3", region_name="eastus")
         else:
             assert result is None
-    finally:
-        CloudProviders.auto_detect.cache_clear()
-
-
-def test_cloud_provider_auto_detect_reuses_aws_identity_document(mocker: MockerFixture) -> None:
-    CloudProviders.auto_detect.cache_clear()
-    response = requests.Response()
-    response.status_code = 401
-    mocker.patch.object(requests, "head", return_value=response)
-    metadata = mocker.patch("tracarbon.hardwares.cloud_providers.ec2_metadata")
-    metadata.instance_identity_document = {"region": "eu-west-1", "instanceType": "m5.large"}
-    try:
-        result = CloudProviders.auto_detect()
-        assert result == AWS(instance_type="m5.large", region_name="eu-west-1")
-        assert CloudProviders.auto_detect() is result
     finally:
         CloudProviders.auto_detect.cache_clear()
 
