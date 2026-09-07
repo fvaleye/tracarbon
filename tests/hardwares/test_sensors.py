@@ -1,5 +1,6 @@
 import pytest
 import requests
+from pytest_mock import MockerFixture
 
 from tracarbon import AMDRAPL
 from tracarbon import RAPL
@@ -198,14 +199,94 @@ def test_aws_sensor_should_return_error_when_instance_type_is_missing():
         AWSEC2EnergyConsumption(instance_type=instance_type)
 
 
-def test_is_ec2_should_return_true(mocker):
-    mocker.patch.object(
-        requests,
-        "head",
-        return_value=None,
-    )
+@pytest.mark.parametrize("head_status", [200, 401])
+def test_is_ec2_should_return_true_with_valid_metadata(mocker: MockerFixture, head_status: int) -> None:
+    response = requests.Response()
+    response.status_code = head_status
+    mocker.patch.object(requests, "head", return_value=response)
+    metadata = mocker.patch("tracarbon.hardwares.cloud_providers.ec2_metadata")
+    metadata.instance_identity_document = {"region": "eu-west-1", "instanceType": "m5.large"}
 
     assert AWS.is_ec2() is True
+
+
+@pytest.mark.parametrize(
+    "document",
+    [
+        {},
+        {"region": "eu-west-1"},
+        {"instanceType": "m5.large"},
+        {"region": "eu-west-1", "instanceType": None},
+        {"region": 123, "instanceType": "m5.large"},
+        {"region": "", "instanceType": "m5.large"},
+        {"region": "eu-west-1", "instanceType": " "},
+        [],
+        None,
+    ],
+)
+def test_is_ec2_rejects_invalid_metadata(mocker: MockerFixture, document: object) -> None:
+    response = requests.Response()
+    response.status_code = 200
+    mocker.patch.object(requests, "head", return_value=response)
+    metadata = mocker.patch("tracarbon.hardwares.cloud_providers.ec2_metadata")
+    metadata.instance_identity_document = document
+
+    assert AWS.is_ec2() is False
+
+
+@pytest.mark.parametrize("provider", ["gcp", "azure", None])
+def test_cloud_provider_auto_detect_continues_after_aws_metadata_failure(
+    mocker: MockerFixture, provider: str | None
+) -> None:
+    CloudProviders.auto_detect.cache_clear()
+    response = requests.Response()
+    response.status_code = 400
+    mocker.patch.object(requests, "head", return_value=response)
+    metadata = mocker.patch("tracarbon.hardwares.cloud_providers.ec2_metadata")
+    for attribute in ("instance_identity_document", "region"):
+        setattr(type(metadata), attribute, mocker.PropertyMock(side_effect=requests.HTTPError("HTTP 400")))
+
+    def get_metadata(url: str, **kwargs: object) -> requests.Response:
+        response = requests.Response()
+        response.status_code = 404
+        if provider == "gcp" and url.startswith(GCP.METADATA_URL):
+            response.status_code = 200
+            response._content = (
+                b"projects/123456/machineTypes/n2-standard-4"
+                if url.endswith("machine-type")
+                else b"projects/123456/zones/us-central1-a"
+            )
+        elif provider == "azure" and url.startswith(Azure.IMDS_URL):
+            response.status_code = 200
+            response._content = b'{"compute":{"vmSize":"Standard_D2s_v3","location":"eastus"}}'
+        return response
+
+    mocker.patch.object(requests, "get", side_effect=get_metadata)
+    try:
+        result = CloudProviders.auto_detect()
+        if provider == "gcp":
+            assert result == GCP(instance_type="n2-standard-4", region_name="us-central1")
+        elif provider == "azure":
+            assert result == Azure(instance_type="Standard_D2s_v3", region_name="eastus")
+        else:
+            assert result is None
+    finally:
+        CloudProviders.auto_detect.cache_clear()
+
+
+def test_cloud_provider_auto_detect_reuses_aws_identity_document(mocker: MockerFixture) -> None:
+    CloudProviders.auto_detect.cache_clear()
+    response = requests.Response()
+    response.status_code = 401
+    mocker.patch.object(requests, "head", return_value=response)
+    metadata = mocker.patch("tracarbon.hardwares.cloud_providers.ec2_metadata")
+    metadata.instance_identity_document = {"region": "eu-west-1", "instanceType": "m5.large"}
+    try:
+        result = CloudProviders.auto_detect()
+        assert result == AWS(instance_type="m5.large", region_name="eu-west-1")
+        assert CloudProviders.auto_detect() is result
+    finally:
+        CloudProviders.auto_detect.cache_clear()
 
 
 def test_cloud_provider_auto_detect_caches_negative_result(mocker):

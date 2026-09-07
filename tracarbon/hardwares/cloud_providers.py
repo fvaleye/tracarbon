@@ -4,7 +4,6 @@ from typing import Dict
 from typing import Optional
 
 import requests
-from ec2_metadata import EC2Metadata
 from ec2_metadata import ec2_metadata
 from pydantic import BaseModel
 
@@ -40,9 +39,10 @@ class CloudProviders(BaseModel):
         :return: the cloud provider detected
         """
         if AWS.is_ec2():
+            metadata = ec2_metadata.instance_identity_document
             return AWS(
-                region_name=ec2_metadata.region,
-                instance_type=ec2_metadata.instance_type,
+                region_name=metadata["region"],
+                instance_type=metadata["instanceType"],
             )
         if GCP.is_gcp():
             return GCP.from_metadata()
@@ -62,11 +62,13 @@ class AWS(CloudProviders):
         :return: is a EC2
         """
         try:
-            ec2_metadata = EC2Metadata()
             requests.head(ec2_metadata.service_url, timeout=1)
+            metadata = ec2_metadata.instance_identity_document
+            return all(
+                isinstance(value, str) and value.strip() for value in (metadata["region"], metadata["instanceType"])
+            )
         except Exception:
             return False
-        return True
 
 
 class GCP(CloudProviders):
