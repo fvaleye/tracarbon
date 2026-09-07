@@ -39,15 +39,19 @@ class JSONExporter(Exporter):
             with open(self.path, "rb+") as file:
                 file.seek(0, os.SEEK_END)
                 end = file.tell()
-                # Move backwards to find last non-whitespace char
+                closing_bracket = None
                 while end > 0:
                     end -= 1
                     file.seek(end)
                     ch = file.read(1)
-                    if ch not in b" \t\r\n":
-                        break
-                if ch == b"]":
-                    file.truncate(end)
+                    if ch in b" \t\r\n":
+                        continue
+                    if closing_bracket is None and ch == b"]":
+                        closing_bracket = end
+                        continue
+                    if closing_bracket is not None:
+                        file.truncate(0 if ch == b"[" else closing_bracket)
+                    break
         except Exception as exc:
             # Log and continue; we can still write a fresh array
             from loguru import logger
@@ -84,6 +88,12 @@ class JSONExporter(Exporter):
             from loguru import logger
 
             logger.debug(f"JSONExporter: flush failed for {self.path}: {exc}")
+
+    async def _launch_all(self) -> None:
+        try:
+            await super()._launch_all()
+        finally:
+            await asyncio.to_thread(self.flush)
 
     async def launch(self, metric_generator: MetricGenerator) -> None:
         """

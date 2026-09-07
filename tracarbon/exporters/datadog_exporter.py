@@ -47,7 +47,7 @@ if DATADOG_INSTALLED:
             """
             async for metric in metric_generator.generate():
                 metric_value = await metric.value()
-                if metric_value:
+                if metric_value is not None:
                     await self.add_metric_to_report(metric=metric, value=metric_value)
                     metric_name = metric.format_name(metric_prefix_name=self.metric_prefix_name)
                     logger.info(

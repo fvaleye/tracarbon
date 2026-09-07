@@ -3,6 +3,7 @@ import sys
 import time
 from abc import ABCMeta
 from abc import abstractmethod
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from threading import Event
 from threading import RLock
@@ -265,6 +266,30 @@ class Exporter(BaseModel, metaclass=ABCMeta):
             with self._run_lock:
                 if self._timer is timer:
                     self._timer = None
+
+    def finish(self) -> None:
+        """Stop periodic collection and collect the last interval once."""
+        if self._collection_thread is current_thread():
+            self.stop()
+            return
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            pass
+        else:
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                executor.submit(self.finish).result()
+            return
+        with self._start_lock:
+            should_collect = self.event is not None and not self.event.is_set() and not self.stopped
+            self.stop()
+            if should_collect:
+                with self._run_lock:
+                    self._collection_thread = current_thread()
+                    try:
+                        asyncio.run(self._launch_all())
+                    finally:
+                        self._collection_thread = None
 
     async def _launch_all(self) -> None:
         """
