@@ -256,22 +256,19 @@ async def test_get_platform_should_return_the_platform_energy_consumption_linux(
 
 
 @pytest.mark.asyncio
-async def test_get_platform_should_return_amd_rapl_when_intel_not_available(mocker):
-    energy_usage = EnergyUsage(host_energy_usage=2.5)
+async def test_linux_adds_nvidia_power_to_amd_rapl_when_powercap_unavailable(mocker):
     mocker.patch.object(RAPL, "is_rapl_compatible", return_value=False)
     mocker.patch.object(AMDRAPL, "is_amd_rapl_compatible", return_value=True)
-    mocker.patch.object(
-        AMDRAPL,
-        "get_energy_report",
-        return_value=energy_usage,
-    )
+    mocker.patch.object(AMDRAPL, "get_energy_report", return_value=EnergyUsage(host_energy_usage=100.0))
+    mocker.patch("tracarbon.hardwares.gpu.platform.system", return_value="Linux")
+    mocker.patch.object(NvidiaGPU, "launch_shell_command", return_value=(b"300 W", 0))
 
     results = await LinuxEnergyConsumption().get_energy_usage()
 
-    assert results == energy_usage
+    assert results.host_energy_usage == 400.0
+    assert results.gpu_energy_usage == 300.0
 
 
-@pytest.mark.parametrize("rapl_backend", [RAPL, AMDRAPL])
 @pytest.mark.parametrize(
     ("rapl_gpu", "nvidia_output", "expected_host", "expected_gpu"),
     [
@@ -287,12 +284,11 @@ async def test_get_platform_should_return_amd_rapl_when_intel_not_available(mock
 )
 @pytest.mark.asyncio
 async def test_linux_adds_nvidia_power_once_and_preserves_rapl_gpu(
-    mocker, rapl_backend, rapl_gpu, nvidia_output, expected_host, expected_gpu
+    mocker, rapl_gpu, nvidia_output, expected_host, expected_gpu
 ):
-    mocker.patch.object(RAPL, "is_rapl_compatible", return_value=rapl_backend is RAPL)
-    mocker.patch.object(AMDRAPL, "is_amd_rapl_compatible", return_value=True)
+    mocker.patch.object(RAPL, "is_rapl_compatible", return_value=True)
     mocker.patch.object(
-        rapl_backend,
+        RAPL,
         "get_energy_report",
         return_value=EnergyUsage(host_energy_usage=100.0, gpu_energy_usage=rapl_gpu),
     )
