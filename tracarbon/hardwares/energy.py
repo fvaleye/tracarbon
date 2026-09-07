@@ -37,7 +37,7 @@ class EnergyUsage(BaseModel):
     Energy report in watts.
     """
 
-    host_energy_usage: float = 0.0
+    host_energy_usage: float | None = 0.0
     cpu_energy_usage: float | None = None
     memory_energy_usage: float | None = None
     gpu_energy_usage: float | None = None
@@ -70,14 +70,14 @@ class EnergyUsage(BaseModel):
             return
         # Convert from milliwatts to watts
         if self.unit == EnergyUsageUnit.MILLIWATT and unit == EnergyUsageUnit.WATT:
-            self.host_energy_usage = self.host_energy_usage / 1000
+            self.host_energy_usage = self.host_energy_usage / 1000 if self.host_energy_usage is not None else None
             self.cpu_energy_usage = self.cpu_energy_usage / 1000 if self.cpu_energy_usage is not None else None
             self.memory_energy_usage = self.memory_energy_usage / 1000 if self.memory_energy_usage is not None else None
             self.gpu_energy_usage = self.gpu_energy_usage / 1000 if self.gpu_energy_usage is not None else None
             self.unit = EnergyUsageUnit.WATT
         # Convert from watts to milliwatts
         elif self.unit == EnergyUsageUnit.WATT and unit == EnergyUsageUnit.MILLIWATT:
-            self.host_energy_usage = self.host_energy_usage * 1000
+            self.host_energy_usage = self.host_energy_usage * 1000 if self.host_energy_usage is not None else None
             self.cpu_energy_usage = self.cpu_energy_usage * 1000 if self.cpu_energy_usage is not None else None
             self.memory_energy_usage = self.memory_energy_usage * 1000 if self.memory_energy_usage is not None else None
             self.gpu_energy_usage = self.gpu_energy_usage * 1000 if self.gpu_energy_usage is not None else None

@@ -1,4 +1,5 @@
 import functools
+import math
 import platform
 import re
 import shutil
@@ -61,7 +62,9 @@ class NvidiaGPU(BaseModel):
                 if not line:
                     continue
                 try:
-                    powers.append(float(line.split()[0]))
+                    power = float(line.split()[0])
+                    if math.isfinite(power) and power >= 0:
+                        powers.append(power)
                 except ValueError:
                     logger.debug(f"Ignoring an Nvidia GPU reporting no power telemetry: {line}")
             if powers:

@@ -16,6 +16,16 @@ from tracarbon.locations import CarbonIntensitySource
 from tracarbon.locations import Country
 
 
+def test_carbon_unit_conversion_preserves_unavailable_host():
+    carbon = CarbonUsage(host_carbon_usage=None, gpu_carbon_usage=2.0)
+    carbon.convert_unit(CarbonUsageUnit.CO2_MG)
+    assert carbon.host_carbon_usage is None
+    assert carbon.gpu_carbon_usage == 2000.0
+    carbon.convert_unit(CarbonUsageUnit.CO2_G)
+    assert carbon.host_carbon_usage is None
+    assert carbon.gpu_carbon_usage == 2.0
+
+
 def one_minute_ago() -> datetime.datetime:
     return datetime.datetime.now() - datetime.timedelta(seconds=60)
 

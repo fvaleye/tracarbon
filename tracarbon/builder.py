@@ -1,6 +1,7 @@
 import datetime
 from typing import Dict
 
+from loguru import logger
 from pydantic import BaseModel
 from pydantic import ConfigDict
 from pydantic import Field
@@ -62,7 +63,12 @@ class Tracarbon:
         return self
 
     def __exit__(self, type, value, traceback) -> None:
-        self.stop()
+        try:
+            self.stop()
+        except Exception:
+            if type is None:
+                raise
+            logger.exception("Final measurement failed while handling a workload error")
 
     def start(self) -> None:
         """

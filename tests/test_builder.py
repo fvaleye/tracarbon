@@ -101,6 +101,33 @@ def test_stop_collects_a_short_async_job_once_and_closes_its_json_report(mocker,
         exporter.stop()
 
 
+@pytest.mark.parametrize("workload_fails", [False, True])
+def test_context_exit_preserves_workload_errors_when_final_collection_fails(mocker, tmp_path, workload_fails):
+    workload_error = RuntimeError("workload failed")
+    sampling_error = ValueError("sample failed")
+    sample = mocker.AsyncMock(side_effect=[1.0, sampling_error])
+    exporter = JSONExporter(
+        path=str(tmp_path / "metrics.json"),
+        metric_generators=[MetricGenerator(metrics=[Metric(name="sample", value=sample)])],
+    )
+    tracarbon = Tracarbon(
+        configuration=TracarbonConfiguration(interval_in_seconds=3600),
+        exporter=exporter,
+        location=Country(name="fr", co2g_kwh=74.0),
+    )
+    try:
+        with pytest.raises((RuntimeError, ValueError)) as raised:
+            with tracarbon:
+                if workload_fails:
+                    raise workload_error
+        assert raised.value is (workload_error if workload_fails else sampling_error)
+        assert tracarbon.report.end_time is not None
+        assert tracarbon.report.metric_report["sample"].call_count == 1
+    finally:
+        exporter.stop()
+        exporter.flush()
+
+
 def test_stop_from_the_final_sample_does_not_collect_recursively():
     readings = []
 
