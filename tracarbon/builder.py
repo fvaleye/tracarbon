@@ -1,6 +1,7 @@
 import datetime
 from typing import Dict
 
+from loguru import logger
 from pydantic import BaseModel
 from pydantic import ConfigDict
 from pydantic import Field
@@ -62,7 +63,12 @@ class Tracarbon:
         return self
 
     def __exit__(self, type, value, traceback) -> None:
-        self.stop()
+        try:
+            self.stop()
+        except Exception:
+            if type is None:
+                raise
+            logger.exception("Final measurement failed while handling a workload error")
 
     def start(self) -> None:
         """
@@ -75,13 +81,15 @@ class Tracarbon:
 
     def stop(self) -> float | None:
         """
-        Stop Tracarbon.
+        Collect the final interval and stop Tracarbon.
 
         :return: the total CO2 grams the host emitted since Tracarbon started
         """
-        self.exporter.stop()
-        self.report.metric_report = self.exporter.metric_report
-        self.report.end_time = datetime.datetime.now()
+        try:
+            self.exporter.finish()
+        finally:
+            self.report.metric_report = self.exporter.metric_report
+            self.report.end_time = datetime.datetime.now()
         return self.report.total_co2g
 
 

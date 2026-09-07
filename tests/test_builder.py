@@ -1,5 +1,8 @@
 import asyncio
 import datetime
+from threading import Barrier
+from threading import Event
+from threading import Thread
 from unittest import mock
 
 import pytest
@@ -13,6 +16,7 @@ from tracarbon.builder import TracarbonBuilder
 from tracarbon.builder import TracarbonConfiguration
 from tracarbon.builder import TracarbonReport
 from tracarbon.emissions import carbon_emissions
+from tracarbon.exporters import JSONExporter
 from tracarbon.exporters import Metric
 from tracarbon.exporters import MetricGenerator
 from tracarbon.exporters import MetricReport
@@ -28,7 +32,7 @@ def test_restart_opens_a_new_report_without_attributing_stopped_time(mocker):
     mocker.patch.object(Country, "get_latest_co2g_kwh", return_value=74.0)
     mocker.patch.object(MacEnergyConsumption, "get_energy_usage", return_value=EnergyUsage(host_energy_usage=60.0))
     clock = mock.Mock()
-    clock.monotonic.side_effect = [0.0, 60.0, 3600.0, 3660.0]
+    clock.monotonic.side_effect = [0.0, 30.0, 60.0, 3600.0, 3630.0, 3660.0]
     mocker.patch.object(carbon_emissions, "time", clock)
     carbon_emission = CarbonEmission(location=location, energy_consumption=MacEnergyConsumption())
     exporter = StdoutExporter(
@@ -54,6 +58,182 @@ def test_restart_opens_a_new_report_without_attributing_stopped_time(mocker):
         assert previous_report.end_time <= tracarbon.report.start_time
     finally:
         exporter.stop()
+
+
+def test_stop_collects_a_short_job_once(mocker):
+    location = Country(name="fr", co2g_kwh=400.0)
+    sensor = mocker.patch.object(
+        MacEnergyConsumption, "get_energy_usage", return_value=EnergyUsage(host_energy_usage=100.0)
+    )
+    clock = mock.Mock()
+    clock.monotonic.return_value = 0.0
+    mocker.patch.object(carbon_emissions, "time", clock)
+    carbon = CarbonEmission(location=location, energy_consumption=MacEnergyConsumption())
+    exporter = StdoutExporter(metric_generators=[CarbonEmissionGenerator(location=location, carbon_emission=carbon)])
+    tracarbon = Tracarbon(
+        configuration=TracarbonConfiguration(interval_in_seconds=3600), exporter=exporter, location=location
+    )
+
+    try:
+        assert tracarbon.stop() is None
+        assert sensor.call_count == 0
+        with tracarbon:
+            clock.monotonic.return_value = 30.0
+
+        assert tracarbon.report.total_co2g == pytest.approx(1 / 3)
+        assert tracarbon.stop() == pytest.approx(1 / 3)
+        assert sensor.call_count == 2
+    finally:
+        exporter.stop()
+
+
+def test_stop_from_a_running_event_loop_collects_once_and_allows_a_stop_callback():
+    readings = []
+
+    async def sample() -> float:
+        readings.append(1.0)
+        if len(readings) == 2:
+            tracarbon.stop()
+        return 1.0
+
+    exporter = StdoutExporter(metric_generators=[MetricGenerator(metrics=[Metric(name="sample", value=sample)])])
+    tracarbon = Tracarbon(
+        configuration=TracarbonConfiguration(interval_in_seconds=3600),
+        exporter=exporter,
+        location=Country(name="fr", co2g_kwh=74.0),
+    )
+
+    async def stop() -> None:
+        tracarbon.stop()
+
+    try:
+        tracarbon.start()
+        asyncio.run(stop())
+        assert readings == [1.0, 1.0]
+        assert tracarbon.report.metric_report["sample"].call_count == 2
+    finally:
+        exporter.stop()
+
+
+@pytest.mark.parametrize("workload_fails", [False, True])
+def test_context_exit_preserves_workload_errors_when_final_collection_fails(mocker, tmp_path, workload_fails):
+    workload_error = RuntimeError("workload failed")
+    sampling_error = ValueError("sample failed")
+    sample = mocker.AsyncMock(side_effect=[1.0, sampling_error])
+    exporter = JSONExporter(
+        path=str(tmp_path / "metrics.json"),
+        metric_generators=[MetricGenerator(metrics=[Metric(name="sample", value=sample)])],
+    )
+    tracarbon = Tracarbon(
+        configuration=TracarbonConfiguration(interval_in_seconds=3600),
+        exporter=exporter,
+        location=Country(name="fr", co2g_kwh=74.0),
+    )
+    try:
+        with pytest.raises((RuntimeError, ValueError)) as raised:
+            with tracarbon:
+                if workload_fails:
+                    raise workload_error
+        assert raised.value is (workload_error if workload_fails else sampling_error)
+        assert tracarbon.report.end_time is not None
+        assert tracarbon.report.metric_report["sample"].call_count == 1
+    finally:
+        exporter.stop()
+        exporter.flush()
+
+
+def test_concurrent_stops_share_a_final_sample_that_can_stop_from_its_callback():
+    stopping = Barrier(3)
+    readings = []
+    errors = []
+
+    async def sample() -> float:
+        readings.append(1.0)
+        if len(readings) == 2:
+            tracarbon.stop()
+            with pytest.raises(RuntimeError, match="collection callback"):
+                tracarbon.start()
+        return 1.0
+
+    exporter = StdoutExporter(metric_generators=[MetricGenerator(metrics=[Metric(name="sample", value=sample)])])
+    tracarbon = Tracarbon(
+        configuration=TracarbonConfiguration(interval_in_seconds=3600),
+        exporter=exporter,
+        location=Country(name="fr", co2g_kwh=74.0),
+    )
+
+    def stop() -> None:
+        try:
+            stopping.wait(timeout=2)
+            tracarbon.stop()
+        except Exception as error:
+            errors.append(error)
+
+    threads = [Thread(target=stop, daemon=True) for _ in range(2)]
+    try:
+        tracarbon.start()
+        for thread in threads:
+            thread.start()
+        stopping.wait(timeout=2)
+    finally:
+        for thread in threads:
+            if thread.ident is not None:
+                thread.join(timeout=2)
+        exporter.stop()
+
+    assert not errors
+    assert all(not thread.is_alive() for thread in threads)
+    assert readings == [1.0, 1.0]
+    assert tracarbon.report.metric_report["sample"].call_count == 2
+
+
+def test_stop_reads_the_closing_interval_after_an_active_collection(mocker):
+    collecting = Event()
+    release_sample = Event()
+    stop_requested = Event()
+    readings = []
+
+    async def intensity() -> float:
+        readings.append(400.0)
+        if len(readings) == 2:
+            collecting.set()
+            release_sample.wait(timeout=2)
+        return 400.0
+
+    location = Country(name="fr", co2g_kwh=400.0)
+    mocker.patch.object(Country, "get_latest_co2g_kwh", side_effect=intensity)
+    mocker.patch.object(MacEnergyConsumption, "get_energy_usage", return_value=EnergyUsage(host_energy_usage=100.0))
+    clock = mock.Mock()
+    clock.monotonic.side_effect = [0.0, 30.0, 60.0]
+    mocker.patch.object(carbon_emissions, "time", clock)
+    carbon = CarbonEmission(location=location, energy_consumption=MacEnergyConsumption())
+    exporter = StdoutExporter(metric_generators=[CarbonEmissionGenerator(location=location, carbon_emission=carbon)])
+    configuration = TracarbonConfiguration()
+    configuration.interval_in_seconds = 0
+    tracarbon = Tracarbon(configuration=configuration, exporter=exporter, location=location)
+    stopper = Thread(target=tracarbon.stop, daemon=True)
+
+    try:
+        tracarbon.start()
+        assert collecting.wait(timeout=2)
+        set_stop_event = exporter.event.set
+
+        def request_stop() -> None:
+            set_stop_event()
+            stop_requested.set()
+
+        mocker.patch.object(exporter.event, "set", side_effect=request_stop)
+        stopper.start()
+        assert stop_requested.wait(timeout=2)
+    finally:
+        release_sample.set()
+        if stopper.ident is not None:
+            stopper.join(timeout=2)
+        exporter.stop()
+
+    assert not stopper.is_alive()
+    assert readings == [400.0, 400.0, 400.0]
+    assert tracarbon.report.total_co2g == pytest.approx(2 / 3)
 
 
 @pytest.mark.parametrize("generator_type", [CarbonEmissionGenerator, CarbonEmissionKubernetesGenerator])
@@ -88,7 +268,7 @@ def test_stop_publishes_the_report_after_collection_settles(mocker):
         assert tracarbon.report.end_time is None
         exporter.metric_report = {"carbon_emission_host": build_metric_report("carbon_emission_host", 4.2)}
 
-    mocker.patch.object(StdoutExporter, "stop", side_effect=finish_collection)
+    mocker.patch.object(StdoutExporter, "finish", side_effect=finish_collection)
 
     assert tracarbon.stop() == 4.2
     assert tracarbon.report.end_time is not None
