@@ -81,30 +81,31 @@ Run from the repository checkout. MLX is installed only for this example:
 .. code-block:: console
 
    uv run --frozen --with mlx-lm==0.31.3 --with mlx==0.32.2 python examples/measure_mlx.py \
-     --country fr \
      --revision 3e6447f082e89cc7f0bc6e5441afd38dfce760ff > measurement.json
 
 The command pins the package versions and conversion's revision. Use ``--model``
 and ``--revision`` for another MLX-compatible chat model.
 
-The defaults are 20 sequential requests, 128 output tokens per request, greedy
-sampling and thinking disabled. Adjust ``--prompt``, ``--max-tokens`` and
-``--repeats`` to change the workload.
+The default prompt asks how to use Tracarbon. The script runs 20 sequential
+requests, capped at 128 output tokens each, with greedy sampling and thinking
+disabled. Adjust ``--prompt``, ``--max-tokens`` and ``--repeats`` to change the workload.
 
 Loading and warmup happen before measurement. Each request uses a fresh prompt
 cache and finishes before measurement stops. Prompt processing and measurement
 overhead count toward energy use.
 
-``measurement.json`` records the model, revision, quantization, package versions,
-hardware, prompt, generated text and measurements:
+``measurement.json`` records the run settings, device, country, last response
+and measurements:
 
 * ``energy_wh``: chip energy in watt-hours.
 * ``joules_per_output_token``: ``energy_wh * 3600 / output_tokens``.
 * ``co2g_per_output_token``: electricity emissions divided by output tokens.
 
-Choose the country where the machine runs. ``--country fr`` uses the bundled
-static factor of 74 g/kWh. The JSON records the factor and source. Carbon estimates
-cover electricity use; training and hardware manufacturing are excluded.
+Tracarbon detects your country from your public IP through ipinfo.io. Use
+``--country fr`` to override detection or run offline with cached weights.
+The example uses Tracarbon's bundled static factors for 28 European countries
+(74 g/kWh for France). The JSON records the selected factor and source.
+Carbon estimates cover electricity use; training and hardware manufacturing are excluded.
 
 CPU, GPU and memory counters include other applications' activity, plus ANE energy
 where reported. They measure shared chip energy, not wall power or one process.
