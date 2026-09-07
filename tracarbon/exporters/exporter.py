@@ -214,14 +214,6 @@ class Exporter(BaseModel, metaclass=ABCMeta):
         if self._collection_thread is current_thread():
             raise RuntimeError("Cannot start an exporter from its collection callback")
 
-    def _collect(self) -> None:
-        with self._run_lock:
-            self._collection_thread = current_thread()
-            try:
-                asyncio.run(self._launch_all())
-            finally:
-                self._collection_thread = None
-
     def start(self, interval_in_seconds: int) -> None:
         """
         Start the exporter and a dedicated timer configured with the configured timeout.
@@ -237,7 +229,11 @@ class Exporter(BaseModel, metaclass=ABCMeta):
                 with self._run_lock:
                     if stop_event.is_set():
                         return
-                    self._collect()
+                    self._collection_thread = current_thread()
+                    try:
+                        asyncio.run(self._launch_all())
+                    finally:
+                        self._collection_thread = None
                     if not stop_event.is_set():
                         timer = Timer(interval_in_seconds, _run, [])
                         timer.daemon = True
@@ -251,23 +247,6 @@ class Exporter(BaseModel, metaclass=ABCMeta):
                 for metric_generator in self.metric_generators:
                     metric_generator.reset()
                 _run()
-
-    def finish(self) -> None:
-        """Stop collection, then read the closing interval once for an active run."""
-        if self._collection_thread is current_thread():
-            self.stop()
-            return
-        with self._start_lock:
-            should_collect = self.event is not None and not self.event.is_set() and not self.stopped
-            self.stop()
-            if should_collect:
-                try:
-                    asyncio.get_running_loop()
-                except RuntimeError:
-                    self._collect()
-                else:
-                    with ThreadPoolExecutor(max_workers=1) as executor:
-                        executor.submit(self._collect).result()
 
     def stop(self) -> None:
         """
@@ -287,6 +266,30 @@ class Exporter(BaseModel, metaclass=ABCMeta):
             with self._run_lock:
                 if self._timer is timer:
                     self._timer = None
+
+    def finish(self) -> None:
+        """Stop periodic collection and collect the last interval once."""
+        if self._collection_thread is current_thread():
+            self.stop()
+            return
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            pass
+        else:
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                executor.submit(self.finish).result()
+            return
+        with self._start_lock:
+            should_collect = self.event is not None and not self.event.is_set() and not self.stopped
+            self.stop()
+            if should_collect:
+                with self._run_lock:
+                    self._collection_thread = current_thread()
+                    try:
+                        asyncio.run(self._launch_all())
+                    finally:
+                        self._collection_thread = None
 
     async def _launch_all(self) -> None:
         """
