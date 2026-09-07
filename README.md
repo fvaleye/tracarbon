@@ -1,20 +1,19 @@
-![Tracarbon Logo](https://raw.githubusercontent.com/fvaleye/tracarbon/main/logo.png "Tracarbon logo")
+<img src="https://raw.githubusercontent.com/fvaleye/tracarbon/main/logo.png" alt="Tracarbon logo" width="200">
 
-![example workflow](https://github.com/fvaleye/tracarbon/actions/workflows/build.yml/badge.svg)
-[![pypi](https://img.shields.io/pypi/v/tracarbon.svg?style=flat-square)](https://pypi.org/project/tracarbon/)
-[![doc](https://img.shields.io/badge/docs-python-blue.svg?style=flat-square)](https://fvaleye.github.io/tracarbon)
-[![licence](https://img.shields.io/badge/license-Apache--2.0-green)](https://github.com/fvaleye/tracarbon/blob/main/LICENSE.txt)
+[![Build](https://github.com/fvaleye/tracarbon/actions/workflows/build.yml/badge.svg)](https://github.com/fvaleye/tracarbon/actions/workflows/build.yml)
+[![PyPI](https://img.shields.io/pypi/v/tracarbon.svg)](https://pypi.org/project/tracarbon/)
+[![Documentation](https://img.shields.io/badge/docs-python-blue.svg)](https://fvaleye.github.io/tracarbon/documentation/)
+[![License](https://img.shields.io/badge/license-Apache--2.0-green)](https://github.com/fvaleye/tracarbon/blob/main/LICENSE.txt)
 
 ## 📌 Overview
 
-Tracarbon is a Python library that tracks your device's energy consumption and calculates your carbon emissions.
+Tracarbon is a Python library and CLI that tracks your device's energy consumption and estimates its carbon emissions.
 
-It detects your location and your device automatically before starting to export measurements to an exporter.
-It could be used as a CLI with already defined metrics or programmatically with the API by defining the metrics that you want to have.
+It detects your device and location automatically. Run it from the command line to collect and export measurements, or use the Python API to add tracking to your application.
 
-Read more in this [article](https://medium.com/@florian.valeye/tracarbon-track-your-devices-carbon-footprint-fb051fcc9009).
+Read the [introductory article](https://medium.com/@florian.valeye/tracarbon-track-your-devices-carbon-footprint-fb051fcc9009).
 
-## 📦 Where to get it
+## 📦 Installation
 
 ```sh
 # Install Tracarbon
@@ -26,100 +25,15 @@ pip install tracarbon
 pip install 'tracarbon[datadog,prometheus,kubernetes]'
 ```
 
-### 🔌 Devices: energy consumption
-
-| **Devices** |                                                                                                                                                           **Description**                                                                                                                                                            |
-| ----------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| Mac         | ✅ Apple Silicon CPU, GPU, memory and Neural Engine energy via IOReport (no sudo). Excludes display and peripherals. Fallbacks: `powermetrics` (sudo), then `ioreg`. |
-| Linux       | ✅ Supports Intel and AMD processors via [RAPL](https://web.eece.maine.edu/~vweaver/projects/rapl/). Intel uses the powercap interface. AMD is supported on kernel 5.8+ (powercap) or via the `amd_energy` driver (HWMON). Works with containers on [Kubernetes](https://kubernetes.io/) using the [Metric API](https://kubernetes.io/docs/tasks/debug/debug-cluster/resource-metrics-pipeline/#metrics-api) if available. |
-| Windows     | ✅ NVIDIA GPU power via `nvidia-smi`. CPU, memory and host totals are unavailable. |
-
-| **Cloud Provider** |                                                                                              **Description**                                                                                              |
-| ------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| AWS                | ✅ Use the hardware's usage with the EC2 instances carbon emissions datasets of [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/ccf-coefficients/blob/main/data/aws-instances.csv). |
-| GCP                | ✅ Use the hardware's usage with the GCP instances carbon emissions datasets of [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/ccf-coefficients/blob/main/data/gcp-instances.csv). |
-| Azure              | ✅ Use the hardware's usage with the Azure instances carbon emissions datasets of [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/ccf-coefficients/blob/main/data/azure-instances.csv). |
-
-### 🎮 GPU: power tracking
-
-| **GPU**        |                                                        **Description**                                                         |
-| -------------- | :----------------------------------------------------------------------------------------------------------------------------: |
-| NVIDIA         | ✅ Supported via `nvidia-smi`. Works on Linux, Windows, and Intel Macs. Supports multiple GPUs.                                 |
-| AMD            | ✅ Supported via `rocm-smi` or `amd-smi` on Linux. Supports multiple GPUs.                                                      |
-| Apple Silicon  | ✅ Integrated GPU power via IOReport, without sudo. Falls back to `powermetrics` (requires sudo). |
-| Intel          | ❌ Not yet implemented.                                                                                                         |
-
-## 📡 Exporters
-
-| **Exporter** |          **Description**          |
-| ------------ | :-------------------------------: |
-| Stdout       |   Print the metrics in Stdout.    |
-| JSON         | Write the metrics in a JSON file. |
-| Prometheus   |  Send the metrics to Prometheus.  |
-| Datadog      |   Send the metrics to Datadog.    |
-
-### 🗺️ Locations
-
-| **Location** |                                                                              **Description**                                                                               | **Source**                                                                                                                                                    |
-| ------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Worldwide    | Get the latest co2g/kwh in near real-time using the CO2Signal or ElectricityMaps APIs. See [here](https://app.electricitymaps.com/developer-hub/api/reference) for available Electricity Maps query modes. | [CO2Signal API](https://www.co2signal.com) or [ElectricityMaps](https://app.electricitymaps.com/developer-hub/api/reference)                                       |
-| Europe       |                                 Static file created from the European Environment Agency Emission for the co2g/kwh in European countries.                                  | [EEA website](https://www.eea.europa.eu/en/analysis/maps-and-charts/co2-emission-intensity-15) |
-| AWS          |                                                               Static file of the AWS Grid emissions factors.                                                               | [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/cloud-carbon-coefficients/blob/main/data/grid-emissions-factors-aws.csv)                |
-| GCP          |                                                               Static file of the GCP Grid emissions factors (2024 yearly data).                                                               | [GoogleCloudPlatform/region-carbon-info](https://github.com/GoogleCloudPlatform/region-carbon-info/blob/main/data/yearly/2024.csv)                |
-| Azure        |                                                               Static file of the Azure Grid emissions factors.                                                             | [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/cloud-carbon-coefficients/blob/main/data/grid-emissions-factors-azure.csv)              |
-
-### ⚙️ Configuration
-
-The environment variables can be set from an environment file `.env`.
-
-| **Parameter**                 | **Description**                                                                                                                                                                                                                                                                  |
-| ----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| TRACARBON_CO2SIGNAL_API_KEY   | The api key received from [CO2Signal](https://www.co2signal.com) or [ElectricityMaps](https://app.electricitymaps.com/developer-hub/api/reference).                                                                                                                                   |
-| TRACARBON_CO2SIGNAL_URL       | The url of [CO2Signal](https://docs.co2signal.com/#get-latest-by-country-code) is the default endpoint to retrieve the last known state of the zone, but it could be changed to [ElectricityMaps](https://app.electricitymaps.com/developer-hub/api/reference). |
-| TRACARBON_METRIC_PREFIX_NAME  | The prefix to use in all the metrics name.                                                                                                                                                                                                                                       |
-| TRACARBON_INTERVAL_IN_SECONDS | The interval in seconds to wait between the metrics evaluation.                                                                                                                                                                                                                  |
-| TRACARBON_LOG_LEVEL           | The level to use for displaying the logs.                                                                                                                                                                                                                                        |
-| TRACARBON_IPINFO_TOKEN        | An optional [ipinfo.io](https://ipinfo.io) API token used for country detection from the IP address, lifting the anonymous rate limit.                                                                                                                                           |
-| TRACARBON_KUBERNETES_NODE_NAME | The Kubernetes node name used to scope container metrics to the node being measured. Falls back to `NODE_NAME` when unset.                                                                                                                                                       |
-
 ## 🔎 Usage
 
-**Request your API key**
-
-- Go to [CO2Signal](https://www.co2signal.com/) and get your free API key for non-commercial use, or go to [ElectricityMaps](https://app.electricitymaps.com/developer-hub/api/reference) for commercial use.
-- This API is used to retrieve the last known carbon intensity (in gCO2eq/kWh) of electricity consumed in your location.
-- Set your API key in the environment variables, in the `.env` file or directly in the configuration.
-- If you would like to start without an API key, it's possible, the carbon intensity will be loaded statistically from a file.
-- Launch Tracarbon 🚀
-
-**Command Line**
+### Command line
 
 ```sh
 tracarbon run
 ```
 
-**Prometheus with Kubernetes containers**
-
-```sh
-tracarbon run --exporter-name Prometheus --containers
-```
-
-With the default metric prefix, container metrics are exposed with these Prometheus names:
-
-| **Metric** | **Labels** |
-| ---------- | ---------- |
-| tracarbon_energy_consumption_kubernetes_total | pod_name, pod_namespace, container_name, platform, containers, location, units |
-| tracarbon_energy_consumption_kubernetes_cpu | pod_name, pod_namespace, container_name, platform, containers, location, units |
-| tracarbon_energy_consumption_kubernetes_memory | pod_name, pod_namespace, container_name, platform, containers, location, units |
-| tracarbon_carbon_emission_kubernetes_total | pod_name, pod_namespace, container_name, platform, containers, location, source, units |
-| tracarbon_carbon_emission_kubernetes_cpu | pod_name, pod_namespace, container_name, platform, containers, location, source, units |
-| tracarbon_carbon_emission_kubernetes_memory | pod_name, pod_namespace, container_name, platform, containers, location, source, units |
-
-Zero values are exported. If Kubernetes returns no pod metrics, the CLI logs `No Kubernetes container metrics were collected.` Host metrics are still exported.
-
-When running in Kubernetes, deploy Tracarbon per node and set `NODE_NAME` from `spec.nodeName` with the Downward API so container metrics are scoped to the measured node.
-
-**API**
+### Python API
 
 ```python
 from tracarbon import TracarbonBuilder, TracarbonConfiguration
@@ -139,9 +53,103 @@ print(report.total_co2g)
 
 `total_co2g` is `None` when no host carbon emission metric was collected. The total reflects collected samples.
 
+### Request your API key
+
+- Go to [CO2Signal](https://www.co2signal.com/) and get your free API key for non-commercial use, or go to [ElectricityMaps](https://app.electricitymaps.com/developer-hub/api/reference) for commercial use.
+- This API is used to retrieve the last known carbon intensity (in gCO2eq/kWh) of electricity consumed in your location.
+- Set your API key in the environment variables, in the `.env` file or directly in the configuration.
+- If you would like to start without an API key, it's possible, the carbon intensity will be loaded statistically from a file.
+- Launch Tracarbon 🚀
+
+### Prometheus with Kubernetes containers
+
+```sh
+tracarbon run --exporter-name Prometheus --containers
+```
+
+<details>
+<summary>Container metric names and labels</summary>
+
+With the default metric prefix, container metrics are exposed with these Prometheus names:
+
+| Metric | Labels |
+| --- | --- |
+| `tracarbon_energy_consumption_kubernetes_total` | `pod_name`, `pod_namespace`, `container_name`, `platform`, `containers`, `location`, `units` |
+| `tracarbon_energy_consumption_kubernetes_cpu` | `pod_name`, `pod_namespace`, `container_name`, `platform`, `containers`, `location`, `units` |
+| `tracarbon_energy_consumption_kubernetes_memory` | `pod_name`, `pod_namespace`, `container_name`, `platform`, `containers`, `location`, `units` |
+| `tracarbon_carbon_emission_kubernetes_total` | `pod_name`, `pod_namespace`, `container_name`, `platform`, `containers`, `location`, `source`, `units` |
+| `tracarbon_carbon_emission_kubernetes_cpu` | `pod_name`, `pod_namespace`, `container_name`, `platform`, `containers`, `location`, `source`, `units` |
+| `tracarbon_carbon_emission_kubernetes_memory` | `pod_name`, `pod_namespace`, `container_name`, `platform`, `containers`, `location`, `source`, `units` |
+
+</details>
+
+Zero values are exported. If Kubernetes returns no pod metrics, the CLI logs `No Kubernetes container metrics were collected.` Host metrics are still exported.
+
+When running in Kubernetes, deploy Tracarbon per node and set `NODE_NAME` from `spec.nodeName` with the Downward API so container metrics are scoped to the measured node.
+
+## 🔌 Supported devices
+
+### Hosts
+
+| Devices | Description |
+| --- | --- |
+| Mac | ✅ Apple Silicon CPU, GPU, memory and Neural Engine energy via IOReport (no sudo). Excludes display and peripherals. Fallbacks: `powermetrics` (sudo), then `ioreg`. |
+| Linux | ✅ Supports Intel and AMD processors via [RAPL](https://web.eece.maine.edu/~vweaver/projects/rapl/). Intel uses the powercap interface. AMD is supported on kernel 5.8+ (powercap) or via the `amd_energy` driver (HWMON). Works with containers on [Kubernetes](https://kubernetes.io/) using the [Metric API](https://kubernetes.io/docs/tasks/debug/debug-cluster/resource-metrics-pipeline/#metrics-api) if available. |
+| Windows | ✅ NVIDIA GPU power via `nvidia-smi`. CPU, memory and host totals are unavailable. |
+
+### Cloud providers
+
+| Cloud Provider | Description |
+| --- | --- |
+| AWS | ✅ Use the hardware's usage with the EC2 instances carbon emissions datasets of [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/ccf-coefficients/blob/main/data/aws-instances.csv). |
+| GCP | ✅ Use the hardware's usage with the GCP instances carbon emissions datasets of [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/ccf-coefficients/blob/main/data/gcp-instances.csv). |
+| Azure | ✅ Use the hardware's usage with the Azure instances carbon emissions datasets of [cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/ccf-coefficients/blob/main/data/azure-instances.csv). |
+
+### 🎮 GPU power tracking
+
+| GPU | Description |
+| --- | --- |
+| NVIDIA | ✅ Supported via `nvidia-smi`. Works on Linux, Windows, and Intel Macs. Supports multiple GPUs. |
+| AMD | ✅ Supported via `rocm-smi` or `amd-smi` on Linux. Supports multiple GPUs. |
+| Apple Silicon | ✅ Integrated GPU power via IOReport, without sudo. Falls back to `powermetrics` (requires sudo). |
+| Intel | ❌ Not yet implemented. |
+
+## 📡 Exporters
+
+| Exporter | Description |
+| --- | --- |
+| Stdout | Print the metrics in Stdout. |
+| JSON | Write the metrics in a JSON file. |
+| Prometheus | Send the metrics to Prometheus. |
+| Datadog | Send the metrics to Datadog. |
+
+## 🗺️ Locations
+
+| Location | Description and source |
+| --- | --- |
+| Worldwide | Get the latest co2g/kwh in near real-time using the CO2Signal or ElectricityMaps APIs. See [here](https://app.electricitymaps.com/developer-hub/api/reference) for available Electricity Maps query modes.<br><br>[CO2Signal API](https://www.co2signal.com) or [ElectricityMaps](https://app.electricitymaps.com/developer-hub/api/reference) |
+| Europe | Static file created from the European Environment Agency Emission for the co2g/kwh in European countries.<br><br>[EEA website](https://www.eea.europa.eu/en/analysis/maps-and-charts/co2-emission-intensity-15) |
+| AWS | Static file of the AWS Grid emissions factors.<br><br>[cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/cloud-carbon-coefficients/blob/main/data/grid-emissions-factors-aws.csv) |
+| GCP | Static file of the GCP Grid emissions factors (2024 yearly data).<br><br>[GoogleCloudPlatform/region-carbon-info](https://github.com/GoogleCloudPlatform/region-carbon-info/blob/main/data/yearly/2024.csv) |
+| Azure | Static file of the Azure Grid emissions factors.<br><br>[cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/cloud-carbon-coefficients/blob/main/data/grid-emissions-factors-azure.csv) |
+
+## ⚙️ Configuration
+
+The environment variables can be set from an environment file `.env`.
+
+| Parameter | Description |
+| --- | --- |
+| `TRACARBON_CO2SIGNAL_API_KEY` | The api key received from [CO2Signal](https://www.co2signal.com) or [ElectricityMaps](https://app.electricitymaps.com/developer-hub/api/reference). |
+| `TRACARBON_CO2SIGNAL_URL` | The url of [CO2Signal](https://docs.co2signal.com/#get-latest-by-country-code) is the default endpoint to retrieve the last known state of the zone, but it could be changed to [ElectricityMaps](https://app.electricitymaps.com/developer-hub/api/reference). |
+| `TRACARBON_METRIC_PREFIX_NAME` | The prefix to use in all the metrics name. |
+| `TRACARBON_INTERVAL_IN_SECONDS` | The interval in seconds to wait between the metrics evaluation. |
+| `TRACARBON_LOG_LEVEL` | The level to use for displaying the logs. |
+| `TRACARBON_IPINFO_TOKEN` | An optional [ipinfo.io](https://ipinfo.io) API token used for country detection from the IP address, lifting the anonymous rate limit. |
+| `TRACARBON_KUBERNETES_NODE_NAME` | The Kubernetes node name used to scope container metrics to the node being measured. Falls back to `NODE_NAME` when unset. |
+
 ## 💻 Development
 
-**Local: using uv**
+### Local: using uv
 
 ```sh
 make init
@@ -154,7 +162,7 @@ make test-unit
 
 ## 📚 Documentation
 
-The documentation is hosted here: https://fvaleye.github.io/tracarbon/documentation
+Read the [documentation](https://fvaleye.github.io/tracarbon/documentation/).
 
 ## 📖 Cited in
 
