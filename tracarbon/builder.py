@@ -100,7 +100,7 @@ class TracarbonBuilder(BaseModel):
 
     exporter: Exporter | None = None
     location: Location | None = None
-    configuration: TracarbonConfiguration = TracarbonConfiguration()
+    configuration: TracarbonConfiguration = Field(default_factory=TracarbonConfiguration)
 
     def with_location(self, location: Location) -> "TracarbonBuilder":
         """

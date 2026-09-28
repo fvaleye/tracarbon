@@ -1,3 +1,5 @@
+import os
+import subprocess
 import sys
 
 import pytest
@@ -16,6 +18,25 @@ ALL = set("darwin linux windows".split())
 def no_requests(monkeypatch):
     """Remove requests.sessions.Session.request for all tests."""
     monkeypatch.delattr("requests.sessions.Session.request")
+
+
+@pytest.fixture
+def run_python(tmp_path):
+    """Run a fresh interpreter in tmp_path, without the TRACARBON_ variables of the tests, and return its stderr."""
+
+    def run(*arguments: str, **environment: str) -> str:
+        inherited_environment = {name: value for name, value in os.environ.items() if not name.startswith("TRACARBON_")}
+        completed = subprocess.run(
+            [sys.executable, *arguments],
+            cwd=tmp_path,
+            env={**inherited_environment, "KUBECONFIG": os.devnull, **environment},
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return completed.stderr
+
+    return run
 
 
 @pytest.fixture

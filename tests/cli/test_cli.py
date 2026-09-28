@@ -18,7 +18,9 @@ from tracarbon.hardwares import WindowsEnergyConsumption
 from tracarbon.hardwares.gpu import NvidiaGPU
 
 
-def test_get_exporter_by_name():
+def test_get_exporter_by_name(monkeypatch):
+    monkeypatch.setenv("DATADOG_API_KEY", "DATADOG_API_KEY")
+    monkeypatch.setenv("DATADOG_APP_KEY", "DATADOG_APP_KEY")
     stdout_exporter = get_exporter(exporter_name="Stdout", metric_generators=[])
     datadadog_exporter = get_exporter(exporter_name="Datadog", metric_generators=[])
 
@@ -48,7 +50,8 @@ def test_run_metrics_reports_gpu_carbon_when_host_measurement_is_unavailable(moc
 
 
 @pytest.mark.darwin
-def test_run_metrics_should_be_ok(mocker, caplog):
+def test_run_metrics_should_be_ok(mocker, monkeypatch, caplog):
+    monkeypatch.setenv("TRACARBON_METRIC_PREFIX_NAME", "test")
     exporter = "Stdout"
     mocker.patch.object(
         Country,
@@ -133,3 +136,13 @@ def test_run_metrics_warns_when_containers_collect_no_kubernetes_metrics(mocker,
     run_metrics(exporter_name=exporter, running=False, containers=True)
 
     assert "No Kubernetes container metrics were collected." in caplog.text
+
+
+def test_cli_logs_nothing_below_the_configured_level(run_python):
+    assert run_python("-m", "tracarbon", "list-exporters", TRACARBON_LOG_LEVEL="ERROR") == ""
+
+
+def test_cli_reads_the_env_file_of_its_working_directory(run_python, tmp_path):
+    (tmp_path / ".env").write_text("TRACARBON_LOG_LEVEL=ERROR\n")
+
+    assert run_python("-m", "tracarbon", "list-exporters") == ""

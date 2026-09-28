@@ -6,6 +6,8 @@ from loguru import logger
 
 from tracarbon.builder import TracarbonBuilder
 from tracarbon.conf import KUBERNETES_INSTALLED
+from tracarbon.conf import TracarbonConfiguration
+from tracarbon.conf import logger_configuration
 from tracarbon.exporters import Exporter
 from tracarbon.exporters import MetricGenerator
 from tracarbon.general_metrics import CarbonEmissionGenerator
@@ -155,6 +157,7 @@ def run(
 
 
 def main() -> None:
+    logger_configuration(level=TracarbonConfiguration().log_level)
     app()
 
 
