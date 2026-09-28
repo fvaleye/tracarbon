@@ -47,7 +47,7 @@ def test_run_metrics_reports_gpu_carbon_when_host_measurement_is_unavailable(moc
 
     assert "carbon_emission_gpu" in caplog.text
     assert "Total CO2 emitted: unavailable" in caplog.text
-    assert "GPU CO2 emitted: 0.0010g" in caplog.text
+    assert "GPU CO2 emitted: 0.0006g" in caplog.text
     assert "end_time=None" not in caplog.text
 
 

@@ -68,17 +68,27 @@ class Country(Location):
     @classmethod
     def from_eu_file(cls, country_code_alpha_iso_2: str) -> "Country":
         """
-        Get the country from the file.
+        Get the country from the bundled yearly carbon intensity file, covering every country.
 
         :param country_code_alpha_iso_2: the alpha_iso_2 name of the country
         :return:
         """
-        resource_file = importlib.resources.files("tracarbon.locations.data").joinpath("eu-co2-emission-intensity.json")
+        resource_file = importlib.resources.files("tracarbon.locations.data").joinpath("co2-emission-intensity.json")
         with resource_file.open("rb") as json_file:
-            countries_values = orjson.loads(json_file.read())["countries"]
-            for country in countries_values:
+            carbon_intensity = orjson.loads(json_file.read())
+            for country in carbon_intensity["countries"]:
                 if country_code_alpha_iso_2.lower() == country["name"]:
-                    return cls.model_validate(country)
+                    return cls(
+                        name=country["name"],
+                        co2g_kwh=country["co2g_kwh"],
+                        carbon_intensity_metadata=CarbonIntensityMetadata(
+                            co2g_kwh=country["co2g_kwh"],
+                            zone=country["name"],
+                            datetime=str(country["year"]),
+                            updated_at=carbon_intensity["updated_at"],
+                            emission_factor_type=EmissionFactorType.LIFECYCLE,
+                        ),
+                    )
         raise CountryIsMissing(f"The country [{country_code_alpha_iso_2}] is not in the co2 emission file.")
 
     @classmethod
@@ -168,6 +178,11 @@ class Country(Location):
                 co2g_kwh_source=source,
                 emission_factor_type=factor_type,
             )
+        if factor_type == EmissionFactorType.DIRECT:
+            logger.warning(
+                "The bundled carbon intensity only has lifecycle emission factors: "
+                "set an Electricity Maps API key to use direct emission factors."
+            )
         return cls.from_eu_file(country_code_alpha_iso_2=country_code_alpha_iso_2)
 
     async def get_latest_co2g_kwh(self) -> float:
@@ -179,7 +194,9 @@ class Country(Location):
         if self.co2g_kwh_source == CarbonIntensitySource.FILE:
             if self.co2g_kwh is None:
                 raise CountryIsMissing(f"No carbon intensity is available for {self.name}.")
-            self._update_carbon_intensity_metadata()
+            self.carbon_intensity_metadata = self.carbon_intensity_metadata.model_copy(
+                update={"co2g_kwh": self.co2g_kwh, "zone": self.name}
+            )
             return self.co2g_kwh
 
         if not self.co2signal_api_key:

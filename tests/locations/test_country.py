@@ -1,4 +1,8 @@
 import asyncio
+import importlib.resources
+import json
+import re
+from datetime import date
 from urllib.parse import parse_qs
 from urllib.parse import urlparse
 
@@ -308,7 +312,7 @@ def test_get_location_detects_electricity_maps_api():
     assert country.emission_factor_type == EmissionFactorType.LIFECYCLE
 
 
-def test_get_location_without_api_key_uses_eu_file(mocker):
+def test_get_location_without_api_key_uses_bundled_file(mocker, caplog):
     mocker.patch.object(CloudProviders, "auto_detect", return_value=None)
 
     country = Country.get_location(
@@ -318,8 +322,49 @@ def test_get_location_without_api_key_uses_eu_file(mocker):
     )
 
     assert country.name == "fr"
-    assert country.co2g_kwh == 74.0
+    assert country.co2g_kwh == 41.44
     assert country.co2g_kwh_source == CarbonIntensitySource.FILE
+    assert "lifecycle emission factors" not in caplog.text
+
+
+@pytest.mark.parametrize(
+    "country_code_alpha_iso_2",
+    "at be bg cy cz de dk ee es fi fr gb gr hr hu ie it lt lu lv mt nl pl pt ro se si sk".split()
+    + ["us", "in", "br", "jp", "ch", "no"],
+)
+def test_get_location_without_api_key_resolves_countries_worldwide(mocker, country_code_alpha_iso_2):
+    mocker.patch.object(CloudProviders, "auto_detect", return_value=None)
+
+    country = Country.get_location(country_code_alpha_iso_2=country_code_alpha_iso_2)
+
+    assert country.name == country_code_alpha_iso_2
+    assert country.co2g_kwh_source == CarbonIntensitySource.FILE
+    assert country.co2g_kwh > 0
+
+
+def test_get_location_without_api_key_warns_that_direct_emission_factors_are_unavailable(mocker, caplog):
+    mocker.patch.object(CloudProviders, "auto_detect", return_value=None)
+
+    country = Country.get_location(country_code_alpha_iso_2="fr", emission_factor_type="direct")
+
+    assert "The bundled carbon intensity only has lifecycle emission factors" in caplog.text
+    assert country.carbon_intensity_metadata.emission_factor_type == EmissionFactorType.LIFECYCLE
+
+
+@pytest.mark.asyncio
+async def test_bundled_country_keeps_its_carbon_intensity_metadata_when_refreshed():
+    country = Country.from_eu_file("fr")
+
+    await country.get_latest_co2g_kwh()
+
+    assert country.carbon_intensity_metadata == CarbonIntensityMetadata(
+        source=CarbonIntensitySource.FILE,
+        co2g_kwh=41.44,
+        zone="fr",
+        datetime="2025",
+        updated_at="2026-06-30",
+        emission_factor_type=EmissionFactorType.LIFECYCLE,
+    )
 
 
 @pytest.mark.parametrize(
@@ -362,3 +407,16 @@ def test_get_location_detects_co2signal_api():
     )
 
     assert country.co2g_kwh_source == CarbonIntensitySource.CO2SignalAPI
+
+
+def test_bundled_carbon_intensity_lists_200_plus_attributed_countries_with_plausible_values():
+    bundled_file = importlib.resources.files("tracarbon.locations.data").joinpath("co2-emission-intensity.json")
+    carbon_intensity = json.loads(bundled_file.read_text(encoding="utf-8"))
+    countries = carbon_intensity["countries"]
+    names = [country["name"] for country in countries]
+
+    assert all(carbon_intensity[key] for key in ("source", "license", "modifications", "url", "updated_at"))
+    assert len(set(names)) == len(names) >= 200
+    assert all(re.fullmatch("[a-z]{2}", name) for name in names)
+    assert all(0 < country["co2g_kwh"] <= 1500 for country in countries)
+    assert all(1990 <= country["year"] <= date.today().year for country in countries)
