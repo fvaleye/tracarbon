@@ -61,6 +61,11 @@ In Python, pass a :class:`.TracarbonConfiguration` to the builder:
    configuration = TracarbonConfiguration(interval_in_seconds=1)
    tracker = TracarbonBuilder(configuration=configuration).build()
 
+Creating ``TracarbonConfiguration`` loads the nearest ``.env`` in the working
+directory or its parents. Pass ``env_file_path="path/to/.env"`` to load a specific
+file. Existing environment variables take precedence over ``.env``; both override
+constructor arguments.
+
 Choose metrics
 ==============
 

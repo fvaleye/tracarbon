@@ -116,6 +116,8 @@ When running in Kubernetes, deploy Tracarbon per node and set `NODE_NAME` from `
 
 ## ⚙️ Configuration
 
+Set the variables below in your environment or a `.env` file. See [configuration details](docs/source/usage.rst#configuration).
+
 | Parameter | Description |
 | --- | --- |
 | `TRACARBON_CO2SIGNAL_API_KEY` | The [Electricity Maps](https://app.electricitymaps.com/developer-hub/api/reference) API key. The variable keeps its CO2Signal name for compatibility. |
