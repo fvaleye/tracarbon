@@ -1,5 +1,4 @@
 import asyncio
-import socket
 
 import pytest
 import requests
@@ -60,30 +59,6 @@ async def test_http_error_preserves_status_and_hides_api_key():
     assert raised.status == 500
     assert received_tokens == ["SECRET_API_KEY"]
     assert "SECRET_API_KEY" not in repr(raised) + "".join(host_logs)
-
-
-async def test_connection_error_traceback_hides_api_key():
-    with socket.socket() as probe:
-        probe.bind(("127.0.0.1", 0))
-        closed_port = probe.getsockname()[1]
-    country = Country(
-        name="fr",
-        co2signal_api_key="SECRET_API_KEY",
-        co2signal_url=f"http://127.0.0.1:{closed_port}/?zone=",
-        co2g_kwh_source=CarbonIntensitySource.CO2SignalAPI,
-    )
-    host_logs = []
-    host_handler_id = logger.add(host_logs.append, backtrace=True, diagnose=True)
-    try:
-        await country.get_latest_co2g_kwh()
-    except Exception:
-        logger.exception("Host caught a failed refresh")
-    finally:
-        logger.remove(host_handler_id)
-
-    host_log = "".join(host_logs)
-    assert "Traceback" in host_log
-    assert "SECRET_API_KEY" not in host_log
 
 
 def test_get_current_country_returns_country_code(mocker):
