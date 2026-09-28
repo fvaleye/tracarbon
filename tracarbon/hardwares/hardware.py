@@ -48,10 +48,9 @@ class HardwareInfo(BaseModel):
     @staticmethod
     def get_cpu_usage_since(since: Any) -> tuple[float, Any]:
         """
-        Get the CPU load percentage usage since the CPU times of the previous reading.
+        Get CPU utilization since the caller's previous CPU times.
 
-        psutil.cpu_percent keeps its own previous reading per thread instead, so two readers on one
-        thread measure each other's windows and a reader on a new thread reads no load at all.
+        Keep sampling state with the caller instead of psutil's per-thread cache.
 
         :param since: the CPU times returned by the previous reading, or None to measure since boot
         :return: the CPU load in % and the CPU times to pass to the next reading
@@ -60,8 +59,7 @@ class HardwareInfo(BaseModel):
         window = cpu_times
         if since is not None:
             window = type(cpu_times)(*(max(0.0, now - before) for now, before in zip(cpu_times, since, strict=True)))
-        # Counted as psutil's _cpu_tot_time and _cpu_busy_time do: Linux already counts guest time
-        # in user time, and iowait is idle time.
+        # Avoid double-counting Linux guest time; exclude iowait from busy time.
         total = sum(window) - getattr(window, "guest", 0.0) - getattr(window, "guest_nice", 0.0)
         busy = total - window.idle - getattr(window, "iowait", 0.0)
         return (100.0 * busy / total if total > 0 else 0.0), cpu_times

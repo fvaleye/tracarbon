@@ -369,13 +369,7 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
 
     @staticmethod
     def _watts_at(cpu_usage: float, watts: tuple[float, float, float, float]) -> float:
-        """
-        Interpolate linearly between the power estimates at idle, 10%, 50% and 100% load.
-
-        :param cpu_usage: the CPU load in %
-        :param watts: the power estimates at idle, 10%, 50% and 100% load
-        :return: the power in W at this CPU load
-        """
+        """Interpolate watts between the dataset's CPU load levels."""
         cpu_loads = (0.0, 10.0, 50.0, 100.0)
         upper = min(bisect.bisect_left(cpu_loads, cpu_usage, lo=1), len(cpu_loads) - 1)
         share = (cpu_usage - cpu_loads[upper - 1]) / (cpu_loads[upper] - cpu_loads[upper - 1])
@@ -391,7 +385,6 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
         cpu_watts = self._watts_at(cpu_usage, (self.cpu_idle, self.cpu_at_10, self.cpu_at_50, self.cpu_at_100))
         logger.debug(f"CPU: {cpu_watts}W")
 
-        # ponytail: CPU load approximates RAM activity; replace with measured RAM power when available.
         memory_watts = self._watts_at(
             cpu_usage, (self.memory_idle, self.memory_at_10, self.memory_at_50, self.memory_at_100)
         )
@@ -443,7 +436,7 @@ class CloudEnergyConsumption(EnergyConsumption):
         resource_file = importlib.resources.files("tracarbon.hardwares.data").joinpath(self._get_csv_filename())
         exception_class = self._get_exception_class()
         provider_name = self._get_provider_name()
-        # Azure metadata reports the "D2s v3" size of the instances file as "Standard_D2s_v3".
+        # Azure metadata uses "Standard_D2s_v3"; the dataset uses "D2s v3".
         instance_key = instance_type.casefold().removeprefix("standard_").replace("_", " ")
         try:
             with resource_file.open("r", encoding="utf-8") as csvfile:
@@ -475,9 +468,8 @@ class CloudEnergyConsumption(EnergyConsumption):
         """
         provider_name = self._get_provider_name()
         cpu_usage, self._cpu_times = HardwareInfo.get_cpu_usage_since(since=self._cpu_times)
-        cpu_usage /= 100.0  # Convert to 0-1 range
+        cpu_usage /= 100.0
 
-        # Linear interpolation: power = min_watts + (max_watts - min_watts) * cpu_usage
         cpu_watts = self.min_watts + (self.max_watts - self.min_watts) * cpu_usage
         logger.debug(f"{provider_name} CPU: {cpu_watts:.2f}W (usage: {cpu_usage * 100:.1f}%)")
 

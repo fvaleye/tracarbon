@@ -318,7 +318,7 @@ class CloudLocation(Country):
             if co2e_col_idx is None:
                 raise ValueError(f"Could not find CO2e column in {provider_name} CSV header: {header}")
 
-            # Azure metadata reports the "West Europe" region of the grid file as "westeurope".
+            # Azure metadata uses "westeurope"; the dataset uses "West Europe".
             region_key = region_name.replace(" ", "").casefold()
             for row in reader:
                 if row[0].replace(" ", "").casefold() == region_key:

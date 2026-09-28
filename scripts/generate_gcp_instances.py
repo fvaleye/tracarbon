@@ -33,11 +33,11 @@ if __name__ == "__main__":
             ["Instance type", "Instance vCPU", "Instance Memory (in GB)", "Min Watts", "Max Watts", "Architecture"]
         )
         for instance_type, (vcpus, memory, architecture) in sorted(instances.items()):
-            # The pinned upstream list mislabels these A3 families; only Ultra uses Emerald Rapids.
+            # Correct A3 families mislabeled in the pinned upstream data.
             # https://docs.cloud.google.com/compute/docs/accelerator-optimized-machines#a3-vms
             if instance_type.startswith(("a3-highgpu-", "a3-megagpu-", "a3-edgegpu-")):
                 architecture = "Sapphire Rapids"
-            # N2 defaults to Cascade Lake through 80 vCPUs; larger sizes require Ice Lake.
+            # Use Google's default CPU platform, which users can override.
             # https://docs.cloud.google.com/compute/docs/general-purpose-machines#n2_series
             elif instance_type.startswith("n2-") and float(vcpus) <= 80:
                 architecture = "Cascade Lake"
