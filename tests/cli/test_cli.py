@@ -140,18 +140,18 @@ def test_run_metrics_warns_when_containers_collect_no_kubernetes_metrics(mocker,
     assert "No Kubernetes container metrics were collected." in caplog.text
 
 
-def test_cli_logs_nothing_below_the_configured_level(run_python):
+def test_cli_respects_log_level(run_python):
     assert "Available Exporters:" in run_python("-m", "tracarbon", "list-exporters", TRACARBON_LOG_LEVEL="INFO")
     assert run_python("-m", "tracarbon", "list-exporters", TRACARBON_LOG_LEVEL="ERROR") == ""
 
 
-def test_cli_reads_the_env_file_of_its_working_directory(run_python, tmp_path):
+def test_cli_loads_working_directory_env_file(run_python, tmp_path):
     (tmp_path / ".env").write_text("TRACARBON_LOG_LEVEL=ERROR\n")
 
     assert run_python("-m", "tracarbon", "list-exporters") == ""
 
 
-def test_cli_tracebacks_do_not_expose_secrets(run_python):
+def test_cli_traceback_hides_secrets(run_python):
     script = """
 from tracarbon.cli import app
 

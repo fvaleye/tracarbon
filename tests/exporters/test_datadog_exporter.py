@@ -23,7 +23,7 @@ async def test_datadog_preserves_zero_and_skips_missing_values(mocker):
     assert exporter.metric_report["zero"].total == 0.0
 
 
-def test_datadog_keeps_its_keys_out_of_its_repr(mocker):
+def test_datadog_repr_hides_api_keys(mocker):
     mocker.patch("tracarbon.exporters.datadog_exporter.initialize")
     mocker.patch("tracarbon.exporters.datadog_exporter.ThreadStats")
 

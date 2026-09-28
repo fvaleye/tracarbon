@@ -269,7 +269,7 @@ async def test_carbon_emission_kubernetes_generator(mocker):
 
 
 @pytest.mark.parametrize("generator_type", [CarbonEmissionGenerator, CarbonEmissionKubernetesGenerator])
-def test_carbon_emission_generators_keep_the_api_key_out_of_their_repr(mocker, generator_type):
+def test_carbon_emission_generator_repr_hides_api_key(mocker, generator_type):
     mocker.patch.object(EnergyConsumption, "from_platform", return_value=MacEnergyConsumption())
     mocker.patch.object(config, "load_kube_config", return_value=None)
     location = Country(name="fr", co2g_kwh=74.0, co2signal_api_key="SECRET_API_KEY")

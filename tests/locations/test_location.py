@@ -5,6 +5,7 @@ import pytest
 import requests
 from aiohttp import ClientResponseError
 from aiohttp import web
+from aiohttp.test_utils import RawTestServer
 from loguru import logger
 
 from tracarbon.exceptions import CloudProviderRegionIsMissing
@@ -19,45 +20,41 @@ from tracarbon.locations.country import AzureLocation
 from tracarbon.locations.country import GCPLocation
 
 
-async def test_request_gives_up_on_a_server_that_does_not_answer(monkeypatch):
-    async def answer_late(request: web.Request) -> web.Response:
+async def test_request_times_out(monkeypatch):
+    async def answer_late(request: web.BaseRequest) -> web.Response:
         await asyncio.sleep(0.5)
         return web.json_response({"carbonIntensity": 42.0})
 
-    runner, url = await start_server(answer_late)
     monkeypatch.setattr(location, "REQUEST_TIMEOUT_IN_SECONDS", 0.05)
-    try:
+    async with RawTestServer(answer_late) as server:
         with pytest.raises(asyncio.TimeoutError):
-            await Location.request(url)
-    finally:
-        await runner.cleanup()
+            await Location.request(str(server.make_url("/")))
 
 
-async def test_an_http_error_reaches_the_caller_unchanged_without_the_api_key():
+async def test_http_error_preserves_status_and_hides_api_key():
     received_tokens = []
 
-    async def fail(request: web.Request) -> web.Response:
+    async def fail(request: web.BaseRequest) -> web.Response:
         received_tokens.append(request.headers["auth-token"])
         return web.json_response({"error": "boom"}, status=500)
 
-    runner, url = await start_server(fail)
-    country = Country(
-        name="fr",
-        co2signal_api_key="SECRET_API_KEY",
-        co2signal_url=f"{url}?zone=",
-        co2g_kwh_source=CarbonIntensitySource.CO2SignalAPI,
-    )
-    host_logs = []
-    host_handler_id = logger.add(host_logs.append, backtrace=True, diagnose=True)
-    raised = None
-    try:
-        await country.get_latest_co2g_kwh()
-    except Exception as error:
-        logger.exception("Host caught a failed request")
-        raised = error
-    finally:
-        logger.remove(host_handler_id)
-        await runner.cleanup()
+    async with RawTestServer(fail) as server:
+        country = Country(
+            name="fr",
+            co2signal_api_key="SECRET_API_KEY",
+            co2signal_url=str(server.make_url("/?zone=")),
+            co2g_kwh_source=CarbonIntensitySource.CO2SignalAPI,
+        )
+        host_logs = []
+        host_handler_id = logger.add(host_logs.append, backtrace=True, diagnose=True)
+        raised = None
+        try:
+            await country.get_latest_co2g_kwh()
+        except Exception as error:
+            logger.exception("Host caught a failed request")
+            raised = error
+        finally:
+            logger.remove(host_handler_id)
 
     assert isinstance(raised, ClientResponseError)
     assert raised.status == 500
@@ -65,7 +62,7 @@ async def test_an_http_error_reaches_the_caller_unchanged_without_the_api_key():
     assert "SECRET_API_KEY" not in repr(raised) + "".join(host_logs)
 
 
-async def test_a_refused_request_keeps_the_api_key_out_of_a_diagnosed_traceback():
+async def test_connection_error_traceback_hides_api_key():
     with socket.socket() as probe:
         probe.bind(("127.0.0.1", 0))
         closed_port = probe.getsockname()[1]
@@ -87,15 +84,6 @@ async def test_a_refused_request_keeps_the_api_key_out_of_a_diagnosed_traceback(
     host_log = "".join(host_logs)
     assert "Traceback" in host_log
     assert "SECRET_API_KEY" not in host_log
-
-
-async def start_server(handler) -> tuple[web.AppRunner, str]:
-    application = web.Application()
-    application.router.add_get("/", handler)
-    runner = web.AppRunner(application)
-    await runner.setup()
-    await web.TCPSite(runner, "127.0.0.1", 0).start()
-    return runner, f"http://127.0.0.1:{runner.addresses[0][1]}/"
 
 
 def test_get_current_country_returns_country_code(mocker):
@@ -140,7 +128,7 @@ def test_get_current_country_reads_ipinfo_token_from_environment(mocker, monkeyp
     ],
     ids=["http_error", "not_json", "no_country", "offline", "timeout"],
 )
-def test_get_current_country_failure_suggests_setting_the_country(mocker, status_error, text, request_error):
+def test_country_detection_failure_suggests_explicit_country(mocker, status_error, text, request_error):
     response = mocker.Mock(text=text)
     response.raise_for_status.side_effect = status_error
     mocker.patch("tracarbon.locations.country.requests.get", return_value=response, side_effect=request_error)
