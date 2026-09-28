@@ -7,6 +7,8 @@ import psutil
 from tracarbon import HardwareInfo
 from tracarbon.hardwares.gpu import NvidiaGPU
 
+CPUTimes = namedtuple("CPUTimes", "user nice system idle")
+
 
 def test_get_platform_should_return_the_platform():
     platform_expected = platform.system()
@@ -23,6 +25,59 @@ def test_get_cpu_usage(mocker):
     cpu_usage = HardwareInfo.get_cpu_usage()
 
     assert cpu_usage == cpu_usage_expected
+
+
+def test_get_cpu_usage_since_measures_the_load_since_the_cpu_times_given(mocker):
+    now = CPUTimes(user=130.0, nice=0.0, system=20.0, idle=150.0)
+    mocker.patch.object(psutil, "cpu_times", return_value=now)
+
+    cpu_usage, cpu_times = HardwareInfo.get_cpu_usage_since(
+        since=CPUTimes(user=100.0, nice=0.0, system=10.0, idle=90.0)
+    )
+
+    assert cpu_usage == 40.0
+    assert cpu_times == now
+
+
+def test_get_cpu_usage_since_measures_the_load_since_boot_without_earlier_cpu_times(mocker):
+    mocker.patch.object(psutil, "cpu_times", return_value=CPUTimes(user=20.0, nice=0.0, system=10.0, idle=70.0))
+
+    cpu_usage, _ = HardwareInfo.get_cpu_usage_since(since=None)
+
+    assert cpu_usage == 30.0
+
+
+def test_get_cpu_usage_since_counts_guest_and_iowait_time_the_way_psutil_does(mocker):
+    LinuxCPUTimes = namedtuple("LinuxCPUTimes", "user nice system idle iowait irq softirq steal guest guest_nice")
+    since = LinuxCPUTimes(*[0.0] * 10)
+    mocker.patch.object(
+        psutil,
+        "cpu_times",
+        return_value=since._replace(
+            user=40.0, nice=10.0, system=10.0, idle=20.0, iowait=20.0, guest=10.0, guest_nice=5.0
+        ),
+    )
+
+    cpu_usage, _ = HardwareInfo.get_cpu_usage_since(since=since)
+
+    assert cpu_usage == 60.0
+
+
+def test_get_cpu_usage_since_ignores_a_counter_that_went_backwards(mocker):
+    mocker.patch.object(psutil, "cpu_times", return_value=CPUTimes(user=150.0, nice=0.0, system=0.0, idle=80.0))
+
+    cpu_usage, _ = HardwareInfo.get_cpu_usage_since(since=CPUTimes(user=100.0, nice=0.0, system=0.0, idle=90.0))
+
+    assert cpu_usage == 100.0
+
+
+def test_get_cpu_usage_since_reads_no_load_when_no_cpu_time_was_counted_since(mocker):
+    now = CPUTimes(user=100.0, nice=0.0, system=0.0, idle=100.0)
+    mocker.patch.object(psutil, "cpu_times", return_value=now)
+
+    cpu_usage, _ = HardwareInfo.get_cpu_usage_since(since=now)
+
+    assert cpu_usage == 0.0
 
 
 def test_get_memory_usage(mocker):

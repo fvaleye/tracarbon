@@ -1,4 +1,5 @@
 import asyncio
+import bisect
 import csv
 import importlib.resources
 import math
@@ -339,13 +340,14 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
     memory_at_100: float
     has_gpu: bool
     delta_full_machine: float
+    _cpu_times: Any = None
 
     def __init__(self, instance_type: str, **data: Any) -> None:
         resource_file = importlib.resources.files("tracarbon.hardwares.data").joinpath("aws-instances.csv")
         try:
             with resource_file.open("r", encoding="utf-8") as csvfile:
                 reader = csv.reader(csvfile)
-
+                next(reader)  # Skip header
                 for row in reader:
                     if row[0] == instance_type:
                         data["cpu_idle"] = float(row[14].replace(",", "."))
@@ -358,14 +360,20 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
                         data["memory_at_100"] = float(row[21].replace(",", "."))
                         data["has_gpu"] = float(row[22].replace(",", ".")) > 0
                         data["delta_full_machine"] = float(row[26].replace(",", "."))
-                        super().__init__(
-                            **data,
-                        )
+                        super().__init__(**data)
                         return
             raise AWSSensorException(f"The AWS instance type [{instance_type}] is missing from the aws instances file.")
         except Exception as exception:
             logger.exception("Error in the AWSSensor")
             raise AWSSensorException(exception) from exception
+
+    @staticmethod
+    def _watts_at(cpu_usage: float, watts: tuple[float, float, float, float]) -> float:
+        """Interpolate watts between the dataset's CPU load levels."""
+        cpu_loads = (0.0, 10.0, 50.0, 100.0)
+        upper = min(bisect.bisect_left(cpu_loads, cpu_usage, lo=1), len(cpu_loads) - 1)
+        share = (cpu_usage - cpu_loads[upper - 1]) / (cpu_loads[upper] - cpu_loads[upper - 1])
+        return watts[upper - 1] * (1 - share) + watts[upper] * share
 
     async def get_energy_usage(self) -> EnergyUsage:
         """
@@ -373,32 +381,19 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
 
         :return: the generated energy usage.
         """
-        cpu_usage = HardwareInfo.get_cpu_usage()
-        if cpu_usage >= 90:
-            cpu_watts = self.cpu_at_100
-        elif cpu_usage >= 50:
-            cpu_watts = self.cpu_at_50
-        elif cpu_usage >= 10:
-            cpu_watts = self.cpu_at_10
-        else:
-            cpu_watts = self.cpu_idle
+        cpu_usage, self._cpu_times = HardwareInfo.get_cpu_usage_since(since=self._cpu_times)
+        cpu_watts = self._watts_at(cpu_usage, (self.cpu_idle, self.cpu_at_10, self.cpu_at_50, self.cpu_at_100))
         logger.debug(f"CPU: {cpu_watts}W")
 
-        memory_usage = HardwareInfo.get_memory_usage()
-        if memory_usage >= 90:
-            memory_watts = self.memory_at_100
-        elif memory_usage >= 50:
-            memory_watts = self.memory_at_50
-        elif memory_usage >= 10:
-            memory_watts = self.memory_at_10
-        else:
-            memory_watts = self.memory_idle
+        memory_watts = self._watts_at(
+            cpu_usage, (self.memory_idle, self.memory_at_10, self.memory_at_50, self.memory_at_100)
+        )
         logger.debug(f"Memory: {memory_watts}W")
 
         gpu_watts = 0.0
         if self.has_gpu:
             gpu_watts = HardwareInfo.get_gpu_power_usage()
-            logger.debug(f"CPU: {gpu_watts}W")
+            logger.debug(f"GPU: {gpu_watts}W")
 
         total_watts = cpu_watts + memory_watts + gpu_watts + self.delta_full_machine
         logger.debug(f"Total including the delta of the full machine: {total_watts}W")
@@ -420,6 +415,7 @@ class CloudEnergyConsumption(EnergyConsumption):
     max_watts: float
     vcpus: float
     memory_gb: float
+    _cpu_times: Any = None
 
     @classmethod
     def _get_csv_filename(cls) -> str:
@@ -436,16 +432,21 @@ class CloudEnergyConsumption(EnergyConsumption):
         """Get the exception class for this cloud provider."""
         raise NotImplementedError
 
+    @staticmethod
+    def _normalize_instance_type(instance_type: str) -> str:
+        return instance_type.casefold()
+
     def __init__(self, instance_type: str, **data: Any) -> None:
         resource_file = importlib.resources.files("tracarbon.hardwares.data").joinpath(self._get_csv_filename())
         exception_class = self._get_exception_class()
         provider_name = self._get_provider_name()
+        instance_key = self._normalize_instance_type(instance_type)
         try:
             with resource_file.open("r", encoding="utf-8") as csvfile:
                 reader = csv.reader(csvfile)
                 next(reader)  # Skip header
                 for row in reader:
-                    if row[0] == instance_type:
+                    if row[0].casefold() == instance_key:
                         data["vcpus"] = float(row[1])
                         data["memory_gb"] = float(row[2])
                         data["min_watts"] = float(row[3])
@@ -469,9 +470,9 @@ class CloudEnergyConsumption(EnergyConsumption):
         :return: the generated energy usage.
         """
         provider_name = self._get_provider_name()
-        cpu_usage = HardwareInfo.get_cpu_usage() / 100.0  # Convert to 0-1 range
+        cpu_usage, self._cpu_times = HardwareInfo.get_cpu_usage_since(since=self._cpu_times)
+        cpu_usage /= 100.0
 
-        # Linear interpolation: power = min_watts + (max_watts - min_watts) * cpu_usage
         cpu_watts = self.min_watts + (self.max_watts - self.min_watts) * cpu_usage
         logger.debug(f"{provider_name} CPU: {cpu_watts:.2f}W (usage: {cpu_usage * 100:.1f}%)")
 
@@ -522,6 +523,10 @@ class AzureEnergyConsumption(CloudEnergyConsumption):
     @classmethod
     def _get_exception_class(cls) -> type[Exception]:
         return AzureSensorException
+
+    @staticmethod
+    def _normalize_instance_type(instance_type: str) -> str:
+        return instance_type.casefold().removeprefix("standard_").replace("_", " ")
 
     def __init__(self, instance_type: str, **data: Any) -> None:
         super().__init__(instance_type=instance_type, **data)

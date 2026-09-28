@@ -1,5 +1,9 @@
+import asyncio
 import subprocess
+from collections import namedtuple
+from operator import attrgetter
 
+import psutil
 import pytest
 import requests
 from pytest_mock import MockerFixture
@@ -7,9 +11,11 @@ from pytest_mock import MockerFixture
 from tracarbon import AMDRAPL
 from tracarbon import RAPL
 from tracarbon import AWSEC2EnergyConsumption
+from tracarbon import Country
 from tracarbon import EnergyConsumption
 from tracarbon import LinuxEnergyConsumption
 from tracarbon import TracarbonException
+from tracarbon.exceptions import AWSSensorException
 from tracarbon.exceptions import AzureSensorException
 from tracarbon.exceptions import GCPSensorException
 from tracarbon.exceptions import HardwareIOReportException
@@ -29,6 +35,7 @@ from tracarbon.hardwares.ioreport import IOReportEnergy
 from tracarbon.hardwares.sensors import AzureEnergyConsumption
 from tracarbon.hardwares.sensors import GCPEnergyConsumption
 from tracarbon.hardwares.sensors import MacEnergyConsumption
+from tracarbon.locations import AzureLocation
 
 
 @pytest.fixture(autouse=True)
@@ -159,8 +166,7 @@ async def test_aws_sensor_with_gpu_should_return_energy_consumption(mocker):
     assert aws_ec2_sensor.has_gpu is True
     assert aws_ec2_sensor.delta_full_machine == 25.8
 
-    mocker.patch.object(HardwareInfo, "get_cpu_usage", return_value=50)
-    mocker.patch.object(HardwareInfo, "get_memory_usage", return_value=50)
+    mocker.patch.object(HardwareInfo, "get_cpu_usage_since", return_value=(50, None))
     gpu_power_usage = 1805.4
     mocker.patch.object(HardwareInfo, "get_gpu_power_usage", return_value=gpu_power_usage)
     value_expected = (
@@ -187,8 +193,7 @@ async def test_aws_sensor_without_gpu_should_return_energy_consumption(mocker):
     assert aws_ec2_sensor.has_gpu is False
     assert aws_ec2_sensor.delta_full_machine == 32.0
 
-    mocker.patch.object(HardwareInfo, "get_cpu_usage", return_value=50)
-    mocker.patch.object(HardwareInfo, "get_memory_usage", return_value=50)
+    mocker.patch.object(HardwareInfo, "get_cpu_usage_since", return_value=(50, None))
     value_expected = aws_ec2_sensor.cpu_at_50 + aws_ec2_sensor.memory_at_50 + aws_ec2_sensor.delta_full_machine
 
     energy_usage = await aws_ec2_sensor.get_energy_usage()
@@ -196,11 +201,39 @@ async def test_aws_sensor_without_gpu_should_return_energy_consumption(mocker):
     assert energy_usage.host_energy_usage == value_expected
 
 
-def test_aws_sensor_should_return_error_when_instance_type_is_missing():
-    instance_type = "fefe"
+@pytest.mark.parametrize(
+    ("cpu_usage", "cpu_watts", "memory_watts"),
+    [(0.0, 1.21, 1.2), (49.0, 7.05725, 4.884), (100.0, 9.96, 8.0)],
+)
+@pytest.mark.asyncio
+async def test_aws_sensor_interpolates_the_cpu_and_memory_power_at_the_cpu_load(
+    mocker, cpu_usage, cpu_watts, memory_watts
+):
+    aws_ec2_sensor = AWSEC2EnergyConsumption(instance_type="m5.large")
+    mocker.patch.object(HardwareInfo, "get_cpu_usage_since", return_value=(cpu_usage, None))
+    mocker.patch.object(HardwareInfo, "get_memory_usage", return_value=20.0)
 
-    with pytest.raises(TracarbonException):
-        AWSEC2EnergyConsumption(instance_type=instance_type)
+    energy_usage = await aws_ec2_sensor.get_energy_usage()
+
+    assert energy_usage.cpu_energy_usage == pytest.approx(cpu_watts)
+    assert energy_usage.memory_energy_usage == pytest.approx(memory_watts)
+    assert energy_usage.host_energy_usage == pytest.approx(cpu_watts + memory_watts + 2.0)
+
+
+@pytest.mark.parametrize(
+    ("sensor_type", "instance_type", "exception_class"),
+    [
+        (AWSEC2EnergyConsumption, "m7i.large", AWSSensorException),
+        (GCPEnergyConsumption, "c4a-standard-4", GCPSensorException),
+        (GCPEnergyConsumption, "Standard_n2-standard-4", GCPSensorException),
+        (AzureEnergyConsumption, "Standard_D4s_v5", AzureSensorException),
+    ],
+    ids=["aws", "gcp", "gcp-with-azure-prefix", "azure"],
+)
+def test_cloud_sensors_reject_an_unknown_instance_type(sensor_type, instance_type, exception_class):
+    with pytest.raises(exception_class, match="is missing from the") as exception:
+        sensor_type(instance_type=instance_type)
+    assert f"[{instance_type}]" in str(exception.value)
 
 
 @pytest.mark.parametrize("head_status", [200, 401])
@@ -448,30 +481,19 @@ def test_gcp_from_metadata(mocker):
 
 
 @pytest.mark.asyncio
-async def test_gcp_sensor_should_return_energy_consumption(mocker):
-    gcp_sensor = GCPEnergyConsumption(instance_type="n2-standard-4")
+async def test_gcp_sensor_returns_energy_consumption_for_a_newer_machine_series(mocker):
+    gcp_sensor = GCPEnergyConsumption(instance_type="c4-standard-2")
 
-    assert gcp_sensor.vcpus == 4.0
-    assert gcp_sensor.memory_gb == 16.0
-    assert gcp_sensor.min_watts > 0
-    assert gcp_sensor.max_watts > gcp_sensor.min_watts
+    assert gcp_sensor.vcpus == 2.0
+    assert gcp_sensor.memory_gb == 7.0
 
-    mocker.patch.object(HardwareInfo, "get_cpu_usage", return_value=50)
-    from tracarbon.hardwares.gpu import GPUInfo
-
+    mocker.patch.object(HardwareInfo, "get_cpu_usage_since", return_value=(50, None))
     mocker.patch.object(GPUInfo, "get_gpu_power_usage_or_none", return_value=None)
 
     energy_usage = await gcp_sensor.get_energy_usage()
 
-    expected_power = gcp_sensor.min_watts + (gcp_sensor.max_watts - gcp_sensor.min_watts) * 0.5
-    assert abs(energy_usage.host_energy_usage - expected_power) < 0.01
-
-
-def test_gcp_sensor_should_return_error_when_instance_type_is_missing():
-    instance_type = "unknown-instance-type"
-
-    with pytest.raises(GCPSensorException):
-        GCPEnergyConsumption(instance_type=instance_type)
+    assert energy_usage.cpu_energy_usage == pytest.approx(5.195)
+    assert energy_usage.host_energy_usage == pytest.approx(5.195)
 
 
 def test_is_azure_should_return_false_on_exception():
@@ -506,7 +528,7 @@ async def test_azure_sensor_should_return_energy_consumption(mocker):
     assert azure_sensor.min_watts > 0
     assert azure_sensor.max_watts > azure_sensor.min_watts
 
-    mocker.patch.object(HardwareInfo, "get_cpu_usage", return_value=50)
+    mocker.patch.object(HardwareInfo, "get_cpu_usage_since", return_value=(50, None))
     from tracarbon.hardwares.gpu import GPUInfo
 
     mocker.patch.object(GPUInfo, "get_gpu_power_usage_or_none", return_value=None)
@@ -517,11 +539,59 @@ async def test_azure_sensor_should_return_energy_consumption(mocker):
     assert abs(energy_usage.host_energy_usage - expected_power) < 0.01
 
 
-def test_azure_sensor_should_return_error_when_instance_type_is_missing():
-    instance_type = "unknown-instance-type"
+@pytest.mark.parametrize(
+    ("vm_size", "location", "instance_type", "region_name"),
+    [
+        ("Standard_D2s_v3", "westeurope", "D2s v3", "West Europe"),
+        ("Standard_B2ms", "eastus", "B2MS", "East US"),
+        ("standard_b2ms", "EastUS", "B2MS", "East US"),
+        ("Standard_NC4as_T4_v3", "westus3", "NC4as T4 v3", "West US 3"),
+    ],
+)
+def test_azure_metadata_names_find_the_instance_and_the_region(mocker, vm_size, location, instance_type, region_name):
+    mocker.patch.object(AWS, "is_ec2", return_value=False)
+    mocker.patch.object(GCP, "is_gcp", return_value=False)
+    imds_response = mocker.Mock(status_code=200)
+    imds_response.json.return_value = {"compute": {"vmSize": vm_size, "location": location}}
+    mocker.patch.object(requests, "get", return_value=imds_response)
+    CloudProviders.auto_detect.cache_clear()
+    try:
+        energy_consumption = EnergyConsumption.from_platform()
+        country = Country.get_location()
+    finally:
+        CloudProviders.auto_detect.cache_clear()
 
-    with pytest.raises(AzureSensorException):
-        AzureEnergyConsumption(instance_type=instance_type)
+    assert energy_consumption == AzureEnergyConsumption(instance_type=instance_type)
+    assert country.co2g_kwh == AzureLocation(region_name=region_name).co2g_kwh
+
+
+@pytest.mark.parametrize(
+    ("new_sensor", "idle_watts", "full_load_watts"),
+    [
+        (lambda: GCPEnergyConsumption(instance_type="n2-standard-4"), attrgetter("min_watts"), attrgetter("max_watts")),
+        (lambda: AWSEC2EnergyConsumption(instance_type="m5.large"), attrgetter("cpu_idle"), attrgetter("cpu_at_100")),
+    ],
+    ids=["gcp", "aws"],
+)
+@pytest.mark.asyncio
+async def test_cloud_sensors_each_measure_the_cpu_load_since_their_own_previous_reading(
+    mocker, new_sensor, idle_watts, full_load_watts
+):
+    CPUTimes = namedtuple("CPUTimes", "user nice system idle")
+    cpu_times = mocker.patch.object(
+        psutil, "cpu_times", return_value=CPUTimes(user=0.0, nice=0.0, system=0.0, idle=100.0)
+    )
+    mocker.patch.object(GPUInfo, "get_gpu_power_usage_or_none", return_value=None)
+    energy_sensor, carbon_sensor = new_sensor(), new_sensor()
+
+    first_readings = [await sensor.get_energy_usage() for sensor in (energy_sensor, carbon_sensor)]
+    cpu_times.return_value = CPUTimes(user=100.0, nice=0.0, system=0.0, idle=100.0)
+    next_readings = [
+        await asyncio.to_thread(asyncio.run, sensor.get_energy_usage()) for sensor in (energy_sensor, carbon_sensor)
+    ]
+
+    assert [reading.cpu_energy_usage for reading in first_readings] == [idle_watts(energy_sensor)] * 2
+    assert [reading.cpu_energy_usage for reading in next_readings] == [full_load_watts(energy_sensor)] * 2
 
 
 @pytest.mark.asyncio
