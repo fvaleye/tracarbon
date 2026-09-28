@@ -53,13 +53,10 @@ print(report.total_co2g)
 
 `total_co2g` is `None` when no host carbon emission metric was collected. The total reflects collected samples.
 
-### Request your API key
+### Carbon intensity API (optional)
 
-- Go to [CO2Signal](https://www.co2signal.com/) and get your free API key for non-commercial use, or go to [ElectricityMaps](https://app.electricitymaps.com/developer-hub/api/reference) for commercial use.
-- This API is used to retrieve the last known carbon intensity (in gCO2eq/kWh) of electricity consumed in your location.
-- Set your API key in the environment variables, in the `.env` file or directly in the configuration.
-- If you would like to start without an API key, it's possible, the carbon intensity will be loaded statistically from a file.
-- Launch Tracarbon 🚀
+For the latest electricity carbon intensity, get an [Electricity Maps API key](https://app.electricitymaps.com/developer-hub/api/reference) and set `TRACARBON_CO2SIGNAL_API_KEY` in your environment or `.env` file, or pass `co2signal_api_key` to `TracarbonConfiguration`.
+Without a key, Tracarbon uses bundled data for European countries and supported cloud regions.
 
 ### Prometheus with Kubernetes containers
 
@@ -119,17 +116,27 @@ When running in Kubernetes, deploy Tracarbon per node and set `NODE_NAME` from `
 
 ## ⚙️ Configuration
 
-The environment variables can be set from an environment file `.env`.
+Importing `tracarbon` does not load `.env` or configure logging.
+Creating `TracarbonConfiguration` loads the nearest `.env` in the working directory or its parents. Pass `env_file_path="path/to/.env"` to load a specific file.
+Existing environment variables take precedence over `.env`; both override constructor arguments.
 
 | Parameter | Description |
 | --- | --- |
-| `TRACARBON_CO2SIGNAL_API_KEY` | The api key received from [CO2Signal](https://www.co2signal.com) or [ElectricityMaps](https://app.electricitymaps.com/developer-hub/api/reference). |
-| `TRACARBON_CO2SIGNAL_URL` | The url of [CO2Signal](https://docs.co2signal.com/#get-latest-by-country-code) is the default endpoint to retrieve the last known state of the zone, but it could be changed to [ElectricityMaps](https://app.electricitymaps.com/developer-hub/api/reference). |
-| `TRACARBON_METRIC_PREFIX_NAME` | The prefix to use in all the metrics name. |
-| `TRACARBON_INTERVAL_IN_SECONDS` | The interval in seconds to wait between the metrics evaluation. |
-| `TRACARBON_LOG_LEVEL` | The level to use for displaying the logs. |
+| `TRACARBON_CO2SIGNAL_API_KEY` | The [Electricity Maps](https://app.electricitymaps.com/developer-hub/api/reference) API key. The variable keeps its CO2Signal name for compatibility. |
+| `TRACARBON_CO2SIGNAL_URL` | The carbon intensity endpoint. Defaults to the Electricity Maps `https://api.electricitymaps.com/v4/carbon-intensity/latest`. |
+| `TRACARBON_EMISSION_FACTOR_TYPE` | The Electricity Maps emission factor: `lifecycle` (default) or `direct`. |
+| `TRACARBON_METRIC_PREFIX_NAME` | Metric name prefix. Defaults to `tracarbon`. |
+| `TRACARBON_INTERVAL_IN_SECONDS` | Measurement interval in seconds. Defaults to `60`. |
+| `TRACARBON_LOG_LEVEL` | Minimum level for Tracarbon's log handler. Defaults to `INFO`. |
 | `TRACARBON_IPINFO_TOKEN` | An optional [ipinfo.io](https://ipinfo.io) API token used for country detection from the IP address, lifting the anonymous rate limit. |
 | `TRACARBON_KUBERNETES_NODE_NAME` | The Kubernetes node name used to scope container metrics to the node being measured. Falls back to `NODE_NAME` when unset. |
+| `PROMETHEUS_ADDRESS` | The address the Prometheus exporter listens on. Defaults to `::`. |
+| `PROMETHEUS_PORT` | The port the Prometheus exporter listens on. Defaults to `8081`. |
+| `DATADOG_API_KEY` | The Datadog API key of the Datadog exporter. |
+| `DATADOG_APP_KEY` | The Datadog application key of the Datadog exporter. |
+
+Configuration replaces [Loguru](https://loguru.readthedocs.io/en/stable/api/logger.html)'s default stderr handler once, using the configured log level. If your application already removed the default handler, its handlers are preserved.
+The CLI configures its own handler. Tracarbon's handlers hide local variables in tracebacks; for host handlers, set `LOGURU_DIAGNOSE=False` before starting Python or pass `diagnose=False` to `logger.add()`.
 
 ## 💻 Development
 
