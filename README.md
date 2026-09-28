@@ -56,7 +56,7 @@ print(report.total_co2g)
 ### Carbon intensity API (optional)
 
 For the latest electricity carbon intensity, get an [Electricity Maps API key](https://app.electricitymaps.com/developer-hub/api/reference) and set `TRACARBON_CO2SIGNAL_API_KEY` in your environment or `.env` file, or pass `co2signal_api_key` to `TracarbonConfiguration`.
-Without a key, Tracarbon uses bundled data for European countries and supported cloud regions.
+Without a key, Tracarbon uses bundled data for [supported countries](tracarbon/locations/data/eu-co2-emission-intensity.json) and cloud regions.
 
 ### Prometheus with Kubernetes containers
 
@@ -109,14 +109,13 @@ When running in Kubernetes, deploy Tracarbon per node and set `NODE_NAME` from `
 | Location | Description and source |
 | --- | --- |
 | Worldwide | Get the latest co2g/kwh in near real-time using the CO2Signal or ElectricityMaps APIs. See [here](https://app.electricitymaps.com/developer-hub/api/reference) for available Electricity Maps query modes.<br><br>[CO2Signal API](https://www.co2signal.com) or [ElectricityMaps](https://app.electricitymaps.com/developer-hub/api/reference) |
-| Europe | Static file created from the European Environment Agency Emission for the co2g/kwh in European countries.<br><br>[EEA website](https://www.eea.europa.eu/en/analysis/maps-and-charts/co2-emission-intensity-15) |
+| Supported countries | Static carbon intensity values for the [countries in the bundled dataset](tracarbon/locations/data/eu-co2-emission-intensity.json).<br><br>[EEA website](https://www.eea.europa.eu/en/analysis/maps-and-charts/co2-emission-intensity-15) |
 | AWS | Static file of the AWS Grid emissions factors.<br><br>[cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/cloud-carbon-coefficients/blob/main/data/grid-emissions-factors-aws.csv) |
 | GCP | Static file of the GCP Grid emissions factors (2025 yearly data).<br><br>[GoogleCloudPlatform/region-carbon-info](https://github.com/GoogleCloudPlatform/region-carbon-info/blob/main/data/yearly/2025.csv) |
 | Azure | Static file of the Azure Grid emissions factors.<br><br>[cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/cloud-carbon-coefficients/blob/main/data/grid-emissions-factors-azure.csv) |
 
 ## ⚙️ Configuration
 
-Importing `tracarbon` does not load `.env` or configure logging.
 Creating `TracarbonConfiguration` loads the nearest `.env` in the working directory or its parents. Pass `env_file_path="path/to/.env"` to load a specific file.
 Existing environment variables take precedence over `.env`; both override constructor arguments.
 
