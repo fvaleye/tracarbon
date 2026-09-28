@@ -2,6 +2,7 @@ import subprocess
 
 import pytest
 from kubernetes import config
+from typer import Exit
 
 from tracarbon import CarbonEmission
 from tracarbon import CarbonUsage
@@ -114,8 +115,10 @@ def test_run_metrics_reports_an_unavailable_total_when_carbon_measurement_fails(
     mocker.patch.object(MacEnergyConsumption, "get_energy_usage", return_value=EnergyUsage(host_energy_usage=60.0))
     mocker.patch.object(CarbonEmission, "get_co2_usage", side_effect=RuntimeError("measurement failed"))
 
-    run_metrics(exporter_name="Stdout", running=False)
+    with pytest.raises(Exit) as error:
+        run_metrics(exporter_name="Stdout", running=False)
 
+    assert error.value.exit_code == 1
     assert "Total CO2 emitted: unavailable" in caplog.text
 
 

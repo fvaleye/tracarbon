@@ -96,6 +96,25 @@ def prometheus_registry(mocker: MockerFixture) -> CollectorRegistry:
 
 
 @pytest.mark.asyncio
+async def test_prometheus_reports_healthy_metrics_after_a_read_fails(prometheus_registry: CollectorRegistry) -> None:
+    generator = MetricGenerator(
+        metrics=[Metric(name="power", value=AsyncMock(return_value=42.0), tags=[Tag(key="pod_name", value="old")])]
+    )
+    exporter = PrometheusExporter(metric_generators=[generator])
+    await exporter._launch_all()
+    generator.metrics = [
+        Metric(name="failed", value=AsyncMock(side_effect=OSError("sensor unavailable"))),
+        Metric(name="power", value=AsyncMock(return_value=0.0), tags=[Tag(key="pod_name", value="new")]),
+    ]
+
+    with pytest.raises(OSError, match="sensor unavailable"):
+        await exporter._launch_all()
+
+    assert prometheus_registry.get_sample_value("power", {"pod_name": "new"}) == 0.0
+    assert prometheus_registry.get_sample_value("power", {"pod_name": "old"}) == 42.0
+
+
+@pytest.mark.asyncio
 async def test_prometheus_reuses_a_supplied_gauge(prometheus_registry: CollectorRegistry) -> None:
     gauge = Gauge("custom", "A supplied gauge", ["location"], registry=prometheus_registry)
     metric = Metric(name="custom", value=AsyncMock(return_value=7.0), tags=[Tag(key="location", value="fr")])

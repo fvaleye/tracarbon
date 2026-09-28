@@ -15,24 +15,27 @@ class StdoutExporter(Exporter):
 
         :param metric_generator: the metric generator
         """
-        try:
-            async for metric in metric_generator.generate():
-                try:
-                    metric_value = await metric.value()
-                    logger.debug(f"Generated metric '{metric.name}' with value: {metric_value}")
+        first_failure: Exception | None = None
+        async for metric in metric_generator.generate():
+            try:
+                metric_value = await metric.value()
+            except Exception as failure:
+                logger.error(f"Error reading metric '{metric.name}': {failure}")
+                if first_failure is None:
+                    first_failure = failure
+                continue
+            logger.debug(f"Generated metric '{metric.name}' with value: {metric_value}")
 
-                    if metric_value is not None:
-                        await self.add_metric_to_report(metric=metric, value=metric_value)
-                        logger.info(
-                            f"Metric name[{metric.format_name(metric_prefix_name=self.metric_prefix_name)}], "
-                            f"value[{metric_value}], tags{metric.format_tags()}"
-                        )
-                    else:
-                        logger.debug(f"Skipping metric '{metric.name}' with None value")
-                except Exception as e:
-                    logger.error(f"Error processing metric '{metric.name}': {e}")
-        except Exception as e:
-            logger.error(f"Error in StdoutExporter.launch: {e}")
+            if metric_value is not None:
+                await self.add_metric_to_report(metric=metric, value=metric_value)
+                logger.info(
+                    f"Metric name[{metric.format_name(metric_prefix_name=self.metric_prefix_name)}], "
+                    f"value[{metric_value}], tags{metric.format_tags()}"
+                )
+            else:
+                logger.debug(f"Skipping metric '{metric.name}' with None value")
+        if first_failure is not None:
+            raise first_failure
 
     @classmethod
     def get_name(cls) -> str:

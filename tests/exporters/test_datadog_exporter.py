@@ -1,3 +1,5 @@
+import pytest
+
 from tracarbon.exporters import DatadogExporter
 from tracarbon.exporters import Metric
 from tracarbon.exporters import MetricGenerator
@@ -13,7 +15,7 @@ def test_datadog_flushes_at_the_configured_interval(mocker):
         exporter.stats.stop()
 
 
-async def test_datadog_preserves_zero_and_skips_missing_values(mocker):
+async def test_datadog_preserves_zero_after_failed_or_missing_readings(mocker):
     mocker.patch("tracarbon.exporters.datadog_exporter.initialize")
     stats = mocker.patch("tracarbon.exporters.datadog_exporter.ThreadStats").return_value
 
@@ -23,10 +25,20 @@ async def test_datadog_preserves_zero_and_skips_missing_values(mocker):
     async def missing() -> None:
         return None
 
-    exporter = DatadogExporter(api_key="test", app_key="test", metric_generators=[])
-    generator = MetricGenerator(metrics=[Metric(name="zero", value=zero), Metric(name="missing", value=missing)])
+    async def failing() -> float:
+        raise OSError("sensor unavailable")
 
-    await exporter.launch(generator)
+    exporter = DatadogExporter(api_key="test", app_key="test", metric_generators=[])
+    generator = MetricGenerator(
+        metrics=[
+            Metric(name="failed", value=failing),
+            Metric(name="missing", value=missing),
+            Metric(name="zero", value=zero),
+        ]
+    )
+
+    with pytest.raises(OSError, match="sensor unavailable"):
+        await exporter.launch(generator)
 
     stats.gauge.assert_called_once_with("zero", 0.0, tags=[])
     assert set(exporter.metric_report) == {"zero"}

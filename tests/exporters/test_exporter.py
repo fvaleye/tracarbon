@@ -99,11 +99,12 @@ def test_exporter_settles_an_active_sample_before_stopping_or_restarting(mocker,
     assert not timer.is_alive()
 
 
-def test_exporter_start_raises_when_its_first_collection_fails(tmp_path):
+@pytest.mark.parametrize("exporter_type", [JSONExporter, StdoutExporter])
+def test_exporter_start_raises_when_its_first_collection_fails(tmp_path, exporter_type):
     async def sample() -> float:
         raise OSError("sensor unavailable")
 
-    exporter = JSONExporter(
+    exporter = exporter_type(
         path=str(tmp_path / "metrics.json"),
         metric_generators=[MetricGenerator(metrics=[Metric(name="sample", value=sample)])],
     )
@@ -496,7 +497,9 @@ def test_stdout_keeps_reporting_the_metrics_that_work_while_another_metric_fails
     energy_readings = []
 
     async def failing_carbon() -> float:
-        raise OSError("carbon intensity unavailable")
+        if energy_readings:
+            raise OSError("carbon intensity unavailable")
+        return 1.0
 
     async def energy() -> float:
         energy_readings.append(1.0)
@@ -514,6 +517,8 @@ def test_stdout_keeps_reporting_the_metrics_that_work_while_another_metric_fails
         assert reported_after_the_failures.wait(timeout=2)
     finally:
         exporter.stop()
+
+    assert exporter.metric_report["energy"].call_count >= 3
 
 
 def test_exporter_forgets_series_that_stopped_reporting_while_another_generator_keeps_failing(tmp_path, monkeypatch):

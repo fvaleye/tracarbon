@@ -5,6 +5,7 @@ from typer.testing import CliRunner
 
 from tracarbon import Country
 from tracarbon import EnergyConsumption
+from tracarbon import EnergyUsage
 from tracarbon.cli import app
 from tracarbon.exporters import JSONExporter
 from tracarbon.exporters import Metric
@@ -18,6 +19,7 @@ from tracarbon.hardwares import WindowsEnergyConsumption
 def test_run_writes_the_final_report_on_sigterm(mocker, caplog):
     mocker.patch.object(Country, "get_location", return_value=Country.from_file("fr"))
     mocker.patch.object(EnergyConsumption, "from_platform", return_value=WindowsEnergyConsumption())
+    mocker.patch.object(WindowsEnergyConsumption, "get_energy_usage", return_value=EnergyUsage(gpu_energy_usage=10.0))
     mocker.patch("tracarbon.cli.time", **{"sleep.side_effect": lambda _: signal.raise_signal(signal.SIGTERM)})
 
     def terminate_like_the_default_action(signum, frame):

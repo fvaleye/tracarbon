@@ -110,6 +110,7 @@ if PROMETHEUS_INSTALLED:
 
             :param metric_generator: the metric generator
             """
+            first_failure: Exception | None = None
             async for metric in metric_generator.generate():
                 metric_name = metric.format_name(metric_prefix_name=self.metric_prefix_name, separator="_")
                 grams_per_unit = _GRAMS_PER_CARBON_UNIT.get(metric.unit())
@@ -119,7 +120,13 @@ if PROMETHEUS_INSTALLED:
                     self._export(Gauge, metric_name, metric.tags, None)
                     if grams_per_unit is not None:
                         self._export(Counter, counter_name, counter_tags, None)
-                metric_value = await metric.value()
+                try:
+                    metric_value = await metric.value()
+                except Exception as failure:
+                    logger.error(f"Error reading metric '{metric.name}': {failure}")
+                    if first_failure is None:
+                        first_failure = failure
+                    continue
                 if metric_value is not None:
                     await self.add_metric_to_report(metric=metric, value=metric_value)
                     logger.info(
@@ -134,6 +141,8 @@ if PROMETHEUS_INSTALLED:
                         counter_tags,
                         None if metric_value is None else metric_value * grams_per_unit,
                     )
+            if first_failure is not None:
+                raise first_failure
 
         @classmethod
         def get_name(cls) -> str:

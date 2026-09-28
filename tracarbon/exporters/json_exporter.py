@@ -9,6 +9,7 @@ from typing import Dict
 import aiofiles
 import aiofiles.os
 import orjson
+from loguru import logger
 
 from tracarbon.exporters.exporter import Exporter
 from tracarbon.exporters.exporter import MetricGenerator
@@ -54,8 +55,6 @@ class JSONExporter(Exporter):
                         file.truncate(0 if ch == b"[" else closing_bracket)
                     break
         except Exception as exc:
-            from loguru import logger
-
             logger.debug(f"JSONExporter: could not strip trailing bracket for {self.path}: {exc}")
 
     def flush(self) -> None:
@@ -83,8 +82,6 @@ class JSONExporter(Exporter):
                 if last != b"]":
                     file.write(b"\n]")
         except Exception as exc:
-            from loguru import logger
-
             logger.debug(f"JSONExporter: flush failed for {self.path}: {exc}")
 
     async def _launch_all(self) -> None:
@@ -118,8 +115,15 @@ class JSONExporter(Exporter):
         json_lines = self.path.endswith(".jsonl")
         if not json_lines:
             await asyncio.to_thread(self._strip_trailing_closing_bracket)
+        first_failure: Exception | None = None
         async for metric in metric_generator.generate():
-            metric_value = await metric.value()
+            try:
+                metric_value = await metric.value()
+            except Exception as failure:
+                logger.error(f"Error reading metric '{metric.name}': {failure}")
+                if first_failure is None:
+                    first_failure = failure
+                continue
             if metric_value is None:
                 continue
             await self.add_metric_to_report(metric=metric, value=metric_value)
@@ -146,6 +150,8 @@ class JSONExporter(Exporter):
                 indent_opt = orjson.OPT_INDENT_2 if self.indent >= 2 else 0
                 payload = orjson.dumps(record, option=indent_opt)
                 await file.write(payload.decode("utf-8"))
+        if first_failure is not None:
+            raise first_failure
 
     @classmethod
     def get_name(cls) -> str:
