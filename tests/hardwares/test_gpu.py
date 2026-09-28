@@ -1,5 +1,6 @@
 import shutil
 import subprocess
+import time
 
 import pytest
 from loguru import logger
@@ -121,7 +122,7 @@ GPU: 0
     mock_result = mocker.Mock()
     mock_result.stdout = amd_smi_output
     mock_result.returncode = 0
-    mocker.patch("tracarbon.hardwares.gpu.subprocess.run", return_value=mock_result)
+    mocker.patch("tracarbon.hardwares.gpu._run_probe", return_value=mock_result)
 
     gpu_usage = AMDGPU.get_gpu_power_usage()
 
@@ -443,3 +444,27 @@ def test_apple_silicon_power_metrics_does_not_ask_again_when_it_lacks_the_privil
 
     assert return_code == 1
     assert run_powermetrics.call_count == 1
+
+
+@pytest.mark.linux
+@pytest.mark.darwin
+@pytest.mark.parametrize("gpu_type,output", [(NvidiaGPU, "25 W"), (AMDGPU, "Power (W): 25")])
+def test_a_timed_out_probe_can_recover_after_cooling_down(mocker, monkeypatch, tmpdir, gpu_type, output):
+    stuck_probe = tmpdir.join("stuck-probe")
+    stuck_probe.write("#!/bin/sh\nexec sleep 5\n")
+    stuck_probe.chmod(0o755)
+    monkeypatch.setattr(shutil, "which", lambda _: str(stuck_probe))
+    monkeypatch.setattr("tracarbon.hardwares.gpu.PROBE_TIMEOUT_SECONDS", 0.5, raising=False)
+    monkeypatch.setattr("tracarbon.hardwares.gpu.STUCK_PROBE_COOL_DOWN_SECONDS", 0.1, raising=False)
+    launched_probes = mocker.spy(subprocess, "Popen")
+
+    started_at = time.monotonic()
+    for _ in range(2):
+        with pytest.raises(HardwareNoGPUDetectedException):
+            gpu_type.get_gpu_power_usage()
+
+    stuck_probe.write(f"#!/bin/sh\nprintf '{output}\\n'\n")
+    time.sleep(0.2)
+    assert gpu_type.get_gpu_power_usage() == 25.0
+    assert time.monotonic() - started_at < 3
+    assert launched_probes.call_count == 2

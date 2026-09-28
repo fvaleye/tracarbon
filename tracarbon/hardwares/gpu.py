@@ -1,11 +1,14 @@
+import contextlib
 import functools
 import math
 import platform
 import re
 import shutil
 import subprocess
+import time
 from abc import ABC
 from typing import ClassVar
+from typing import List
 from typing import Tuple
 
 from loguru import logger
@@ -16,11 +19,46 @@ from tracarbon.exceptions import HardwareNoGPUDetectedException
 _RE_POWER_W = re.compile(r"Power\s*\(W\):\s*([\d.]+)", re.IGNORECASE)
 _RE_POWER_USAGE_W = re.compile(r"POWER[^:]*:\s*([\d.]+)\s*W", re.IGNORECASE)
 _ANE_SAMPLER = "ane_power"
+PROBE_TIMEOUT_SECONDS = 10
+KILLED_PROBE_WAIT_SECONDS = 1
+STUCK_PROBE_COOL_DOWN_SECONDS = 300
+_stuck_probe_retry_times: dict[str, float] = {}
 
 
 @functools.lru_cache(maxsize=8)
 def _compile_power_pattern(label: str, unit: str) -> re.Pattern:
     return re.compile(rf"{label}:\s*([\d.]+)\s*{unit}", re.IGNORECASE)
+
+
+def _run_probe(command: List[str]) -> subprocess.CompletedProcess:
+    """
+    Run a hardware probe, giving up on it when it takes longer than PROBE_TIMEOUT_SECONDS.
+
+    subprocess.run waits without a bound for the probe it kills on a timeout, and a probe stuck in
+    its driver ignores SIGKILL until the driver returns. A probe that times out is killed without
+    waiting on it for long. Retry after a cooldown so temporary failures can recover without
+    making every measurement wait for a wedged driver.
+
+    :param command: the probe and its arguments
+    :return: the finished probe with its output and return code
+    """
+    probe = command[0]
+    if time.monotonic() < _stuck_probe_retry_times.get(probe, 0.0):
+        raise HardwareNoGPUDetectedException(f"{probe} is cooling down after a timeout.")
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    try:
+        stdout, stderr = process.communicate(timeout=PROBE_TIMEOUT_SECONDS)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        with contextlib.suppress(subprocess.TimeoutExpired):
+            process.communicate(timeout=KILLED_PROBE_WAIT_SECONDS)
+        _stuck_probe_retry_times[probe] = time.monotonic() + STUCK_PROBE_COOL_DOWN_SECONDS
+        logger.warning(
+            f"{probe} did not answer within {PROBE_TIMEOUT_SECONDS} seconds. "
+            f"retrying after {STUCK_PROBE_COOL_DOWN_SECONDS} seconds."
+        )
+        raise HardwareNoGPUDetectedException(f"{probe} did not answer.") from None
+    return subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
 
 
 class NvidiaGPU(BaseModel):
@@ -40,10 +78,7 @@ class NvidiaGPU(BaseModel):
         if nvidia_smi_path is None:
             raise HardwareNoGPUDetectedException("Nvidia GPU with nvidia-smi not found in PATH.")
 
-        result = subprocess.run(
-            [nvidia_smi_path, "--query-gpu=power.draw", "--format=csv,noheader"],
-            capture_output=True,
-        )
+        result = _run_probe([nvidia_smi_path, "--query-gpu=power.draw", "--format=csv,noheader"])
         return result.stdout, result.returncode
 
     @classmethod
@@ -89,19 +124,13 @@ class AMDGPU(BaseModel):
         # Try rocm-smi first
         rocm_smi_path = shutil.which("rocm-smi")
         if rocm_smi_path is not None:
-            result = subprocess.run(
-                [rocm_smi_path, "--showpower"],
-                capture_output=True,
-            )
+            result = _run_probe([rocm_smi_path, "--showpower"])
             return result.stdout, result.returncode
 
         # Fall back to amd-smi
         amd_smi_path = shutil.which("amd-smi")
         if amd_smi_path is not None:
-            result = subprocess.run(
-                [amd_smi_path, "metric", "--power"],
-                capture_output=True,
-            )
+            result = _run_probe([amd_smi_path, "metric", "--power"])
             return result.stdout, result.returncode
 
         raise HardwareNoGPUDetectedException("AMD GPU tools (rocm-smi or amd-smi) not found in PATH.")
@@ -154,11 +183,7 @@ class AppleSiliconPowerMetrics(BaseModel):
         if powermetrics_path is None:
             raise HardwareNoGPUDetectedException("powermetrics not found in PATH.")
 
-        result = subprocess.run(
-            [powermetrics_path, "--samplers", samplers, "-i", "1", "-n", "1"],
-            capture_output=True,
-            timeout=10,
-        )
+        result = _run_probe([powermetrics_path, "--samplers", samplers, "-i", "1", "-n", "1"])
 
         if (
             result.returncode != 0
@@ -167,11 +192,7 @@ class AppleSiliconPowerMetrics(BaseModel):
         ):
             sudo_path = shutil.which("sudo")
             if sudo_path:
-                result = subprocess.run(
-                    [sudo_path, "-n", powermetrics_path, "--samplers", samplers, "-i", "1", "-n", "1"],
-                    capture_output=True,
-                    timeout=10,
-                )
+                result = _run_probe([sudo_path, "-n", powermetrics_path, "--samplers", samplers, "-i", "1", "-n", "1"])
 
         return result.stdout, result.returncode, result.stderr
 
