@@ -1,16 +1,18 @@
-FROM python:3.12-slim-bookworm
+FROM python:3.14-slim-trixie AS builder
 
-# Install uv
-RUN pip install uv
+COPY --from=ghcr.io/astral-sh/uv:0.12.19 /uv /bin/
+ENV UV_PYTHON_DOWNLOADS=0
 
-COPY . /app
 WORKDIR /app
+COPY pyproject.toml uv.lock README.md LICENSE.txt ./
+COPY tracarbon tracarbon
 
-# Install dependencies.
-# The --system flag installs packages into the system’s Python environment.
-# The -e flag installs the project in "editable" mode.
-# '.[all]' will install datadog, prometheus and kubernetes optional dependencies.
-RUN uv pip install -e '.[all]' --system
+RUN uv sync --locked --no-editable --extra all
 
-# Run tracarbon
+FROM python:3.14-slim-trixie
+
+WORKDIR /app
+COPY --from=builder /app/.venv /app/.venv
+ENV PATH="/app/.venv/bin:$PATH"
+
 ENTRYPOINT ["tracarbon", "run"]
