@@ -1,3 +1,5 @@
+import subprocess
+
 import pytest
 from kubernetes import config
 
@@ -8,7 +10,6 @@ from tracarbon import EnergyConsumption
 from tracarbon import EnergyUsage
 from tracarbon import Kubernetes
 from tracarbon import MacEnergyConsumption
-from tracarbon.cli import app
 from tracarbon.cli import get_exporter
 from tracarbon.cli import run_metrics
 from tracarbon.exporters import DatadogExporter
@@ -140,6 +141,7 @@ def test_run_metrics_warns_when_containers_collect_no_kubernetes_metrics(mocker,
 
 
 def test_cli_logs_nothing_below_the_configured_level(run_python):
+    assert "Available Exporters:" in run_python("-m", "tracarbon", "list-exporters", TRACARBON_LOG_LEVEL="INFO")
     assert run_python("-m", "tracarbon", "list-exporters", TRACARBON_LOG_LEVEL="ERROR") == ""
 
 
@@ -149,5 +151,19 @@ def test_cli_reads_the_env_file_of_its_working_directory(run_python, tmp_path):
     assert run_python("-m", "tracarbon", "list-exporters") == ""
 
 
-def test_cli_tracebacks_do_not_show_local_variables():
-    assert app.pretty_exceptions_show_locals is False
+def test_cli_tracebacks_do_not_expose_secrets(run_python):
+    script = """
+from tracarbon.cli import app
+
+@app.command()
+def fail():
+    api_key = "SECRET_API_KEY"
+    raise RuntimeError("CLI failed")
+
+app(["fail"])
+"""
+    with pytest.raises(subprocess.CalledProcessError) as error:
+        run_python("-c", script)
+
+    assert "RuntimeError: CLI failed" in error.value.stderr
+    assert "SECRET_API_KEY" not in error.value.stderr

@@ -3,12 +3,12 @@ import socket
 
 import pytest
 import requests
+from aiohttp import ClientResponseError
 from aiohttp import web
 from loguru import logger
 
 from tracarbon.exceptions import CloudProviderRegionIsMissing
 from tracarbon.exceptions import CountryIsMissing
-from tracarbon.exceptions import TracarbonException
 from tracarbon.hardwares import CloudProviders
 from tracarbon.locations import AWSLocation
 from tracarbon.locations import CarbonIntensitySource
@@ -17,25 +17,6 @@ from tracarbon.locations import Location
 from tracarbon.locations import location
 from tracarbon.locations.country import AzureLocation
 from tracarbon.locations.country import GCPLocation
-
-
-@pytest.mark.asyncio
-async def test_request_raises_for_http_error(mocker):
-    response = mocker.MagicMock()
-    response.raise_for_status.side_effect = RuntimeError("HTTP 401")
-    response.text = mocker.AsyncMock(return_value='{"error": "unauthorized"}')
-    response_context = mocker.MagicMock()
-    response_context.__aenter__ = mocker.AsyncMock(return_value=response)
-    response_context.__aexit__ = mocker.AsyncMock(return_value=None)
-    session = mocker.MagicMock()
-    session.get.return_value = response_context
-    session_context = mocker.MagicMock()
-    session_context.__aenter__ = mocker.AsyncMock(return_value=session)
-    session_context.__aexit__ = mocker.AsyncMock(return_value=None)
-    mocker.patch("tracarbon.locations.location.aiohttp.ClientSession", return_value=session_context)
-
-    with pytest.raises(RuntimeError, match="HTTP 401"):
-        await Location.request("https://example.com")
 
 
 async def test_request_gives_up_on_a_server_that_does_not_answer(monkeypatch):
@@ -68,6 +49,7 @@ async def test_an_http_error_reaches_the_caller_unchanged_without_the_api_key():
     )
     host_logs = []
     host_handler_id = logger.add(host_logs.append, backtrace=True, diagnose=True)
+    raised = None
     try:
         await country.get_latest_co2g_kwh()
     except Exception as error:
@@ -77,7 +59,8 @@ async def test_an_http_error_reaches_the_caller_unchanged_without_the_api_key():
         logger.remove(host_handler_id)
         await runner.cleanup()
 
-    assert not isinstance(raised, TracarbonException)
+    assert isinstance(raised, ClientResponseError)
+    assert raised.status == 500
     assert received_tokens == ["SECRET_API_KEY"]
     assert "SECRET_API_KEY" not in repr(raised) + "".join(host_logs)
 

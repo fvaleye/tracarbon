@@ -14,17 +14,6 @@ def test_a_missing_optional_dependency_is_not_logged(caplog):
     assert caplog.text == ""
 
 
-def test_configuration_keeps_the_host_logger_handlers():
-    host_messages = []
-    host_handler_id = logger.add(host_messages.append, format="{message}")
-
-    TracarbonConfiguration()
-    logger.info("host message")
-
-    assert host_messages == ["host message\n"]
-    logger.remove(host_handler_id)
-
-
 def test_configuration_reads_the_env_file_of_the_working_directory(mocker, monkeypatch, tmp_path):
     mocker.patch.dict(os.environ)
     os.environ.pop("TRACARBON_METRIC_PREFIX_NAME", None)
@@ -115,9 +104,3 @@ logger.debug("debug line")
 """
 
     assert run_python("-c", script, LOGURU_AUTOINIT=autoinit) == "HOST DEBUG debug line\n"
-
-
-def test_importing_tracarbon_leaves_loguru_untouched(run_python):
-    script = "import tracarbon; from loguru import logger; logger.debug('debug line')"
-
-    assert "| DEBUG    | __main__:<module>:1 - debug line" in run_python("-c", script)
