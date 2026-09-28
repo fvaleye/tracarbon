@@ -17,7 +17,6 @@ from typing import Callable
 from typing import Dict
 from typing import List
 
-from asyncer import asyncify
 from loguru import logger
 from pydantic import BaseModel
 from pydantic import ConfigDict
@@ -350,16 +349,13 @@ class Exporter(BaseModel, metaclass=ABCMeta):
         :return:
         """
 
-        def add_metric_to_report() -> MetricReport:
-            if metric.name not in self.metric_report:
-                self.metric_report[metric.name] = MetricReport(exporter_name=self.get_name(), metric=metric)
-            metric_report = self.metric_report[metric.name]
-            now = datetime.now()
-            metric_report.accumulate(metric=metric, value=value, measured_at=time.monotonic())
-            metric_report.last_report_time = now
-            return metric_report
-
-        return await asyncify(add_metric_to_report)()
+        if metric.name not in self.metric_report:
+            self.metric_report[metric.name] = MetricReport(exporter_name=self.get_name(), metric=metric)
+        metric_report = self.metric_report[metric.name]
+        now = datetime.now()
+        metric_report.accumulate(metric=metric, value=value, measured_at=time.monotonic())
+        metric_report.last_report_time = now
+        return metric_report
 
     @classmethod
     @abstractmethod

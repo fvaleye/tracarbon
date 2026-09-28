@@ -24,6 +24,8 @@ spec:
            - {{ . }}
         {{ end }}
         env:
+        - name: PROMETHEUS_PORT
+          value: '{{ .Values.port }}'
         - name: NODE_NAME
           valueFrom:
             fieldRef:

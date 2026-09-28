@@ -1,4 +1,5 @@
 import datetime
+import os
 import pathlib
 
 import pytest
@@ -16,7 +17,24 @@ def test_is_rapl_compatible(tmpdir):
 
     path = tmpdir.mkdir("intel-rapl")
 
+    assert RAPL(path=str(path)).is_rapl_compatible() is False
+
+    path.mkdir("intel-rapl:0").join("energy_uj").write("1")
+
     assert RAPL(path=str(path)).is_rapl_compatible() is True
+
+
+@pytest.mark.linux
+@pytest.mark.darwin
+def test_a_counter_only_root_can_read_is_not_compatible(tmpdir):
+    path = tmpdir.mkdir("intel-rapl")
+    counter = path.mkdir("intel-rapl:0").join("energy_uj")
+    counter.write("1")
+    counter.chmod(0o000)
+    if os.access(str(counter), os.R_OK):
+        pytest.skip("root reads every counter")
+
+    assert RAPL(path=str(path)).is_rapl_compatible() is False
 
 
 @pytest.mark.asyncio
@@ -175,7 +193,7 @@ async def test_a_zone_that_was_restarted_is_not_credited_a_whole_range():
 
     energy_report = await rapl.get_energy_report()
 
-    assert energy_report.host_energy_usage == 0.0
+    assert energy_report.host_energy_usage is None
     assert rapl.rapl_results["T0-package-0"].energy_uj < a_reading_the_zone_restarted_from
 
 
@@ -255,9 +273,9 @@ async def test_sample_intervals_ignore_wall_clock_changes(mocker, tmpdir, wall_c
     counter.write("90000000")
     now = datetime.datetime.now()
     adjusted_time = now + datetime.timedelta(seconds=wall_clock_seconds)
-    mocker.patch("tracarbon.hardwares.rapl.datetime").now.side_effect = [now, adjusted_time, adjusted_time]
+    mocker.patch("tracarbon.hardwares.rapl.datetime").now.side_effect = [now, now, adjusted_time, adjusted_time]
     clock = mocker.patch("tracarbon.hardwares.rapl.time")
-    clock.monotonic.side_effect = [0.0, elapsed_seconds, elapsed_seconds + 0.25]
+    clock.monotonic.side_effect = [0.0, 0.0, elapsed_seconds, elapsed_seconds + 0.25]
     rapl = RAPL(file_list=[str(zone)], max_power_watts={"T0-package-0": 100.0})
 
     first_report = await rapl.get_energy_report()
@@ -266,32 +284,9 @@ async def test_sample_intervals_ignore_wall_clock_changes(mocker, tmpdir, wall_c
     counter.write("10000000")
     next_report = await rapl.get_energy_report()
 
-    assert first_report.host_energy_usage == 0.0
-    assert wrapped_report.host_energy_usage == pytest.approx(10.0 / elapsed_seconds if elapsed_seconds else 0.0)
+    assert first_report.host_energy_usage is None
+    assert wrapped_report.host_energy_usage == (pytest.approx(10.0 / elapsed_seconds) if elapsed_seconds else None)
     assert next_report.host_energy_usage == pytest.approx(40.0)
-
-
-@pytest.mark.asyncio
-@pytest.mark.linux
-@pytest.mark.darwin
-async def test_a_zone_nothing_around_it_bounds_is_corrected_as_it_was_before():
-    path = f"{pathlib.Path(__file__).parent.resolve()}/data/intel-rapl"
-    two_seconds_ago = datetime.datetime.now() - datetime.timedelta(seconds=2)
-    rapl_separator_for_windows = "T"
-    a_reading_the_zone_restarted_from = 60000000000.0
-    rapl_results = {
-        "T1T0-core": RAPLResult(
-            name="T1T0-core",
-            energy_uj=a_reading_the_zone_restarted_from,
-            max_energy_uj=65532610987,
-            timestamp=two_seconds_ago,
-        )
-    }
-    rapl = RAPL(path=path, rapl_separator=rapl_separator_for_windows, rapl_results=rapl_results)
-
-    energy_report = await rapl.get_energy_report()
-
-    assert energy_report.cpu_energy_usage > 0.0
 
 
 @pytest.mark.asyncio
@@ -402,6 +397,57 @@ async def test_a_restart_of_a_whole_package_leaves_no_zone_of_it_reporting():
 
     energy_report = await rapl.get_energy_report()
 
-    assert energy_report.host_energy_usage == 0.0
+    assert energy_report.host_energy_usage is None
     assert energy_report.memory_energy_usage is None
     assert energy_report.cpu_energy_usage is None
+
+
+@pytest.mark.asyncio
+async def test_a_wrap_without_a_published_ceiling_survives_a_load_increase(mocker, tmpdir):
+    zone = tmpdir.mkdir("intel-raplT0")
+    zone.join("name").write("package-0\n")
+    zone.join("max_energy_range_uj").write("65532610987\n")
+    counter = zone.join("energy_uj")
+    mocker.patch("tracarbon.hardwares.rapl.time").monotonic.side_effect = [0.0, 0.0, 60.0, 120.0]
+    rapl = RAPL(file_list=[str(zone)])
+
+    for reading_uj in (60e9, 63e9, 63e9 + 200 * 60e6 - 65532610987):
+        counter.write(f"{int(reading_uj)}\n")
+        energy_report = await rapl.get_energy_report()
+
+    assert energy_report.host_energy_usage == pytest.approx(200.0)
+
+
+@pytest.mark.asyncio
+async def test_a_component_that_drew_nothing_is_reported_as_zero_rather_than_missing(mocker):
+    path = f"{pathlib.Path(__file__).parent.resolve()}/data/intel-rapl2"
+    clock = mocker.patch("tracarbon.hardwares.rapl.time")
+    clock.monotonic.side_effect = [0.0, 0.0, 60.0, 60.0]
+    rapl = RAPL(path=path, rapl_separator="T")
+
+    energy_report = await rapl.get_energy_report()
+
+    assert energy_report.host_energy_usage == 0.0
+    assert energy_report.cpu_energy_usage == 0.0
+    assert energy_report.memory_energy_usage is None
+
+
+@pytest.mark.asyncio
+async def test_the_first_report_measures_a_short_interval_rather_than_none(mocker, tmpdir):
+    zone = tmpdir.mkdir("intel-raplT0")
+    zone.join("name").write("package-0\n")
+    zone.join("max_energy_range_uj").write("65532610987\n")
+    counter = zone.join("energy_uj")
+    counter.write("1000000\n")
+    mocker.patch("tracarbon.hardwares.rapl.time").monotonic.side_effect = [0.0, 0.1]
+
+    async def ten_joules_drawn_meanwhile(seconds: float) -> None:
+        counter.write("11000000\n")
+
+    mocker.patch("asyncio.sleep", side_effect=ten_joules_drawn_meanwhile)
+
+    rapl = RAPL(file_list=[str(zone)])
+    energy_report = await rapl.get_energy_report()
+
+    assert energy_report.host_energy_usage == pytest.approx(100.0)
+    assert set(rapl.rapl_results) == {"T0-package-0"}

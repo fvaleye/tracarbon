@@ -1,11 +1,15 @@
 import asyncio
 import bisect
+import contextlib
 import csv
 import importlib.resources
 import math
+import os
+import signal
 import struct
 from abc import ABC
 from abc import abstractmethod
+from enum import Enum
 from typing import Any
 
 from loguru import logger
@@ -24,6 +28,8 @@ from tracarbon.hardwares.cloud_providers import Azure
 from tracarbon.hardwares.cloud_providers import CloudProviders
 from tracarbon.hardwares.energy import EnergyUsage
 from tracarbon.hardwares.gpu import AMDGPU
+from tracarbon.hardwares.gpu import KILLED_PROBE_WAIT_SECONDS
+from tracarbon.hardwares.gpu import PROBE_TIMEOUT_SECONDS
 from tracarbon.hardwares.gpu import AppleSiliconPowerMetrics
 from tracarbon.hardwares.gpu import GPUInfo
 from tracarbon.hardwares.gpu import NvidiaGPU
@@ -50,6 +56,17 @@ __all__ = [
     "GPUInfo",
     "AppleSiliconPowerMetrics",
 ]
+
+
+class _SensorBackend(Enum):
+    IOREPORT = "IOReport"
+    POWERMETRICS = "powermetrics"
+    IOREG = "ioreg"
+    IOREG_SYSTEM = "ioreg SystemPower"
+    IOREG_ADAPTER = "ioreg AdapterPower"
+    INTEL_RAPL = "intel_rapl"
+    AMD_RAPL = "amd_rapl"
+    GPU = "gpu"
 
 
 class Sensor(ABC, BaseModel):
@@ -132,7 +149,7 @@ class MacEnergyConsumption(EnergyConsumption):
     adapter_shell_command: str = (
         """ioreg -rw0 -a -c AppleSmartBattery | plutil -extract '0.BatteryData.AdapterPower' raw -"""
     )
-    _active_sensor: str = ""
+    _active_sensor: _SensorBackend | None = None
     _ioreport: IOReportEnergy | None = None
 
     @staticmethod
@@ -174,9 +191,9 @@ class MacEnergyConsumption(EnergyConsumption):
             # anything unexpected coming back out of it should reach.
             logger.debug(f"The energy counters could not be read: {exception}")
             return None
-        if self._active_sensor != "IOReport":
+        if self._active_sensor is not _SensorBackend.IOREPORT:
             logger.info("Using the IOReport energy counters for energy measurement (CPU + GPU + memory + ANE)")
-            self._active_sensor = "IOReport"
+            self._active_sensor = _SensorBackend.IOREPORT
         return energy_usage
 
     @staticmethod
@@ -186,13 +203,32 @@ class MacEnergyConsumption(EnergyConsumption):
 
         :param shell_command: the command reading one key of the battery data
         :return: the power in watts, or None if the hardware reports no such key
+        :raises asyncio.TimeoutError: if ioreg does not answer within PROBE_TIMEOUT_SECONDS
         """
-        proc = await asyncio.create_subprocess_shell(
-            shell_command,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
+        creation = asyncio.create_task(
+            asyncio.create_subprocess_shell(
+                shell_command,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                start_new_session=True,
+            )
         )
-        result, _ = await proc.communicate()
+        try:
+            proc = await asyncio.shield(creation)
+            result, _ = await asyncio.wait_for(proc.communicate(), timeout=PROBE_TIMEOUT_SECONDS)
+        except (asyncio.TimeoutError, asyncio.CancelledError):
+            proc = await creation
+            # ioreg and plutil are children of the shell, so stop the whole pipeline.
+            with contextlib.suppress(ProcessLookupError):
+                if os.name == "posix":
+                    os.killpg(proc.pid, signal.SIGKILL)
+                else:
+                    proc.kill()
+            try:
+                await asyncio.wait_for(proc.wait(), timeout=KILLED_PROBE_WAIT_SECONDS)
+            except asyncio.TimeoutError:
+                logger.debug("ioreg did not exit once killed.")
+            raise
         return MacEnergyConsumption._ioreg_power_in_watts(result)
 
     async def get_energy_usage(self) -> EnergyUsage:
@@ -211,9 +247,9 @@ class MacEnergyConsumption(EnergyConsumption):
         try:
             cpu_power, gpu_power, ane_power = AppleSiliconPowerMetrics.get_power_breakdown()
             if cpu_power is not None or gpu_power is not None:
-                if self._active_sensor != "powermetrics":
+                if self._active_sensor is not _SensorBackend.POWERMETRICS:
                     logger.info("Using powermetrics for energy measurement (CPU + GPU + ANE)")
-                    self._active_sensor = "powermetrics"
+                    self._active_sensor = _SensorBackend.POWERMETRICS
                 host_power = sum(p for p in (cpu_power, gpu_power, ane_power) if p is not None)
                 return EnergyUsage(
                     host_energy_usage=host_power,
@@ -223,19 +259,23 @@ class MacEnergyConsumption(EnergyConsumption):
         except Exception:
             logger.debug("powermetrics not available, falling back to ioreg")
 
-        host_power, sensor = 0.0, "ioreg"
-        for candidate, shell_command in (
-            ("ioreg SystemPower", self.shell_command),
-            ("ioreg AdapterPower", self.adapter_shell_command),
-        ):
-            reading = await self._read_power(shell_command)
-            if reading is not None:
-                host_power, sensor = reading, candidate
-                break
-        else:
-            logger.warning("ioreg reports no power on this hardware, the host is reported as drawing none.")
-        if self._active_sensor != sensor:
-            logger.info(f"Using {sensor} for energy measurement")
+        host_power: float | None = None
+        sensor = _SensorBackend.IOREG
+        try:
+            for candidate, shell_command in (
+                (_SensorBackend.IOREG_SYSTEM, self.shell_command),
+                (_SensorBackend.IOREG_ADAPTER, self.adapter_shell_command),
+            ):
+                reading = await self._read_power(shell_command)
+                if reading is not None:
+                    host_power, sensor = reading, candidate
+                    break
+            else:
+                logger.warning("ioreg returned no power reading, so the host power is unknown.")
+        except asyncio.TimeoutError:
+            logger.warning(f"ioreg did not answer within {PROBE_TIMEOUT_SECONDS} seconds. Host power is unknown.")
+        if self._active_sensor is not sensor:
+            logger.info(f"Using {sensor.value} for energy measurement")
             self._active_sensor = sensor
 
         gpu_power = GPUInfo.get_gpu_power_usage_or_none()
@@ -256,7 +296,7 @@ class LinuxEnergyConsumption(EnergyConsumption):
 
     rapl: RAPL = RAPL()
     amd_rapl: AMDRAPL = AMDRAPL()
-    _active_sensor: str = ""
+    _active_sensor: _SensorBackend | None = None
 
     async def get_energy_usage(self) -> EnergyUsage:
         """
@@ -268,26 +308,30 @@ class LinuxEnergyConsumption(EnergyConsumption):
 
         NVIDIA power is added to the RAPL host and GPU readings. AMD power remains
         a component fallback because its CLI aggregate can include an APU's CPU.
+        Without a readable RAPL counter the host is unknown and only the GPU is read.
 
         :return: the generated energy usage.
         """
         energy_usage: EnergyUsage
         if self.rapl.is_rapl_compatible():
-            if self._active_sensor != "intel_rapl":
+            if self._active_sensor is not _SensorBackend.INTEL_RAPL:
                 logger.info("Using Intel RAPL (powercap) for energy measurement")
-                self._active_sensor = "intel_rapl"
+                self._active_sensor = _SensorBackend.INTEL_RAPL
             energy_usage = await self.rapl.get_energy_report()
         elif await self.amd_rapl.is_amd_rapl_compatible():
-            if self._active_sensor != "amd_rapl":
+            if self._active_sensor is not _SensorBackend.AMD_RAPL:
                 logger.info("Using AMD RAPL (HWMON) for energy measurement")
-                self._active_sensor = "amd_rapl"
+                self._active_sensor = _SensorBackend.AMD_RAPL
             energy_usage = await self.amd_rapl.get_energy_report()
         else:
-            raise TracarbonException(
-                "No supported RAPL interface found. "
-                "Intel RAPL requires /sys/class/powercap/intel-rapl. "
-                "AMD RAPL requires kernel 5.8+ or amd_energy driver."
-            )
+            if self._active_sensor is not _SensorBackend.GPU:
+                logger.warning(
+                    "No readable RAPL interface found, so the host power is unknown and only the GPU is read. "
+                    f"Intel RAPL requires a readable {self.rapl.path}/*/energy_uj, which only root "
+                    "can read by default. AMD RAPL requires kernel 5.8+ or amd_energy driver."
+                )
+                self._active_sensor = _SensorBackend.GPU
+            energy_usage = EnergyUsage(host_energy_usage=None)
 
         for gpu_type in (NvidiaGPU, AMDGPU):
             try:
@@ -308,6 +352,12 @@ class LinuxEnergyConsumption(EnergyConsumption):
             else:
                 energy_usage.gpu_energy_usage = gpu_power
             break
+        if self._active_sensor is _SensorBackend.GPU and energy_usage.gpu_energy_usage is None:
+            raise TracarbonException(
+                "No supported RAPL interface found, nor any GPU. "
+                f"Intel RAPL requires {self.rapl.path}. "
+                "AMD RAPL requires kernel 5.8+ or amd_energy driver."
+            )
         return energy_usage
 
 

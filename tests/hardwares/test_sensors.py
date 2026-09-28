@@ -1,5 +1,10 @@
 import asyncio
+import contextlib
+import os
+import shlex
+import signal
 import subprocess
+import time
 from collections import namedtuple
 from operator import attrgetter
 
@@ -121,7 +126,7 @@ async def test_mac_energy_consumption_fallback_to_ioreg(mocker, reported_power, 
 
 
 @pytest.mark.asyncio
-async def test_mac_energy_consumption_ioreg_parse_failure_returns_zero(mocker):
+async def test_mac_energy_consumption_ioreg_parse_failure_reports_unknown_power(mocker):
     mocker.patch.object(
         AppleSiliconPowerMetrics,
         "get_power_breakdown",
@@ -137,7 +142,7 @@ async def test_mac_energy_consumption_ioreg_parse_failure_returns_zero(mocker):
     mac_sensor = MacEnergyConsumption()
     energy_usage = await mac_sensor.get_energy_usage()
 
-    assert energy_usage.host_energy_usage == 0.0
+    assert energy_usage.host_energy_usage is None
     assert energy_usage.gpu_energy_usage is None
 
 
@@ -348,10 +353,25 @@ async def test_get_platform_should_return_the_platform_energy_consumption_linux_
 ):
     mocker.patch.object(RAPL, "is_rapl_compatible", return_value=False)
     mocker.patch.object(AMDRAPL, "is_amd_rapl_compatible", return_value=False)
+    mocker.patch.object(NvidiaGPU, "launch_shell_command", side_effect=HardwareNoGPUDetectedException("no GPU"))
+    mocker.patch.object(AMDGPU, "launch_shell_command", side_effect=HardwareNoGPUDetectedException("no GPU"))
 
     with pytest.raises(TracarbonException) as exception:
         await LinuxEnergyConsumption().get_energy_usage()
     assert "No supported RAPL interface found" in exception.value.args[0]
+
+
+@pytest.mark.asyncio
+async def test_linux_reads_the_gpu_when_no_rapl_counter_is_readable(mocker):
+    mocker.patch.object(RAPL, "is_rapl_compatible", return_value=False)
+    mocker.patch.object(AMDRAPL, "is_amd_rapl_compatible", return_value=False)
+    mocker.patch.object(NvidiaGPU, "launch_shell_command", return_value=(b"250.00 W", 0))
+    linux_energy_consumption = LinuxEnergyConsumption()
+
+    first_energy_usage = await linux_energy_consumption.get_energy_usage()
+    second_energy_usage = await linux_energy_consumption.get_energy_usage()
+
+    assert first_energy_usage == second_energy_usage == EnergyUsage(host_energy_usage=None, gpu_energy_usage=250.0)
 
 
 @pytest.mark.asyncio
@@ -613,7 +633,7 @@ async def test_mac_energy_consumption_reads_the_adapter_when_no_system_power_is_
 
 
 @pytest.mark.asyncio
-async def test_mac_energy_consumption_reports_no_power_when_ioreg_reports_neither_key(mocker):
+async def test_mac_energy_consumption_reports_unknown_power_when_ioreg_reports_neither_key(mocker):
     mocker.patch.object(
         AppleSiliconPowerMetrics,
         "get_power_breakdown",
@@ -625,7 +645,79 @@ async def test_mac_energy_consumption_reports_no_power_when_ioreg_reports_neithe
     mac_sensor = MacEnergyConsumption()
     energy_usage = await mac_sensor.get_energy_usage()
 
-    assert energy_usage.host_energy_usage == 0.0
+    assert energy_usage.host_energy_usage is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.linux
+@pytest.mark.darwin
+@pytest.mark.parametrize(
+    ("cancel_reading", "during_creation"),
+    [(False, False), (True, False), (True, True)],
+    ids=["timeout", "cancellation", "creation-cancellation"],
+)
+async def test_stopping_ioreg_stops_pipeline_children(mocker, monkeypatch, tmp_path, cancel_reading, during_creation):
+    launched_commands = mocker.spy(asyncio, "create_subprocess_shell")
+    mocker.patch.object(
+        AppleSiliconPowerMetrics,
+        "get_power_breakdown",
+        side_effect=HardwareNoGPUDetectedException("powermetrics unavailable"),
+    )
+    mocker.patch.object(GPUInfo, "get_gpu_power_usage_or_none", return_value=None)
+    monkeypatch.setattr("tracarbon.hardwares.sensors.PROBE_TIMEOUT_SECONDS", 30 if cancel_reading else 0.5)
+    pid_files = [tmp_path / "ioreg.pid", tmp_path / "plutil.pid"]
+    commands = []
+    for pid_file in pid_files:
+        command = f"echo $$ > {shlex.quote(str(pid_file))}; exec sleep 30"
+        commands.append(f"sh -c {shlex.quote(command)}")
+    sensor = MacEnergyConsumption(shell_command=" | ".join(commands), adapter_shell_command="printf ''")
+    creation_can_finish = asyncio.Event()
+    if during_creation:
+        loop = asyncio.get_running_loop()
+        connect_read_pipe = loop.connect_read_pipe
+
+        async def connect_after_cancellation(*args, **kwargs):
+            await creation_can_finish.wait()
+            return await connect_read_pipe(*args, **kwargs)
+
+        mocker.patch.object(loop, "connect_read_pipe", side_effect=connect_after_cancellation)
+
+    started_at = time.monotonic()
+    reading = asyncio.create_task(sensor.get_energy_usage())
+    try:
+        if cancel_reading:
+            while not all(pid_file.exists() for pid_file in pid_files):
+                assert time.monotonic() - started_at < 3, "Pipeline did not start"
+                await asyncio.sleep(0.01)
+            reading.cancel()
+            creation_can_finish.set()
+            with pytest.raises(asyncio.CancelledError):
+                await reading
+        else:
+            energy_usage = await reading
+            assert energy_usage.host_energy_usage is None
+        assert time.monotonic() - started_at < 3
+        assert launched_commands.call_count == 1
+        for pid_file in pid_files:
+            probe_pid = int(pid_file.read_text())
+            for _ in range(100):
+                try:
+                    if psutil.Process(probe_pid).status() == psutil.STATUS_ZOMBIE:
+                        break
+                except psutil.NoSuchProcess:
+                    break
+                await asyncio.sleep(0.01)
+            else:
+                pytest.fail(f"Pipeline child {probe_pid} survived stopping the reading")
+    finally:
+        creation_can_finish.set()
+        reading.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await reading
+        for pid_file in pid_files:
+            if pid_file.exists():
+                with contextlib.suppress(ProcessLookupError):
+                    os.kill(int(pid_file.read_text()), signal.SIGKILL)
 
 
 @pytest.mark.asyncio

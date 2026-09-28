@@ -1,3 +1,4 @@
+import asyncio
 import os
 import re
 import time
@@ -22,6 +23,7 @@ __all__ = [
 
 _MICROWATTS_PER_WATT = 1000000
 _MICROJOULES_PER_JOULE = 1000000
+FIRST_INTERVAL_SECONDS = 0.1
 
 
 class RAPLResult(BaseModel):
@@ -34,6 +36,38 @@ class RAPLResult(BaseModel):
     max_energy_uj: float
     timestamp: datetime
     monotonic_time: float | None = None
+
+
+def watts_between(previous: RAPLResult, current: RAPLResult, max_power_watts: float) -> float | None:
+    """
+    Return average watts between two energy counter readings.
+
+    Correct a wrap using max_energy_uj. Treat a decrease as a reset when no wrap range is
+    available or the corrected power exceeds the published limit.
+
+    :param previous: the previous reading of the zone
+    :param current: the current reading of the zone
+    :param max_power_watts: published maximum watts, or zero for no limit
+    :return: average watts, or None for a reset or a nonpositive interval
+    """
+    if current.monotonic_time is not None and previous.monotonic_time is not None:
+        elapsed_seconds = current.monotonic_time - previous.monotonic_time
+    else:
+        elapsed_seconds = (current.timestamp - previous.timestamp).total_seconds()
+    if elapsed_seconds <= 0:
+        return None
+    consumed_uj = current.energy_uj - previous.energy_uj
+    if consumed_uj < 0:
+        logger.debug(
+            f"The RAPL counter {current.name} moved backwards from {previous.energy_uj} to {current.energy_uj}."
+        )
+        consumed_uj += current.max_energy_uj
+        if consumed_uj < 0 or (
+            max_power_watts > 0 and consumed_uj / _MICROJOULES_PER_JOULE > max_power_watts * elapsed_seconds
+        ):
+            logger.warning(f"The RAPL counter {current.name} restarted, so the zone is left out of this measurement.")
+            return None
+    return Power.watts_from_microjoules(consumed_uj / elapsed_seconds)
 
 
 class RAPL(BaseModel):
@@ -49,10 +83,12 @@ class RAPL(BaseModel):
 
     def is_rapl_compatible(self) -> bool:
         """
-        Check if the path of the hardware for reading RAPL energy measurements exists.
-        :return: if the RAPL files path exists
+        Check if a RAPL energy counter can be read, since the kernel lets only root read them
+        after CVE-2020-8694.
+
+        :return: if a RAPL energy counter can be read
         """
-        return os.path.exists(self.path)
+        return any(os.access(counter, os.R_OK) for counter in Path(self.path).glob("*/energy_uj"))
 
     def get_rapl_files_list(self) -> None:
         """
@@ -76,10 +112,7 @@ class RAPL(BaseModel):
 
     async def get_rapl_power_usage(self) -> List[RAPLResult]:
         """
-        Read the RAPL energy measurements files on paths provided.
-
-        If energy_uj is greater than max_energy_range_uj, the value is set to 0.
-        In this case, max_energy_range_uj contanst must be returned.
+        Read energy counters, ranges, and timestamps from RAPL sysfs.
 
         :return: a list of the RAPL results.
         """
@@ -90,7 +123,7 @@ class RAPL(BaseModel):
             for file_path in self.file_list:
                 name_prefix = Path(file_path).name.replace("intel-rapl", "")
                 async with aiofiles.open(f"{file_path}/name") as rapl_name:
-                    name = await rapl_name.read()
+                    name = (await rapl_name.read()).strip()
                     name = f"{name_prefix}-{name}"
                     async with aiofiles.open(f"{file_path}/energy_uj") as rapl_energy:
                         energy_uj = float(await rapl_energy.read())
@@ -158,82 +191,48 @@ class RAPL(BaseModel):
             return "cpu"
         return "unknown"
 
-    def _wrap_exceeds_max_power(self, name: str, joules: float, seconds: float) -> bool:
-        """
-        Check whether a wrap-adjusted reading exceeds the zone's published maximum power.
-
-        :param name: The energy domain name (e.g., "package-0", "dram")
-        :param joules: the energy the zone is taken to have consumed
-        :param seconds: how long the window lasted
-        :return: whether the wrap-adjusted reading exceeds the published maximum
-        """
-        max_power_watts = self.max_power_watts.get(name, 0.0)
-        return max_power_watts > 0 and joules > max_power_watts * seconds
-
     async def get_energy_report(self) -> EnergyUsage:
         """
-        Get the energy report based on RAPL.
+        Return average watts by domain.
 
-        :return: the energy usage report of the RAPL measurements
+        Without a previous sample, read twice over a short interval.
+
+        :return: a power report with None for unmeasured domains
         """
         rapl_results = await self.get_rapl_power_usage()
+        if not self.rapl_results:
+            self.rapl_results = {rapl_result.name: rapl_result for rapl_result in rapl_results}
+            await asyncio.sleep(FIRST_INTERVAL_SECONDS)
+            rapl_results = await self.get_rapl_power_usage()
         rapl_results.sort(key=lambda result: self._classify_domain(result.name) != "package")
         restarted_package_prefixes: set[str] = set()
-        host_energy_usage_watts = 0.0
-        cpu_energy_usage_watts = 0.0
-        memory_energy_usage_watts = 0.0
-        gpu_energy_usage_watts = 0.0
+        watts_by_domain: Dict[str, float] = {}
         for rapl_result in rapl_results:
-            previous_rapl_result = self.rapl_results.get(rapl_result.name, rapl_result)
+            previous_rapl_result = self.rapl_results.get(rapl_result.name)
             self.rapl_results[rapl_result.name] = rapl_result
             domain = self._classify_domain(rapl_result.name)
             zone_prefix = rapl_result.name.partition("-")[0]
-            if any(
+            if previous_rapl_result is None or any(
                 zone_prefix.startswith(f"{package_prefix}{self.rapl_separator}")
                 for package_prefix in restarted_package_prefixes
             ):
                 continue
-            if rapl_result.monotonic_time is not None and previous_rapl_result.monotonic_time is not None:
-                elapsed_seconds = rapl_result.monotonic_time - previous_rapl_result.monotonic_time
-            else:
-                elapsed_seconds = (rapl_result.timestamp - previous_rapl_result.timestamp).total_seconds()
-            if elapsed_seconds <= 0:
+            watts = watts_between(
+                previous=previous_rapl_result,
+                current=rapl_result,
+                max_power_watts=self.max_power_watts.get(rapl_result.name, 0.0),
+            )
+            if watts is None:
+                if domain == "package":
+                    restarted_package_prefixes.add(zone_prefix)
                 continue
-            energy_uj = rapl_result.energy_uj
-            if previous_rapl_result.energy_uj > rapl_result.energy_uj:
-                logger.debug(
-                    f"The RAPL counter {rapl_result.name} moved backwards. "
-                    f"The current RAPL energy value ({rapl_result.energy_uj}) "
-                    f"is lower than previous value ({previous_rapl_result.energy_uj})."
-                )
-                energy_uj = energy_uj + rapl_result.max_energy_uj
-                if self._wrap_exceeds_max_power(
-                    name=rapl_result.name,
-                    joules=(energy_uj - previous_rapl_result.energy_uj) / _MICROJOULES_PER_JOULE,
-                    seconds=elapsed_seconds,
-                ):
-                    logger.warning(
-                        f"The wrap-adjusted RAPL reading for {rapl_result.name} exceeds its published maximum "
-                        f"power over this interval. Tracarbon is treating the counter as reset and leaving the "
-                        f"zone out of this measurement."
-                    )
-                    if domain == "package":
-                        restarted_package_prefixes.add(zone_prefix)
-                    continue
-            watts = Power.watts_from_microjoules((energy_uj - previous_rapl_result.energy_uj) / elapsed_seconds)
-            if domain in ("package", "memory"):
-                host_energy_usage_watts += watts
-            if domain == "cpu":
-                cpu_energy_usage_watts += watts
-            if domain == "memory":
-                memory_energy_usage_watts += watts
-            if domain == "gpu":
-                gpu_energy_usage_watts += watts
+            watts_by_domain[domain] = watts_by_domain.get(domain, 0.0) + watts
+        host_watts = [watts_by_domain[domain] for domain in ("package", "memory") if domain in watts_by_domain]
         energy_usage_report = EnergyUsage(
-            host_energy_usage=host_energy_usage_watts,
-            cpu_energy_usage=(cpu_energy_usage_watts if cpu_energy_usage_watts > 0 else None),
-            memory_energy_usage=(memory_energy_usage_watts if memory_energy_usage_watts > 0 else None),
-            gpu_energy_usage=(gpu_energy_usage_watts if gpu_energy_usage_watts > 0 else None),
+            host_energy_usage=sum(host_watts) if host_watts else None,
+            cpu_energy_usage=watts_by_domain.get("cpu"),
+            memory_energy_usage=watts_by_domain.get("memory"),
+            gpu_energy_usage=watts_by_domain.get("gpu"),
         )
         logger.debug(f"The usage energy report measured with RAPL is {energy_usage_report}.")
         return energy_usage_report

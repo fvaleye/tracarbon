@@ -69,7 +69,7 @@ async def test_carbon_emission_should_report_nothing_on_the_first_measurement(mo
 
     co2g = await carbon_emission.get_co2_usage()
 
-    assert co2g.host_carbon_usage == 0.0
+    assert co2g.host_carbon_usage is None
     assert co2g.cpu_carbon_usage is None
 
 

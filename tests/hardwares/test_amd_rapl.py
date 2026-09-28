@@ -1,4 +1,5 @@
 import datetime
+import os
 import pathlib
 
 import pytest
@@ -23,6 +24,22 @@ async def test_is_amd_rapl_compatible_with_custom_path():
     path = f"{pathlib.Path(__file__).parent.resolve()}/data/amd-energy"
     amd_rapl = AMDRAPL(amd_energy_path=path)
     assert await amd_rapl.is_amd_rapl_compatible() is True
+
+
+@pytest.mark.asyncio
+@pytest.mark.linux
+@pytest.mark.darwin
+async def test_a_counter_only_root_can_read_is_not_amd_compatible(tmpdir):
+    hwmon = tmpdir.mkdir("hwmon0")
+    hwmon.join("name").write("amd_energy\n")
+    hwmon.join("energy1_label").write("Esocket0\n")
+    counter = hwmon.join("energy1_input")
+    counter.write("1")
+    counter.chmod(0o000)
+    if os.access(str(counter), os.R_OK):
+        pytest.skip("root reads every counter")
+
+    assert await AMDRAPL(hwmon_base_path=str(tmpdir)).is_amd_rapl_compatible() is False
 
 
 @pytest.mark.asyncio
@@ -60,10 +77,8 @@ async def test_get_energy_report_first_call():
 
     energy_report = await amd_rapl.get_energy_report()
 
-    # First call: time delta is 1 second by default
-    # Energy values should be computed from the difference with themselves (0)
     assert energy_report.host_energy_usage == 0.0
-    assert energy_report.cpu_energy_usage is None or energy_report.cpu_energy_usage == 0.0
+    assert energy_report.cpu_energy_usage == 0.0
 
 
 @pytest.mark.asyncio
@@ -111,45 +126,6 @@ async def test_get_energy_report_with_previous_results():
     assert energy_report.memory_energy_usage is None
 
 
-@pytest.mark.asyncio
-@pytest.mark.linux
-@pytest.mark.darwin
-async def test_wrap_around_detection():
-    path = f"{pathlib.Path(__file__).parent.resolve()}/data/amd-energy"
-    two_seconds_ago = datetime.datetime.now() - datetime.timedelta(seconds=2)
-
-    # Simulate wrap-around: previous value was near max, current is small
-    rapl_results = {
-        "amd-1-Esocket0": AMDRAPLResult(
-            name="amd-1-Esocket0",
-            label="Esocket0",
-            energy_uj=4294967290.0,  # Near 32-bit max
-            timestamp=two_seconds_ago,
-        ),
-        "amd-2-Ecore0": AMDRAPLResult(
-            name="amd-2-Ecore0",
-            label="Ecore0",
-            energy_uj=4294967290.0,
-            timestamp=two_seconds_ago,
-        ),
-        "amd-3-Ecore1": AMDRAPLResult(
-            name="amd-3-Ecore1",
-            label="Ecore1",
-            energy_uj=4294967290.0,
-            timestamp=two_seconds_ago,
-        ),
-    }
-
-    amd_rapl = AMDRAPL(amd_energy_path=path, rapl_results=rapl_results)
-
-    # This should not raise an error due to wrap-around handling
-    energy_report = await amd_rapl.get_energy_report()
-
-    # Energy values should be positive (wrap-around handled correctly)
-    assert energy_report.host_energy_usage >= 0
-    assert energy_report.cpu_energy_usage is None or energy_report.cpu_energy_usage >= 0
-
-
 def test_classify_domain():
     amd_rapl = AMDRAPL()
 
@@ -164,3 +140,62 @@ def test_classify_domain():
 
     assert amd_rapl._classify_domain("unknown_label") == "unknown"
     assert amd_rapl._classify_domain("something_else") == "unknown"
+
+
+@pytest.mark.asyncio
+async def test_a_counter_reading_lower_than_before_restarted_and_is_left_out():
+    path = f"{pathlib.Path(__file__).parent.resolve()}/data/amd-energy"
+    two_seconds_ago = datetime.datetime.now() - datetime.timedelta(seconds=2)
+    a_reading_the_driver_restarted_from = 30000000000.0
+    rapl_results = {
+        name: AMDRAPLResult(
+            name=name, label=label, energy_uj=a_reading_the_driver_restarted_from, timestamp=two_seconds_ago
+        )
+        for name, label in (("amd-1-Esocket0", "Esocket0"), ("amd-2-Ecore0", "Ecore0"), ("amd-3-Ecore1", "Ecore1"))
+    }
+    amd_rapl = AMDRAPL(amd_energy_path=path, rapl_results=rapl_results)
+
+    energy_report = await amd_rapl.get_energy_report()
+
+    assert energy_report.host_energy_usage is None
+    assert energy_report.cpu_energy_usage is None
+
+
+@pytest.mark.asyncio
+async def test_amd_sample_intervals_ignore_wall_clock_changes(mocker, tmpdir):
+    hwmon = tmpdir.mkdir("hwmon0")
+    hwmon.join("energy1_label").write("Esocket0\n")
+    counter = hwmon.join("energy1_input")
+    counter.write("10000000000\n")
+    now = datetime.datetime.now()
+    mocker.patch("tracarbon.hardwares.amd_rapl.datetime").now.side_effect = [
+        now,
+        now,
+        now - datetime.timedelta(seconds=61),
+    ]
+    mocker.patch("tracarbon.hardwares.amd_rapl.time").monotonic.side_effect = [0.0, 0.0, 60.0]
+    amd_rapl = AMDRAPL(amd_energy_path=str(hwmon))
+
+    await amd_rapl.get_energy_report()
+    counter.write("16000000000\n")
+    energy_report = await amd_rapl.get_energy_report()
+
+    assert energy_report.host_energy_usage == pytest.approx(100.0)
+
+
+@pytest.mark.asyncio
+async def test_the_first_amd_report_measures_a_short_interval_rather_than_none(mocker, tmpdir):
+    hwmon = tmpdir.mkdir("hwmon0")
+    hwmon.join("energy1_label").write("Esocket0\n")
+    counter = hwmon.join("energy1_input")
+    counter.write("1000000\n")
+    mocker.patch("tracarbon.hardwares.amd_rapl.time").monotonic.side_effect = [0.0, 0.1]
+
+    async def ten_joules_drawn_meanwhile(seconds: float) -> None:
+        counter.write("11000000\n")
+
+    mocker.patch("asyncio.sleep", side_effect=ten_joules_drawn_meanwhile)
+
+    energy_report = await AMDRAPL(amd_energy_path=str(hwmon)).get_energy_report()
+
+    assert energy_report.host_energy_usage == pytest.approx(100.0)

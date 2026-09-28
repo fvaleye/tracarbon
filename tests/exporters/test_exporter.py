@@ -6,6 +6,7 @@ from threading import Event
 from threading import Thread
 from threading import Timer
 from threading import current_thread
+from types import SimpleNamespace
 
 import psutil
 import pytest
@@ -522,10 +523,10 @@ def test_stdout_keeps_reporting_the_metrics_that_work_while_another_metric_fails
 
 
 def test_exporter_forgets_series_that_stopped_reporting_while_another_generator_keeps_failing(tmp_path, monkeypatch):
-    monkeypatch.setattr(exporter_module, "_SERIES_ARE_FORGOTTEN_AFTER_SECONDS", 0.0)
     pod_names = iter(range(1000))
     carbon_calls = []
     cycles_after_the_outage = Event()
+    monkeypatch.setattr(exporter_module, "time", SimpleNamespace(monotonic=lambda: len(carbon_calls) * 7200.0))
 
     async def pod_energy() -> float:
         return 1.0
@@ -554,4 +555,4 @@ def test_exporter_forgets_series_that_stopped_reporting_while_another_generator_
     finally:
         exporter.stop()
 
-    assert len(exporter.metric_report["pod_energy"]._measured_at_by_series) <= 2
+    assert len(exporter.metric_report["pod_energy"]._measured_at_by_series) == 1
