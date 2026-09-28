@@ -10,6 +10,7 @@ import pytest
 from kubernetes import config
 
 from tracarbon import CarbonEmission
+from tracarbon import CarbonUsage
 from tracarbon import EnergyUsage
 from tracarbon import MacEnergyConsumption
 from tracarbon.builder import Tracarbon
@@ -26,6 +27,16 @@ from tracarbon.general_metrics import CarbonEmissionGenerator
 from tracarbon.general_metrics import CarbonEmissionKubernetesGenerator
 from tracarbon.hardwares.containers import Kubernetes
 from tracarbon.locations import Country
+
+
+async def test_default_exporter_uses_the_configured_metric_prefix(monkeypatch, mocker, caplog):
+    monkeypatch.setenv("TRACARBON_METRIC_PREFIX_NAME", "configured_prefix")
+    mocker.patch.object(CarbonEmission, "get_co2_usage", return_value=CarbonUsage(host_carbon_usage=1.0))
+    tracker = TracarbonBuilder(location=Country.from_file("fr")).build()
+
+    await tracker.exporter._launch_all()
+
+    assert "Metric name[configured_prefix.carbon_emission_host]" in caplog.text
 
 
 def test_restart_opens_a_new_report_without_attributing_stopped_time(mocker):

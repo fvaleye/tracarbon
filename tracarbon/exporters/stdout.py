@@ -6,7 +6,7 @@ from tracarbon.exporters.exporter import MetricGenerator
 
 class StdoutExporter(Exporter):
     """
-    Print the metrics to Stdout.
+    Log metrics through the application's Loguru handlers.
     """
 
     async def launch(self, metric_generator: MetricGenerator) -> None:

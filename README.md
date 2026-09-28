@@ -57,6 +57,13 @@ print(report.total_co2g)
 
 For the latest electricity carbon intensity, get an [Electricity Maps API key](https://app.electricitymaps.com/developer-hub/api/reference) and set `TRACARBON_CO2SIGNAL_API_KEY` in your environment or `.env` file, or pass `co2signal_api_key` to `TracarbonConfiguration`.
 Without a key, Tracarbon uses bundled data for [supported countries](tracarbon/locations/data/co2-emission-intensity.json) and cloud regions.
+To use the bundled country data without IP geolocation, choose the country explicitly:
+
+```sh
+TRACARBON_CO2SIGNAL_API_KEY= tracarbon run --country-code-alpha-iso-2 fr
+```
+
+See [file and API configuration](docs/source/usage.rst#carbon-intensity) for Python examples, refresh intervals, and API failure behavior.
 
 ### Prometheus with Kubernetes containers
 
@@ -99,10 +106,12 @@ When running in Kubernetes, deploy Tracarbon per node and set `NODE_NAME` from `
 
 | Exporter | Description |
 | --- | --- |
-| Stdout | Print the metrics in Stdout. |
+| Stdout | Log metrics through the application's logging handler (stderr in the CLI). |
 | JSON | Write a JSON array by default, or [JSON Lines](https://jsonlines.org/) with a `.jsonl` path. |
-| Prometheus | Send the metrics to Prometheus. |
+| Prometheus | Expose an HTTP endpoint for Prometheus to scrape. |
 | Datadog | Send the metrics to Datadog. |
+
+See [exporter examples](docs/source/usage.rst#export-metrics) for JSON files, JSON Lines, and Prometheus scraping.
 
 ## 🗺️ Locations
 

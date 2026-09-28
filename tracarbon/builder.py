@@ -131,7 +131,10 @@ class TracarbonBuilder(BaseModel):
                 emission_factor_type=self.configuration.emission_factor_type,
             )
         if not self.exporter:
-            self.exporter = StdoutExporter(metric_generators=[CarbonEmissionGenerator(location=self.location)])
+            self.exporter = StdoutExporter(
+                metric_generators=[CarbonEmissionGenerator(location=self.location)],
+                metric_prefix_name=self.configuration.metric_prefix_name,
+            )
 
         return Tracarbon(
             configuration=self.configuration,
