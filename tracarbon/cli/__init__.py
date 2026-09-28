@@ -1,3 +1,4 @@
+import signal
 import time
 from typing import List
 
@@ -108,6 +109,7 @@ def run_metrics(
         metric_generators.extend(add_containers_generator(location=location))
 
     tracarbon = None
+    collection_failed = False
     try:
         exporter = get_exporter(
             exporter_name=exporter_name,
@@ -117,12 +119,16 @@ def run_metrics(
         tracarbon = tracarbon_builder.with_location(location=location).with_exporter(exporter=exporter).build()
         logger.info("Tracarbon CLI started.")
         with tracarbon:
-            while running:
-                time.sleep(tracarbon_builder.configuration.interval_in_seconds)
+            try:
+                while running:
+                    time.sleep(tracarbon_builder.configuration.interval_in_seconds)
+            except KeyboardInterrupt:
+                pass
     except KeyboardInterrupt:
         pass
     except Exception as e:
         logger.exception(f"Error in Tracarbon execution: {e}")
+        collection_failed = True
 
     if tracarbon:
         if containers and not any("_kubernetes_" in metric_name for metric_name in tracarbon.report.metric_report):
@@ -138,6 +144,8 @@ def run_metrics(
         logger.info(f"Tracarbon report: {tracarbon.report}")
     else:
         logger.info("Tracarbon CLI exited with errors during initialization.")
+    if tracarbon is None or collection_failed:
+        raise typer.Exit(code=1)
 
 
 @app.command()
@@ -149,6 +157,7 @@ def run(
     """
     Run Tracarbon.
     """
+    signal.signal(signal.SIGTERM, signal.default_int_handler)
     run_metrics(
         exporter_name=exporter_name,
         country_code_alpha_iso_2=country_code_alpha_iso_2,
