@@ -10,6 +10,8 @@ from loguru import logger
 from pydantic import BaseModel
 from pydantic import Field
 
+REQUEST_TIMEOUT_IN_SECONDS = 10
+
 
 class _HiddenInRepr(str):
     """
@@ -71,7 +73,7 @@ class Location(ABC, BaseModel):
         """
 
         headers = {name: _HiddenInRepr(value) for name, value in (headers or {}).items()}
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_IN_SECONDS)) as session:
             async with session.get(url, headers=headers) as response:
                 try:
                     logger.info(f"Sending request to the url: {url}.")

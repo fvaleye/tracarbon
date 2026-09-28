@@ -19,6 +19,7 @@ from tracarbon.hardwares import AWS
 from tracarbon.hardwares import GCP
 from tracarbon.hardwares import Azure
 from tracarbon.hardwares import CloudProviders
+from tracarbon.locations.location import REQUEST_TIMEOUT_IN_SECONDS
 from tracarbon.locations.location import CarbonIntensityMetadata
 from tracarbon.locations.location import CarbonIntensitySource
 from tracarbon.locations.location import EmissionFactorType
@@ -84,7 +85,7 @@ class Country(Location):
     def get_current_country(
         cls,
         url: str = "https://ipinfo.io/json",
-        timeout: int = 10,
+        timeout: int = REQUEST_TIMEOUT_IN_SECONDS,
         token: str | None = None,
     ) -> str:
         """
@@ -100,12 +101,14 @@ class Country(Location):
         headers = {"Authorization": f"Bearer {token}"} if token else None
         try:
             logger.debug(f"Send request to this url: {url}, timeout {timeout}s")
-            text = requests.get(url, timeout=timeout, headers=headers).text
-            content_json = orjson.loads(text)
-            return content_json["country"]
-        except Exception as exception:
-            logger.error(f"Failed to request this url: {url}")
-            raise exception
+            response = requests.get(url, timeout=timeout, headers=headers)
+            response.raise_for_status()
+            return orjson.loads(response.text)["country"]
+        except (requests.RequestException, ValueError, KeyError) as exception:
+            raise CountryIsMissing(
+                f"Failed to detect the country from {url}: {exception!r}. "
+                "Set it with --country-code-alpha-iso-2 on the CLI, or with TracarbonBuilder.with_location in Python."
+            ) from exception
 
     @classmethod
     def get_location(
@@ -196,10 +199,8 @@ class Country(Location):
             url = f"{self.co2signal_url}{self.name}"
 
         cache_key = (url, self.co2signal_api_key)
-        cache_enabled = os.getenv("AIOCACHE_DISABLE") != "1"
         if (
-            cache_enabled
-            and self._carbon_intensity_cache_key == cache_key
+            self._carbon_intensity_cache_key == cache_key
             and self.co2g_kwh is not None
             and time.monotonic() < self._carbon_intensity_expires_at
         ):
@@ -218,6 +219,8 @@ class Country(Location):
                 response = response["data"]
             self.co2g_kwh = float(response["carbonIntensity"])
             self._update_carbon_intensity_metadata(response=raw_response)
+            self._carbon_intensity_cache_key = cache_key
+            self._carbon_intensity_expires_at = time.monotonic() + 3600
             logger.info(f"The latest carbon intensity of your country {self.name} is: {self.co2g_kwh} CO2g/kwh.")
         except Exception:
             if self.co2g_kwh is None:
@@ -228,8 +231,6 @@ class Country(Location):
                 f"Please check your API configuration."
                 f"Fallback to use the last known CO2g/kWh of your location {self.co2g_kwh}"
             )
-        self._carbon_intensity_cache_key = cache_key if cache_enabled else None
-        self._carbon_intensity_expires_at = time.monotonic() + 3600
         return self.co2g_kwh
 
     def __hash__(self) -> int:
