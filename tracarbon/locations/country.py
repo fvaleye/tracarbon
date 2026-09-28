@@ -318,10 +318,9 @@ class CloudLocation(Country):
             if co2e_col_idx is None:
                 raise ValueError(f"Could not find CO2e column in {provider_name} CSV header: {header}")
 
-            # Azure metadata uses "westeurope"; the dataset uses "West Europe".
-            region_key = region_name.replace(" ", "").casefold()
+            normalized_region_name = region_name.replace(" ", "").casefold()
             for row in reader:
-                if row[0].replace(" ", "").casefold() == region_key:
+                if row[0].replace(" ", "").casefold() == normalized_region_name:
                     # Apply conversion factor (1.0 for GCP, 1000000 for AWS/Azure)
                     co2g_kwh = float(row[co2e_col_idx]) * conversion_factor
                     super().__init__(name=f"{provider_name}({region_name})", co2g_kwh=co2g_kwh, **data)
