@@ -55,12 +55,12 @@ if __name__ == "__main__":
             "content_length": "1204",
         },
         {
-            "url": "https://raw.githubusercontent.com/GoogleCloudPlatform/region-carbon-info/main/data/yearly/2024.csv",
-            "content_length": "1621",
+            "url": "https://raw.githubusercontent.com/GoogleCloudPlatform/region-carbon-info/main/data/yearly/2025.csv",
+            "content_length": "1713",
         },
     ]
     for url in urls:
         check_content_length(url=url["url"], expected_content_length=url["content_length"])
 
-    gcp_base_url = "https://raw.githubusercontent.com/GoogleCloudPlatform/region-carbon-info/main/data/yearly/2024.csv"
-    check_new_year_available_for_gcp(gcp_base_url, current_year=2024)
+    gcp_base_url = "https://raw.githubusercontent.com/GoogleCloudPlatform/region-carbon-info/main/data/yearly/2025.csv"
+    check_new_year_available_for_gcp(gcp_base_url, current_year=2025)

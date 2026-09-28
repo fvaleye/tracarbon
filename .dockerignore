@@ -9,8 +9,6 @@ __pycache__
 .dockerignore
 Dockerfile
 *.log
-# Uv
-uv.lock
 # Tests
 .pytest_cache
 .coverage
