@@ -5,6 +5,7 @@ from abc import ABCMeta
 from abc import abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+from functools import partial
 from threading import Event
 from threading import RLock
 from threading import Thread
@@ -185,6 +186,23 @@ class MetricGenerator(BaseModel):
             yield metric
 
 
+def _called_off_the_running_event_loop(function: Callable[[], None]) -> bool:
+    """
+    Call the function on a worker thread when this thread runs an event loop, since asyncio.run cannot be
+    called from a running event loop.
+
+    :param function: the function to call
+    :return: whether the function was called, which only happens when this thread runs an event loop
+    """
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return False
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        executor.submit(function).result()
+    return True
+
+
 class Exporter(BaseModel, metaclass=ABCMeta):
     """The Exporter interface."""
 
@@ -222,21 +240,31 @@ class Exporter(BaseModel, metaclass=ABCMeta):
         :param: interval_in_seconds: the interval for the timer
         """
         self._check_start_thread()
+        try:
+            if _called_off_the_running_event_loop(partial(self.start, interval_in_seconds)):
+                return
+        except BaseException:
+            self.stop()
+            raise
         with self._start_lock:
             self.stop()
             stop_event = Event()
 
-            def _run() -> None:
+            def _run(scheduled: bool = False) -> None:
                 with self._run_lock:
                     if stop_event.is_set():
                         return
                     self._collection_thread = current_thread()
                     try:
                         asyncio.run(self._launch_all())
+                    except Exception:
+                        if not scheduled:
+                            raise
+                        logger.exception(f"The {self.get_name()} exporter failed to collect the metrics.")
                     finally:
                         self._collection_thread = None
                     if not stop_event.is_set():
-                        timer = Timer(interval_in_seconds, _run, [])
+                        timer = Timer(interval_in_seconds, _run, [True])
                         timer.daemon = True
                         self._timer = timer
                         timer.start()
@@ -273,13 +301,7 @@ class Exporter(BaseModel, metaclass=ABCMeta):
         if self._collection_thread is current_thread():
             self.stop()
             return
-        try:
-            asyncio.get_running_loop()
-        except RuntimeError:
-            pass
-        else:
-            with ThreadPoolExecutor(max_workers=1) as executor:
-                executor.submit(self.finish).result()
+        if _called_off_the_running_event_loop(self.finish):
             return
         with self._start_lock:
             self._final_collection_pending = self.event is not None and not self.event.is_set() and not self.stopped
@@ -297,14 +319,27 @@ class Exporter(BaseModel, metaclass=ABCMeta):
 
     async def _launch_all(self) -> None:
         """
-        Launch the exporter with all the metric generators.
+        Launch the exporter with all the metric generators, then raise the first failure, so a failing generator
+        does not keep the others from reporting.
         """
         cycle_started_at = time.monotonic()
+        first_failure: Exception | None = None
         for metric_generator in self.metric_generators:
             logger.debug(f"Running MetricGenerator[{metric_generator}].")
-            await self.launch(metric_generator=metric_generator)
+            try:
+                await self.launch(metric_generator=metric_generator)
+            except Exception as failure:
+                if first_failure is None:
+                    first_failure = failure
+                else:
+                    logger.exception(
+                        f"The {self.get_name()} exporter failed to collect the {type(metric_generator).__name__} "
+                        "metrics."
+                    )
         for metric_report in self.metric_report.values():
             metric_report._forget_the_series_that_stopped_reporting(measured_at=cycle_started_at)
+        if first_failure is not None:
+            raise first_failure
 
     async def add_metric_to_report(self, metric: "Metric", value: float) -> "MetricReport":
         """
