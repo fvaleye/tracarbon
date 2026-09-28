@@ -164,7 +164,6 @@ async def test_aws_sensor_with_gpu_should_return_energy_consumption(mocker):
     assert aws_ec2_sensor.delta_full_machine == 25.8
 
     mocker.patch.object(HardwareInfo, "get_cpu_usage", return_value=(50, None))
-    mocker.patch.object(HardwareInfo, "get_memory_usage", return_value=50)
     gpu_power_usage = 1805.4
     mocker.patch.object(HardwareInfo, "get_gpu_power_usage", return_value=gpu_power_usage)
     value_expected = (
@@ -192,12 +191,30 @@ async def test_aws_sensor_without_gpu_should_return_energy_consumption(mocker):
     assert aws_ec2_sensor.delta_full_machine == 32.0
 
     mocker.patch.object(HardwareInfo, "get_cpu_usage", return_value=(50, None))
-    mocker.patch.object(HardwareInfo, "get_memory_usage", return_value=50)
     value_expected = aws_ec2_sensor.cpu_at_50 + aws_ec2_sensor.memory_at_50 + aws_ec2_sensor.delta_full_machine
 
     energy_usage = await aws_ec2_sensor.get_energy_usage()
 
     assert energy_usage.host_energy_usage == value_expected
+
+
+@pytest.mark.parametrize(
+    ("cpu_usage", "cpu_watts", "memory_watts"),
+    [(0.0, 1.21, 1.2), (49.0, 7.05725, 4.884), (100.0, 9.96, 8.0)],
+)
+@pytest.mark.asyncio
+async def test_aws_sensor_interpolates_the_cpu_and_memory_power_at_the_cpu_load(
+    mocker, cpu_usage, cpu_watts, memory_watts
+):
+    aws_ec2_sensor = AWSEC2EnergyConsumption(instance_type="m5.large")
+    mocker.patch.object(HardwareInfo, "get_cpu_usage", return_value=(cpu_usage, None))
+    mocker.patch.object(HardwareInfo, "get_memory_usage", return_value=20.0)
+
+    energy_usage = await aws_ec2_sensor.get_energy_usage()
+
+    assert energy_usage.cpu_energy_usage == pytest.approx(cpu_watts)
+    assert energy_usage.memory_energy_usage == pytest.approx(memory_watts)
+    assert energy_usage.host_energy_usage == pytest.approx(cpu_watts + memory_watts + 2.0)
 
 
 def test_aws_sensor_should_return_error_when_instance_type_is_missing():

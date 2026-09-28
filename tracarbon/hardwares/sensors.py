@@ -1,4 +1,5 @@
 import asyncio
+import bisect
 import csv
 import importlib.resources
 import math
@@ -368,6 +369,20 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
             logger.exception("Error in the AWSSensor")
             raise AWSSensorException(exception) from exception
 
+    @staticmethod
+    def _watts_at(cpu_usage: float, watts: tuple[float, float, float, float]) -> float:
+        """
+        Interpolate linearly between the power measured at idle, 10%, 50% and 100% of CPU load.
+
+        :param cpu_usage: the CPU load in %
+        :param watts: the power measured at idle, 10%, 50% and 100% of CPU load
+        :return: the power in W at this CPU load
+        """
+        cpu_loads = (0.0, 10.0, 50.0, 100.0)
+        upper = min(bisect.bisect_left(cpu_loads, cpu_usage, lo=1), len(cpu_loads) - 1)
+        share = (cpu_usage - cpu_loads[upper - 1]) / (cpu_loads[upper] - cpu_loads[upper - 1])
+        return watts[upper - 1] * (1 - share) + watts[upper] * share
+
     async def get_energy_usage(self) -> EnergyUsage:
         """
         Run the sensor and generate energy usage.
@@ -375,31 +390,19 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
         :return: the generated energy usage.
         """
         cpu_usage, self._cpu_times = HardwareInfo.get_cpu_usage(since=self._cpu_times)
-        if cpu_usage >= 90:
-            cpu_watts = self.cpu_at_100
-        elif cpu_usage >= 50:
-            cpu_watts = self.cpu_at_50
-        elif cpu_usage >= 10:
-            cpu_watts = self.cpu_at_10
-        else:
-            cpu_watts = self.cpu_idle
+        cpu_watts = self._watts_at(cpu_usage, (self.cpu_idle, self.cpu_at_10, self.cpu_at_50, self.cpu_at_100))
         logger.debug(f"CPU: {cpu_watts}W")
 
-        memory_usage = HardwareInfo.get_memory_usage()
-        if memory_usage >= 90:
-            memory_watts = self.memory_at_100
-        elif memory_usage >= 50:
-            memory_watts = self.memory_at_50
-        elif memory_usage >= 10:
-            memory_watts = self.memory_at_10
-        else:
-            memory_watts = self.memory_idle
+        # The dataset measured the memory power at the same CPU load levels, not at a memory usage.
+        memory_watts = self._watts_at(
+            cpu_usage, (self.memory_idle, self.memory_at_10, self.memory_at_50, self.memory_at_100)
+        )
         logger.debug(f"Memory: {memory_watts}W")
 
         gpu_watts = 0.0
         if self.has_gpu:
             gpu_watts = HardwareInfo.get_gpu_power_usage()
-            logger.debug(f"CPU: {gpu_watts}W")
+            logger.debug(f"GPU: {gpu_watts}W")
 
         total_watts = cpu_watts + memory_watts + gpu_watts + self.delta_full_machine
         logger.debug(f"Total including the delta of the full machine: {total_watts}W")
