@@ -2,6 +2,7 @@ import csv
 import importlib.resources
 import os
 import time
+import warnings
 from typing import Any
 from typing import cast
 from urllib.parse import urlencode
@@ -94,6 +95,9 @@ class Country(Location):
     @classmethod
     def from_eu_file(cls, country_code_alpha_iso_2: str) -> "Country":
         """Deprecated. Use Country.from_file instead."""
+        warnings.warn(
+            "Country.from_eu_file is deprecated, use Country.from_file instead.", DeprecationWarning, stacklevel=2
+        )
         return cls.from_file(country_code_alpha_iso_2=country_code_alpha_iso_2)
 
     @classmethod

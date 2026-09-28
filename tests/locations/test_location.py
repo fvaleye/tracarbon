@@ -154,6 +154,13 @@ def test_world_emission_should_get_country():
     assert country.co2g_kwh == co2g_kwh_expected
 
 
+def test_from_eu_file_warns_that_it_is_deprecated_and_still_returns_the_bundled_country():
+    with pytest.warns(DeprecationWarning, match="Country.from_file"):
+        country = Country.from_eu_file(country_code_alpha_iso_2="fr")
+
+    assert country == Country.from_file(country_code_alpha_iso_2="fr")
+
+
 def test_world_emission_should_raise_error_when_country_is_missing():
     country_code_alpha_iso_2 = "zf"
 
