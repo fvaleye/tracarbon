@@ -217,6 +217,20 @@ async def test_aws_sensor_interpolates_the_cpu_and_memory_power_at_the_cpu_load(
     assert energy_usage.host_energy_usage == pytest.approx(cpu_watts + memory_watts + 2.0)
 
 
+@pytest.mark.parametrize(
+    ("sensor_type", "instance_type"),
+    [(AWSEC2EnergyConsumption, "m7i.xlarge"), (GCPEnergyConsumption, "c4a-standard-8")],
+    ids=["aws", "gcp"],
+)
+def test_cloud_sensors_warn_once_about_an_unknown_instance_whatever_the_number_of_sensors(
+    caplog, sensor_type, instance_type
+):
+    sensor_type(instance_type=instance_type)
+    sensor_type(instance_type=instance_type)
+
+    assert caplog.text.count(f"[{instance_type}] is missing") == 1
+
+
 def test_aws_sensor_estimates_an_unknown_instance_per_vcpu_and_per_gb_of_memory(mocker, caplog):
     mocker.patch.object(HardwareInfo, "get_number_of_cores", return_value=2)
     mocker.patch.object(HardwareInfo, "get_memory_total", return_value=8 * 1024**3)

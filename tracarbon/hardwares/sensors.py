@@ -327,6 +327,21 @@ class WindowsEnergyConsumption(EnergyConsumption):
         return EnergyUsage(host_energy_usage=None, gpu_energy_usage=NvidiaGPU.get_gpu_power_usage())
 
 
+_INSTANCE_TYPES_WARNED_ABOUT: set[str] = set()
+
+
+def _warn_once_per_instance_type(instance_type: str, message: str) -> None:
+    """
+    Log a warning the first time an instance type needs it, since every metric generator builds its own sensor.
+
+    :param instance_type: the instance type the warning is about
+    :param message: the warning
+    """
+    if instance_type not in _INSTANCE_TYPES_WARNED_ABOUT:
+        _INSTANCE_TYPES_WARNED_ABOUT.add(instance_type)
+        logger.warning(message)
+
+
 class AWSEC2EnergyConsumption(EnergyConsumption):
     """
     The AWS EC2 Energy Consumption.
@@ -372,9 +387,10 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
                         return
                     if not has_gpu:
                         instances_without_gpu.append(row)
-            logger.warning(
+            _warn_once_per_instance_type(
+                instance_type,
                 f"The AWS instance type [{instance_type}] is missing from the aws instances file, falling back to "
-                "the median power per vCPU and per GB of memory of the instances without GPU it lists."
+                "the median power per vCPU and per GB of memory of the instances without GPU it lists.",
             )
             vcpus = HardwareInfo.get_number_of_cores()
             memory_gb = HardwareInfo.get_memory_total() / 1024**3
@@ -482,10 +498,11 @@ class CloudEnergyConsumption(EnergyConsumption):
                         super().__init__(**data)
                         return
                     watts_per_vcpu.append((float(row[3]) / float(row[1]), float(row[4]) / float(row[1])))
-            logger.warning(
+            _warn_once_per_instance_type(
+                instance_type,
                 f"The {provider_name} instance type [{instance_type}] is missing from the "
                 f"{provider_name.lower()} instances file, falling back to the median power per vCPU of the "
-                "instances it lists."
+                "instances it lists.",
             )
             data["vcpus"] = HardwareInfo.get_number_of_cores()
             data["memory_gb"] = HardwareInfo.get_memory_total() / 1024**3
