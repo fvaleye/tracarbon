@@ -1,12 +1,3 @@
-"""
-Generate tracarbon/hardwares/data/gcp-instances.csv from ccf-coefficients (Apache-2.0).
-
-Every instance of the latest GCP instance list gets its vCPUs times the minimum and maximum watts per vCPU measured
-for its microarchitecture. Instances without coefficients (Google Axion, Ampere) are left out and estimated per vCPU
-at runtime, and instances bundled before but no longer listed keep their row with the coefficients of their
-microarchitecture.
-"""
-
 import csv
 import io
 import urllib.request
@@ -42,6 +33,14 @@ if __name__ == "__main__":
             ["Instance type", "Instance vCPU", "Instance Memory (in GB)", "Min Watts", "Max Watts", "Architecture"]
         )
         for instance_type, (vcpus, memory, architecture) in sorted(instances.items()):
+            # The pinned upstream list mislabels these A3 families; only Ultra uses Emerald Rapids.
+            # https://docs.cloud.google.com/compute/docs/accelerator-optimized-machines#a3-vms
+            if instance_type.startswith(("a3-highgpu-", "a3-megagpu-", "a3-edgegpu-")):
+                architecture = "Sapphire Rapids"
+            # N2 defaults to Cascade Lake through 80 vCPUs; larger sizes require Ice Lake.
+            # https://docs.cloud.google.com/compute/docs/general-purpose-machines#n2_series
+            elif instance_type.startswith("n2-") and float(vcpus) <= 80:
+                architecture = "Cascade Lake"
             if architecture in coefficients:
                 min_watts, max_watts = coefficients[architecture]
                 writer.writerow(

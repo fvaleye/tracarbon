@@ -9,12 +9,12 @@ a2-ultragpu-1g,12.0,85.0,8.28,45.06,Cascade Lake
 a2-ultragpu-2g,24.0,340.0,16.57,90.12,Cascade Lake
 a2-ultragpu-4g,48.0,680.0,33.13,180.23,Cascade Lake
 a2-ultragpu-8g,96.0,1360.0,66.27,360.47,Cascade Lake
-a3-edgegpu-8g,208.0,1872.0,169.31,911.39,Emerald Rapids
-a3-highgpu-1g,26.0,234.0,21.16,113.92,Emerald Rapids
-a3-highgpu-2g,52.0,468.0,42.33,227.85,Emerald Rapids
-a3-highgpu-4g,104.0,936.0,84.66,455.69,Emerald Rapids
-a3-highgpu-8g,208.0,1872.0,169.31,911.39,Emerald Rapids
-a3-megagpu-8g,208.0,1872.0,169.31,911.39,Emerald Rapids
+a3-edgegpu-8g,208.0,1872.0,215.55,844.92,Sapphire Rapids
+a3-highgpu-1g,26.0,234.0,26.94,105.61,Sapphire Rapids
+a3-highgpu-2g,52.0,468.0,53.89,211.23,Sapphire Rapids
+a3-highgpu-4g,104.0,936.0,107.77,422.46,Sapphire Rapids
+a3-highgpu-8g,208.0,1872.0,215.55,844.92,Sapphire Rapids
+a3-megagpu-8g,208.0,1872.0,215.55,844.92,Sapphire Rapids
 a3-ultragpu-8g,224.0,2952.0,182.34,981.5,Emerald Rapids
 c2-standard-16,16.0,64.0,11.04,60.08,Cascade Lake
 c2-standard-30,30.0,120.0,20.71,112.65,Cascade Lake
@@ -194,34 +194,34 @@ n1-standard-4,4.0,15.0,2.45,15.47,Skylake
 n1-standard-64,64.0,240.0,39.23,247.55,Skylake
 n1-standard-8,8.0,30.0,4.9,30.94,Skylake
 n1-standard-96,96.0,360.0,58.85,371.32,Skylake
-n2-highcpu-16,16.0,16.0,12.27,58.43,Ice Lake
-n2-highcpu-2,2.0,2.0,1.53,7.3,Ice Lake
-n2-highcpu-32,32.0,32.0,24.54,116.85,Ice Lake
-n2-highcpu-4,4.0,4.0,3.07,14.61,Ice Lake
-n2-highcpu-48,48.0,48.0,36.81,175.28,Ice Lake
-n2-highcpu-64,64.0,64.0,49.08,233.7,Ice Lake
-n2-highcpu-8,8.0,8.0,6.13,29.21,Ice Lake
-n2-highcpu-80,80.0,80.0,61.34,292.13,Ice Lake
+n2-highcpu-16,16.0,16.0,11.04,60.08,Cascade Lake
+n2-highcpu-2,2.0,2.0,1.38,7.51,Cascade Lake
+n2-highcpu-32,32.0,32.0,22.09,120.16,Cascade Lake
+n2-highcpu-4,4.0,4.0,2.76,15.02,Cascade Lake
+n2-highcpu-48,48.0,48.0,33.13,180.23,Cascade Lake
+n2-highcpu-64,64.0,64.0,44.18,240.31,Cascade Lake
+n2-highcpu-8,8.0,8.0,5.52,30.04,Cascade Lake
+n2-highcpu-80,80.0,80.0,55.22,300.39,Cascade Lake
 n2-highcpu-96,96.0,96.0,73.61,350.55,Ice Lake
 n2-highmem-128,128.0,864.0,98.15,467.4,Ice Lake
-n2-highmem-16,16.0,128.0,12.27,58.43,Ice Lake
-n2-highmem-2,2.0,16.0,1.53,7.3,Ice Lake
-n2-highmem-32,32.0,256.0,24.54,116.85,Ice Lake
-n2-highmem-4,4.0,32.0,3.07,14.61,Ice Lake
-n2-highmem-48,48.0,384.0,36.81,175.28,Ice Lake
-n2-highmem-64,64.0,512.0,49.08,233.7,Ice Lake
-n2-highmem-8,8.0,64.0,6.13,29.21,Ice Lake
-n2-highmem-80,80.0,640.0,61.34,292.13,Ice Lake
+n2-highmem-16,16.0,128.0,11.04,60.08,Cascade Lake
+n2-highmem-2,2.0,16.0,1.38,7.51,Cascade Lake
+n2-highmem-32,32.0,256.0,22.09,120.16,Cascade Lake
+n2-highmem-4,4.0,32.0,2.76,15.02,Cascade Lake
+n2-highmem-48,48.0,384.0,33.13,180.23,Cascade Lake
+n2-highmem-64,64.0,512.0,44.18,240.31,Cascade Lake
+n2-highmem-8,8.0,64.0,5.52,30.04,Cascade Lake
+n2-highmem-80,80.0,640.0,55.22,300.39,Cascade Lake
 n2-highmem-96,96.0,768.0,73.61,350.55,Ice Lake
 n2-standard-128,128.0,512.0,98.15,467.4,Ice Lake
-n2-standard-16,16.0,64.0,12.27,58.43,Ice Lake
-n2-standard-2,2.0,8.0,1.53,7.3,Ice Lake
-n2-standard-32,32.0,128.0,24.54,116.85,Ice Lake
-n2-standard-4,4.0,16.0,3.07,14.61,Ice Lake
-n2-standard-48,48.0,192.0,36.81,175.28,Ice Lake
-n2-standard-64,64.0,256.0,49.08,233.7,Ice Lake
-n2-standard-8,8.0,32.0,6.13,29.21,Ice Lake
-n2-standard-80,80.0,320.0,61.34,292.13,Ice Lake
+n2-standard-16,16.0,64.0,11.04,60.08,Cascade Lake
+n2-standard-2,2.0,8.0,1.38,7.51,Cascade Lake
+n2-standard-32,32.0,128.0,22.09,120.16,Cascade Lake
+n2-standard-4,4.0,16.0,2.76,15.02,Cascade Lake
+n2-standard-48,48.0,192.0,33.13,180.23,Cascade Lake
+n2-standard-64,64.0,256.0,44.18,240.31,Cascade Lake
+n2-standard-8,8.0,32.0,5.52,30.04,Cascade Lake
+n2-standard-80,80.0,320.0,55.22,300.39,Cascade Lake
 n2-standard-96,96.0,384.0,73.61,350.55,Ice Lake
 n2d-highcpu-128,128.0,128.0,60.71,201.62,EPYC 2nd Gen
 n2d-highcpu-16,16.0,16.0,7.59,25.2,EPYC 2nd Gen
