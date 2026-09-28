@@ -502,9 +502,25 @@ async def test_gcp_sensor_should_return_energy_consumption(mocker):
 
 
 @pytest.mark.parametrize(
+    ("instance_type", "min_watts", "max_watts"),
+    [
+        ("c3-standard-4", 4.15, 16.25),
+        ("c3d-standard-4", 2.96, 8.78),
+        ("c4-standard-2", 1.63, 8.76),
+        ("n4-standard-2", 1.63, 8.76),
+    ],
+)
+def test_gcp_sensor_knows_the_newer_machine_series(caplog, instance_type, min_watts, max_watts):
+    gcp_sensor = GCPEnergyConsumption(instance_type=instance_type)
+
+    assert (gcp_sensor.min_watts, gcp_sensor.max_watts) == (min_watts, max_watts)
+    assert "falling back" not in caplog.text
+
+
+@pytest.mark.parametrize(
     ("sensor_type", "instance_type", "min_watts_per_vcpu", "max_watts_per_vcpu"),
     [
-        (GCPEnergyConsumption, "c4a-standard-4", 0.63897, 3.6425),
+        (GCPEnergyConsumption, "c4a-standard-4", 0.73911, 3.7549),
         (AzureEnergyConsumption, "Standard_D4s_v5", 0.84, 3.7),
     ],
     ids=["gcp", "azure"],

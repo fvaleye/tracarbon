@@ -1,0 +1,56 @@
+"""
+Generate tracarbon/hardwares/data/gcp-instances.csv from ccf-coefficients (Apache-2.0).
+
+Every instance of the latest GCP instance list gets its vCPUs times the minimum and maximum watts per vCPU measured
+for its microarchitecture. Instances without coefficients (Google Axion, Ampere) are left out and estimated per vCPU
+at runtime, and instances bundled before but no longer listed keep their row with the coefficients of their
+microarchitecture.
+"""
+
+import csv
+import io
+import urllib.request
+from pathlib import Path
+
+CCF_COEFFICIENTS = "https://raw.githubusercontent.com/cloud-carbon-footprint/ccf-coefficients/b0032d9"
+GCP_INSTANCES = Path(__file__).parent.parent / "tracarbon" / "hardwares" / "data" / "gcp-instances.csv"
+
+
+def read_csv(url: str) -> list[dict[str, str]]:
+    with urllib.request.urlopen(url, timeout=30) as response:  # noqa: S310
+        return list(csv.DictReader(io.StringIO(response.read().decode("utf-8"))))
+
+
+if __name__ == "__main__":
+    coefficients = {
+        row["Architecture"]: (float(row["Min Watts"]), float(row["Max Watts"]))
+        for row in read_csv(f"{CCF_COEFFICIENTS}/output/coefficients-gcp-use.csv")
+    }
+    instances = {
+        row["Instance Type"]: (row["Instance vCPU"], row["Instance Memory"], row["Microarchitecture"])
+        for row in read_csv(f"{CCF_COEFFICIENTS}/data/gcp-instances-latest-2026.csv")
+    }
+    with GCP_INSTANCES.open(encoding="utf-8") as bundled:
+        for row in csv.DictReader(bundled):
+            instances.setdefault(
+                row["Instance type"], (row["Instance vCPU"], row["Instance Memory (in GB)"], row["Architecture"])
+            )
+
+    with GCP_INSTANCES.open("w", encoding="utf-8", newline="") as generated:
+        writer = csv.writer(generated)
+        writer.writerow(
+            ["Instance type", "Instance vCPU", "Instance Memory (in GB)", "Min Watts", "Max Watts", "Architecture"]
+        )
+        for instance_type, (vcpus, memory, architecture) in sorted(instances.items()):
+            if architecture in coefficients:
+                min_watts, max_watts = coefficients[architecture]
+                writer.writerow(
+                    [
+                        instance_type,
+                        float(vcpus),
+                        float(memory),
+                        round(float(vcpus) * min_watts, 2),
+                        round(float(vcpus) * max_watts, 2),
+                        architecture,
+                    ]
+                )

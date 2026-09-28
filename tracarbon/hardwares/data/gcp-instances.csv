@@ -1,91 +1,228 @@
 Instance type,Instance vCPU,Instance Memory (in GB),Min Watts,Max Watts,Architecture
-a2-highgpu-1g,12.0,85.0,7.67,43.71,Cascade Lake
-a2-highgpu-2g,24.0,170.0,15.33,87.42,Cascade Lake
-a2-highgpu-4g,48.0,340.0,30.67,174.84,Cascade Lake
-a2-highgpu-8g,96.0,680.0,61.34,349.68,Cascade Lake
-a2-megagpu-16g,96.0,1360.0,61.34,349.68,Cascade Lake
-c2-standard-16,16.0,64.0,10.22,58.28,Cascade Lake
-c2-standard-30,30.0,120.0,19.17,109.27,Cascade Lake
-c2-standard-4,4.0,16.0,2.56,14.57,Cascade Lake
-c2-standard-60,60.0,240.0,38.34,218.55,Cascade Lake
-c2-standard-8,8.0,32.0,5.11,29.14,Cascade Lake
-e2-highcpu-16,16.0,16.0,10.31,62.38,Skylake
-e2-highcpu-2,2.0,2.0,1.29,7.8,Skylake
-e2-highcpu-32,32.0,32.0,20.63,124.75,Skylake
-e2-highcpu-4,4.0,4.0,2.58,15.59,Skylake
-e2-highcpu-8,8.0,8.0,5.16,31.19,Skylake
-e2-highmem-16,16.0,128.0,10.31,62.38,Skylake
-e2-highmem-2,2.0,16.0,1.29,7.8,Skylake
-e2-highmem-4,4.0,32.0,2.58,15.59,Skylake
-e2-highmem-8,8.0,64.0,5.16,31.19,Skylake
-e2-medium,2.0,4.0,1.29,7.8,Skylake
-e2-micro,2.0,1.0,1.29,7.8,Skylake
-e2-small,2.0,2.0,1.29,7.8,Skylake
-e2-standard-16,16.0,64.0,10.31,62.38,Skylake
-e2-standard-2,2.0,8.0,1.29,7.8,Skylake
-e2-standard-32,32.0,128.0,20.63,124.75,Skylake
-e2-standard-4,4.0,16.0,2.58,15.59,Skylake
-e2-standard-8,8.0,32.0,5.16,31.19,Skylake
-f1-micro,1.0,0.6,0.64,3.9,Skylake
-g1-small,1.0,1.7,0.64,3.9,Skylake
-m1-megamem-96,96.0,1433.6,61.88,374.25,Skylake
-m1-ultramem-160,160.0,3844.0,103.14,623.76,Skylake
-m1-ultramem-40,40.0,961.0,25.78,155.94,Skylake
-m1-ultramem-80,80.0,1922.0,51.57,311.88,Skylake
-m2-megamem-416,416.0,5.888,265.8,1515.26,Cascade Lake
-m2-ultramem-208,208.0,5.888,132.9,757.63,Cascade Lake
-m2-ultramem-416,416.0,11.776,265.8,1515.26,Cascade Lake
-n1-highcpu-16,16.0,14.4,10.31,62.38,Skylake
-n1-highcpu-2,2.0,1.8,1.29,7.8,Skylake
-n1-highcpu-32,32.0,28.8,20.63,124.75,Skylake
-n1-highcpu-4,4.0,3.6,2.58,15.59,Skylake
-n1-highcpu-64,64.0,57.6,41.25,249.5,Skylake
-n1-highcpu-8,8.0,7.2,5.16,31.19,Skylake
-n1-highcpu-96,96.0,86.4,61.88,374.25,Skylake
-n1-highmem-16,16.0,104.0,10.31,62.38,Skylake
-n1-highmem-2,2.0,13.0,1.29,7.8,Skylake
-n1-highmem-32,32.0,208.0,20.63,124.75,Skylake
-n1-highmem-4,4.0,26.0,2.58,15.59,Skylake
-n1-highmem-64,64.0,416.0,41.25,249.5,Skylake
-n1-highmem-8,8.0,52.0,5.16,31.19,Skylake
-n1-highmem-96,96.0,624.0,61.88,374.25,Skylake
-n1-standard-1,1.0,3.75,0.64,3.9,Skylake
-n1-standard-16,16.0,60.0,10.31,62.38,Skylake
-n1-standard-2,2.0,7.5,1.29,7.8,Skylake
-n1-standard-32,32.0,120.0,20.63,124.75,Skylake
-n1-standard-4,4.0,15.0,2.58,15.59,Skylake
-n1-standard-64,64.0,240.0,41.25,249.5,Skylake
-n1-standard-8,8.0,30.0,5.16,31.19,Skylake
-n1-standard-96,96.0,360.0,61.88,374.25,Skylake
-n2-highcpu-16,16.0,16.0,10.22,58.28,Cascade Lake
-n2-highcpu-2,2.0,2.0,1.28,7.28,Cascade Lake
-n2-highcpu-32,32.0,32.0,20.45,116.56,Cascade Lake
-n2-highcpu-4,4.0,4.0,2.56,14.57,Cascade Lake
-n2-highcpu-48,48.0,48.0,30.67,174.84,Cascade Lake
-n2-highcpu-64,64.0,64.0,40.89,233.12,Cascade Lake
-n2-highcpu-8,8.0,8.0,5.11,29.14,Cascade Lake
-n2-highcpu-80,80.0,80.0,51.12,291.4,Cascade Lake
-n2-highcpu-96,96.0,96.0,61.34,349.68,Cascade Lake
-n2-highmem-128,128.0,864.0,81.79,466.23,Cascade Lake
-n2-highmem-16,16.0,128.0,10.22,58.28,Cascade Lake
-n2-highmem-2,2.0,16.0,1.28,7.28,Cascade Lake
-n2-highmem-32,32.0,256.0,20.45,116.56,Cascade Lake
-n2-highmem-4,4.0,32.0,2.56,14.57,Cascade Lake
-n2-highmem-48,48.0,384.0,30.67,174.84,Cascade Lake
-n2-highmem-64,64.0,512.0,40.89,233.12,Cascade Lake
-n2-highmem-8,8.0,64.0,5.11,29.14,Cascade Lake
-n2-highmem-80,80.0,640.0,51.12,291.4,Cascade Lake
-n2-highmem-96,96.0,768.0,61.34,349.68,Cascade Lake
-n2-standard-128,128.0,512.0,81.79,466.23,Cascade Lake
-n2-standard-16,16.0,64.0,10.22,58.28,Cascade Lake
-n2-standard-2,2.0,8.0,1.28,7.28,Cascade Lake
-n2-standard-32,32.0,128.0,20.45,116.56,Cascade Lake
-n2-standard-4,4.0,16.0,2.56,14.57,Cascade Lake
-n2-standard-48,48.0,192.0,30.67,174.84,Cascade Lake
-n2-standard-64,64.0,256.0,40.89,233.12,Cascade Lake
-n2-standard-8,8.0,32.0,5.11,29.14,Cascade Lake
-n2-standard-80,80.0,320.0,51.12,291.4,Cascade Lake
-n2-standard-96,96.0,384.0,61.34,349.68,Cascade Lake
+a2-highgpu-16g,96.0,1360.0,66.27,360.47,Cascade Lake
+a2-highgpu-1g,12.0,85.0,8.28,45.06,Cascade Lake
+a2-highgpu-2g,24.0,170.0,16.57,90.12,Cascade Lake
+a2-highgpu-4g,48.0,340.0,33.13,180.23,Cascade Lake
+a2-highgpu-8g,96.0,680.0,66.27,360.47,Cascade Lake
+a2-megagpu-16g,96.0,1360.0,66.27,360.47,Cascade Lake
+a2-ultragpu-1g,12.0,85.0,8.28,45.06,Cascade Lake
+a2-ultragpu-2g,24.0,340.0,16.57,90.12,Cascade Lake
+a2-ultragpu-4g,48.0,680.0,33.13,180.23,Cascade Lake
+a2-ultragpu-8g,96.0,1360.0,66.27,360.47,Cascade Lake
+a3-edgegpu-8g,208.0,1872.0,169.31,911.39,Emerald Rapids
+a3-highgpu-1g,26.0,234.0,21.16,113.92,Emerald Rapids
+a3-highgpu-2g,52.0,468.0,42.33,227.85,Emerald Rapids
+a3-highgpu-4g,104.0,936.0,84.66,455.69,Emerald Rapids
+a3-highgpu-8g,208.0,1872.0,169.31,911.39,Emerald Rapids
+a3-megagpu-8g,208.0,1872.0,169.31,911.39,Emerald Rapids
+a3-ultragpu-8g,224.0,2952.0,182.34,981.5,Emerald Rapids
+c2-standard-16,16.0,64.0,11.04,60.08,Cascade Lake
+c2-standard-30,30.0,120.0,20.71,112.65,Cascade Lake
+c2-standard-4,4.0,16.0,2.76,15.02,Cascade Lake
+c2-standard-60,60.0,240.0,41.42,225.29,Cascade Lake
+c2-standard-8,8.0,32.0,5.52,30.04,Cascade Lake
+c2d-highcpu-112,112.0,224.0,51.03,205.37,EPYC 3rd Gen
+c2d-highcpu-16,16.0,32.0,7.29,29.34,EPYC 3rd Gen
+c2d-highcpu-2,2.0,4.0,0.91,3.67,EPYC 3rd Gen
+c2d-highcpu-32,32.0,64.0,14.58,58.68,EPYC 3rd Gen
+c2d-highcpu-4,4.0,8.0,1.82,7.33,EPYC 3rd Gen
+c2d-highcpu-56,56.0,112.0,25.51,102.69,EPYC 3rd Gen
+c2d-highcpu-8,8.0,16.0,3.64,14.67,EPYC 3rd Gen
+c2d-highmem-112,112.0,896.0,51.03,205.37,EPYC 3rd Gen
+c2d-highmem-16,16.0,128.0,7.29,29.34,EPYC 3rd Gen
+c2d-highmem-2,2.0,16.0,0.91,3.67,EPYC 3rd Gen
+c2d-highmem-32,32.0,256.0,14.58,58.68,EPYC 3rd Gen
+c2d-highmem-4,4.0,32.0,1.82,7.33,EPYC 3rd Gen
+c2d-highmem-56,56.0,448.0,25.51,102.69,EPYC 3rd Gen
+c2d-highmem-8,8.0,64.0,3.64,14.67,EPYC 3rd Gen
+c2d-standard-112,112.0,448.0,51.03,205.37,EPYC 3rd Gen
+c2d-standard-16,16.0,64.0,7.29,29.34,EPYC 3rd Gen
+c2d-standard-2,2.0,8.0,0.91,3.67,EPYC 3rd Gen
+c2d-standard-32,32.0,128.0,14.58,58.68,EPYC 3rd Gen
+c2d-standard-4,4.0,16.0,1.82,7.33,EPYC 3rd Gen
+c2d-standard-56,56.0,224.0,25.51,102.69,EPYC 3rd Gen
+c2d-standard-8,8.0,32.0,3.64,14.67,EPYC 3rd Gen
+c3-highcpu-176,176.0,352.0,182.39,714.93,Sapphire Rapids
+c3-highcpu-192-metal,192.0,512.0,198.97,779.92,Sapphire Rapids
+c3-highcpu-22,22.0,44.0,22.8,89.37,Sapphire Rapids
+c3-highcpu-4,4.0,8.0,4.15,16.25,Sapphire Rapids
+c3-highcpu-44,44.0,88.0,45.6,178.73,Sapphire Rapids
+c3-highcpu-8,8.0,16.0,8.29,32.5,Sapphire Rapids
+c3-highcpu-88,88.0,176.0,91.19,357.46,Sapphire Rapids
+c3-highmem-176,176.0,1408.0,182.39,714.93,Sapphire Rapids
+c3-highmem-192-metal,192.0,1536.0,198.97,779.92,Sapphire Rapids
+c3-highmem-22,22.0,176.0,22.8,89.37,Sapphire Rapids
+c3-highmem-4,4.0,32.0,4.15,16.25,Sapphire Rapids
+c3-highmem-44,44.0,352.0,45.6,178.73,Sapphire Rapids
+c3-highmem-8,8.0,64.0,8.29,32.5,Sapphire Rapids
+c3-highmem-88,88.0,704.0,91.19,357.46,Sapphire Rapids
+c3-standard-176,176.0,704.0,182.39,714.93,Sapphire Rapids
+c3-standard-176-lssd,176.0,704.0,182.39,714.93,Sapphire Rapids
+c3-standard-192-metal,192.0,768.0,198.97,779.92,Sapphire Rapids
+c3-standard-22,22.0,88.0,22.8,89.37,Sapphire Rapids
+c3-standard-22-lssd,22.0,88.0,22.8,89.37,Sapphire Rapids
+c3-standard-4,4.0,16.0,4.15,16.25,Sapphire Rapids
+c3-standard-4-lssd,4.0,16.0,4.15,16.25,Sapphire Rapids
+c3-standard-44,44.0,176.0,45.6,178.73,Sapphire Rapids
+c3-standard-44-lssd,44.0,176.0,45.6,178.73,Sapphire Rapids
+c3-standard-8,8.0,32.0,8.29,32.5,Sapphire Rapids
+c3-standard-8-lssd,8.0,32.0,8.29,32.5,Sapphire Rapids
+c3-standard-88,88.0,352.0,91.19,357.46,Sapphire Rapids
+c3-standard-88-lssd,88.0,352.0,91.19,357.46,Sapphire Rapids
+c3d-highcpu-16,16.0,32.0,11.83,35.13,EPYC 4th Gen
+c3d-highcpu-180,180.0,354.0,133.05,395.26,EPYC 4th Gen
+c3d-highcpu-30,30.0,59.0,22.17,65.88,EPYC 4th Gen
+c3d-highcpu-360,360.0,708.0,266.09,790.52,EPYC 4th Gen
+c3d-highcpu-4,4.0,8.0,2.96,8.78,EPYC 4th Gen
+c3d-highcpu-60,60.0,118.0,44.35,131.75,EPYC 4th Gen
+c3d-highcpu-8,8.0,16.0,5.91,17.57,EPYC 4th Gen
+c3d-highcpu-90,90.0,177.0,66.52,197.63,EPYC 4th Gen
+c3d-highmem-16,16.0,128.0,11.83,35.13,EPYC 4th Gen
+c3d-highmem-16-lssd,16.0,128.0,11.83,35.13,EPYC 4th Gen
+c3d-highmem-180,180.0,1440.0,133.05,395.26,EPYC 4th Gen
+c3d-highmem-180-lssd,180.0,1440.0,133.05,395.26,EPYC 4th Gen
+c3d-highmem-30,30.0,240.0,22.17,65.88,EPYC 4th Gen
+c3d-highmem-30-lssd,30.0,240.0,22.17,65.88,EPYC 4th Gen
+c3d-highmem-360,360.0,2880.0,266.09,790.52,EPYC 4th Gen
+c3d-highmem-360-lssd,360.0,2880.0,266.09,790.52,EPYC 4th Gen
+c3d-highmem-4,4.0,32.0,2.96,8.78,EPYC 4th Gen
+c3d-highmem-60,60.0,480.0,44.35,131.75,EPYC 4th Gen
+c3d-highmem-60-lssd,60.0,480.0,44.35,131.75,EPYC 4th Gen
+c3d-highmem-8,8.0,64.0,5.91,17.57,EPYC 4th Gen
+c3d-highmem-8-lssd,8.0,64.0,5.91,17.57,EPYC 4th Gen
+c3d-highmem-90,90.0,720.0,66.52,197.63,EPYC 4th Gen
+c3d-highmem-90-lssd,90.0,720.0,66.52,197.63,EPYC 4th Gen
+c3d-standard-16,16.0,64.0,11.83,35.13,EPYC 4th Gen
+c3d-standard-16-lssd,16.0,64.0,11.83,35.13,EPYC 4th Gen
+c3d-standard-180,180.0,720.0,133.05,395.26,EPYC 4th Gen
+c3d-standard-180-lssd,180.0,720.0,133.05,395.26,EPYC 4th Gen
+c3d-standard-30,30.0,120.0,22.17,65.88,EPYC 4th Gen
+c3d-standard-30-lssd,30.0,120.0,22.17,65.88,EPYC 4th Gen
+c3d-standard-360,360.0,1440.0,266.09,790.52,EPYC 4th Gen
+c3d-standard-360-lssd,360.0,1440.0,266.09,790.52,EPYC 4th Gen
+c3d-standard-4,4.0,16.0,2.96,8.78,EPYC 4th Gen
+c3d-standard-60,60.0,240.0,44.35,131.75,EPYC 4th Gen
+c3d-standard-60-lssd,60.0,240.0,44.35,131.75,EPYC 4th Gen
+c3d-standard-8,8.0,32.0,5.91,17.57,EPYC 4th Gen
+c3d-standard-8-lssd,8.0,32.0,5.91,17.57,EPYC 4th Gen
+c3d-standard-90,90.0,360.0,66.52,197.63,EPYC 4th Gen
+c3d-standard-90-lssd,90.0,360.0,66.52,197.63,EPYC 4th Gen
+c4-highcpu-16,16.0,32.0,13.02,70.11,Emerald Rapids
+c4-highcpu-192,192.0,384.0,156.29,841.28,Emerald Rapids
+c4-highcpu-2,2.0,4.0,1.63,8.76,Emerald Rapids
+c4-highcpu-32,32.0,64.0,26.05,140.21,Emerald Rapids
+c4-highcpu-4,4.0,8.0,3.26,17.53,Emerald Rapids
+c4-highcpu-48,48.0,96.0,39.07,210.32,Emerald Rapids
+c4-highcpu-8,8.0,16.0,6.51,35.05,Emerald Rapids
+c4-highcpu-96,96.0,192.0,78.14,420.64,Emerald Rapids
+c4-highmem-16,16.0,124.0,13.02,70.11,Emerald Rapids
+c4-highmem-192,192.0,1488.0,156.29,841.28,Emerald Rapids
+c4-highmem-2,2.0,15.0,1.63,8.76,Emerald Rapids
+c4-highmem-32,32.0,248.0,26.05,140.21,Emerald Rapids
+c4-highmem-4,4.0,31.0,3.26,17.53,Emerald Rapids
+c4-highmem-48,48.0,372.0,39.07,210.32,Emerald Rapids
+c4-highmem-8,8.0,62.0,6.51,35.05,Emerald Rapids
+c4-highmem-96,96.0,744.0,78.14,420.64,Emerald Rapids
+c4-standard-16,16.0,60.0,13.02,70.11,Emerald Rapids
+c4-standard-192,192.0,720.0,156.29,841.28,Emerald Rapids
+c4-standard-2,2.0,7.0,1.63,8.76,Emerald Rapids
+c4-standard-32,32.0,120.0,26.05,140.21,Emerald Rapids
+c4-standard-4,4.0,15.0,3.26,17.53,Emerald Rapids
+c4-standard-48,48.0,180.0,39.07,210.32,Emerald Rapids
+c4-standard-8,8.0,30.0,6.51,35.05,Emerald Rapids
+c4-standard-96,96.0,360.0,78.14,420.64,Emerald Rapids
+e2-highcpu-16,16.0,16.0,9.81,61.89,Skylake
+e2-highcpu-2,2.0,2.0,1.23,7.74,Skylake
+e2-highcpu-32,32.0,32.0,19.62,123.77,Skylake
+e2-highcpu-4,4.0,4.0,2.45,15.47,Skylake
+e2-highcpu-8,8.0,8.0,4.9,30.94,Skylake
+e2-highmem-16,16.0,128.0,9.81,61.89,Skylake
+e2-highmem-2,2.0,16.0,1.23,7.74,Skylake
+e2-highmem-4,4.0,32.0,2.45,15.47,Skylake
+e2-highmem-8,8.0,64.0,4.9,30.94,Skylake
+e2-medium,2.0,4.0,1.23,7.74,Skylake
+e2-micro,2.0,1.0,1.23,7.74,Skylake
+e2-small,2.0,2.0,1.23,7.74,Skylake
+e2-standard-16,16.0,64.0,9.81,61.89,Skylake
+e2-standard-2,2.0,8.0,1.23,7.74,Skylake
+e2-standard-32,32.0,128.0,19.62,123.77,Skylake
+e2-standard-4,4.0,16.0,2.45,15.47,Skylake
+e2-standard-8,8.0,32.0,4.9,30.94,Skylake
+f1-micro,1.0,0.6,0.61,3.87,Skylake
+g1-small,1.0,1.7,0.61,3.87,Skylake
+g2-standard-12,12.0,48.0,8.28,45.06,Cascade Lake
+g2-standard-16,16.0,64.0,11.04,60.08,Cascade Lake
+g2-standard-24,24.0,96.0,16.57,90.12,Cascade Lake
+g2-standard-32,32.0,128.0,22.09,120.16,Cascade Lake
+g2-standard-4,4.0,16.0,2.76,15.02,Cascade Lake
+g2-standard-48,48.0,192.0,33.13,180.23,Cascade Lake
+g2-standard-8,8.0,32.0,5.52,30.04,Cascade Lake
+g2-standard-96,96.0,384.0,66.27,360.47,Cascade Lake
+h3-standard-88,88.0,352.0,91.19,357.46,Sapphire Rapids
+m1-megamem-96,96.0,1433.6,58.85,371.32,Skylake
+m1-ultramem-160,160.0,3844.0,114.05,541.72,Broadwell
+m1-ultramem-40,40.0,961.0,28.51,135.43,Broadwell
+m1-ultramem-80,80.0,1922.0,57.03,270.86,Broadwell
+m2-hypermem-416,416.0,8832.0,287.16,1562.02,Cascade Lake
+m2-megamem-416,416.0,5888.0,287.16,1562.02,Cascade Lake
+m2-ultramem-208,208.0,5888.0,143.58,781.01,Cascade Lake
+m2-ultramem-416,416.0,11776.0,287.16,1562.02,Cascade Lake
+m3-megamem-128,128.0,1952.0,98.15,467.4,Ice Lake
+m3-megamem-64,64.0,976.0,49.08,233.7,Ice Lake
+m3-ultramem-128,128.0,3904.0,98.15,467.4,Ice Lake
+m3-ultramem-32,32.0,976.0,24.54,116.85,Ice Lake
+m3-ultramem-64,64.0,1952.0,49.08,233.7,Ice Lake
+n1-highcpu-16,16.0,14.4,9.81,61.89,Skylake
+n1-highcpu-2,2.0,1.8,1.23,7.74,Skylake
+n1-highcpu-32,32.0,28.8,19.62,123.77,Skylake
+n1-highcpu-4,4.0,3.6,2.45,15.47,Skylake
+n1-highcpu-64,64.0,57.6,39.23,247.55,Skylake
+n1-highcpu-8,8.0,7.2,4.9,30.94,Skylake
+n1-highcpu-96,96.0,86.4,58.85,371.32,Skylake
+n1-highmem-16,16.0,104.0,9.81,61.89,Skylake
+n1-highmem-2,2.0,13.0,1.23,7.74,Skylake
+n1-highmem-32,32.0,208.0,19.62,123.77,Skylake
+n1-highmem-4,4.0,26.0,2.45,15.47,Skylake
+n1-highmem-64,64.0,416.0,39.23,247.55,Skylake
+n1-highmem-8,8.0,52.0,4.9,30.94,Skylake
+n1-highmem-96,96.0,624.0,58.85,371.32,Skylake
+n1-standard-1,1.0,3.75,0.61,3.87,Skylake
+n1-standard-16,16.0,60.0,9.81,61.89,Skylake
+n1-standard-2,2.0,7.5,1.23,7.74,Skylake
+n1-standard-32,32.0,120.0,19.62,123.77,Skylake
+n1-standard-4,4.0,15.0,2.45,15.47,Skylake
+n1-standard-64,64.0,240.0,39.23,247.55,Skylake
+n1-standard-8,8.0,30.0,4.9,30.94,Skylake
+n1-standard-96,96.0,360.0,58.85,371.32,Skylake
+n2-highcpu-16,16.0,16.0,12.27,58.43,Ice Lake
+n2-highcpu-2,2.0,2.0,1.53,7.3,Ice Lake
+n2-highcpu-32,32.0,32.0,24.54,116.85,Ice Lake
+n2-highcpu-4,4.0,4.0,3.07,14.61,Ice Lake
+n2-highcpu-48,48.0,48.0,36.81,175.28,Ice Lake
+n2-highcpu-64,64.0,64.0,49.08,233.7,Ice Lake
+n2-highcpu-8,8.0,8.0,6.13,29.21,Ice Lake
+n2-highcpu-80,80.0,80.0,61.34,292.13,Ice Lake
+n2-highcpu-96,96.0,96.0,73.61,350.55,Ice Lake
+n2-highmem-128,128.0,864.0,98.15,467.4,Ice Lake
+n2-highmem-16,16.0,128.0,12.27,58.43,Ice Lake
+n2-highmem-2,2.0,16.0,1.53,7.3,Ice Lake
+n2-highmem-32,32.0,256.0,24.54,116.85,Ice Lake
+n2-highmem-4,4.0,32.0,3.07,14.61,Ice Lake
+n2-highmem-48,48.0,384.0,36.81,175.28,Ice Lake
+n2-highmem-64,64.0,512.0,49.08,233.7,Ice Lake
+n2-highmem-8,8.0,64.0,6.13,29.21,Ice Lake
+n2-highmem-80,80.0,640.0,61.34,292.13,Ice Lake
+n2-highmem-96,96.0,768.0,73.61,350.55,Ice Lake
+n2-standard-128,128.0,512.0,98.15,467.4,Ice Lake
+n2-standard-16,16.0,64.0,12.27,58.43,Ice Lake
+n2-standard-2,2.0,8.0,1.53,7.3,Ice Lake
+n2-standard-32,32.0,128.0,24.54,116.85,Ice Lake
+n2-standard-4,4.0,16.0,3.07,14.61,Ice Lake
+n2-standard-48,48.0,192.0,36.81,175.28,Ice Lake
+n2-standard-64,64.0,256.0,49.08,233.7,Ice Lake
+n2-standard-8,8.0,32.0,6.13,29.21,Ice Lake
+n2-standard-80,80.0,320.0,61.34,292.13,Ice Lake
+n2-standard-96,96.0,384.0,73.61,350.55,Ice Lake
 n2d-highcpu-128,128.0,128.0,60.71,201.62,EPYC 2nd Gen
 n2d-highcpu-16,16.0,16.0,7.59,25.2,EPYC 2nd Gen
 n2d-highcpu-2,2.0,2.0,0.95,3.15,EPYC 2nd Gen
@@ -117,11 +254,40 @@ n2d-standard-64,64.0,256.0,30.35,100.81,EPYC 2nd Gen
 n2d-standard-8,8.0,32.0,3.79,12.6,EPYC 2nd Gen
 n2d-standard-80,80.0,320.0,37.94,126.01,EPYC 2nd Gen
 n2d-standard-96,96.0,384.0,45.53,151.22,EPYC 2nd Gen
-t2d-standard-1,1.0,4.0,0.45,1.87,EPYC 3rd Gen
-t2d-standard-16,16.0,64.0,7.13,29.95,EPYC 3rd Gen
-t2d-standard-2,2.0,8.0,0.89,3.74,EPYC 3rd Gen
-t2d-standard-32,32.0,128.0,14.25,59.9,EPYC 3rd Gen
-t2d-standard-4,4.0,16.0,1.78,7.49,EPYC 3rd Gen
-t2d-standard-48,48.0,192.0,21.38,89.85,EPYC 3rd Gen
-t2d-standard-60,60.0,240.0,26.72,112.32,EPYC 3rd Gen
-t2d-standard-8,8.0,32.0,3.56,14.98,EPYC 3rd Gen
+n4-highcpu-16,16.0,32.0,13.02,70.11,Emerald Rapids
+n4-highcpu-2,2.0,4.0,1.63,8.76,Emerald Rapids
+n4-highcpu-32,32.0,64.0,26.05,140.21,Emerald Rapids
+n4-highcpu-4,4.0,8.0,3.26,17.53,Emerald Rapids
+n4-highcpu-48,48.0,96.0,39.07,210.32,Emerald Rapids
+n4-highcpu-64,64.0,128.0,52.1,280.43,Emerald Rapids
+n4-highcpu-8,8.0,16.0,6.51,35.05,Emerald Rapids
+n4-highcpu-80,80.0,160.0,65.12,350.53,Emerald Rapids
+n4-highmem-16,16.0,128.0,13.02,70.11,Emerald Rapids
+n4-highmem-2,2.0,16.0,1.63,8.76,Emerald Rapids
+n4-highmem-32,32.0,256.0,26.05,140.21,Emerald Rapids
+n4-highmem-4,4.0,32.0,3.26,17.53,Emerald Rapids
+n4-highmem-48,48.0,384.0,39.07,210.32,Emerald Rapids
+n4-highmem-64,64.0,512.0,52.1,280.43,Emerald Rapids
+n4-highmem-8,8.0,64.0,6.51,35.05,Emerald Rapids
+n4-highmem-80,80.0,640.0,65.12,350.53,Emerald Rapids
+n4-standard-16,16.0,64.0,13.02,70.11,Emerald Rapids
+n4-standard-2,2.0,8.0,1.63,8.76,Emerald Rapids
+n4-standard-32,32.0,128.0,26.05,140.21,Emerald Rapids
+n4-standard-4,4.0,16.0,3.26,17.53,Emerald Rapids
+n4-standard-48,48.0,192.0,39.07,210.32,Emerald Rapids
+n4-standard-64,64.0,256.0,52.1,280.43,Emerald Rapids
+n4-standard-8,8.0,32.0,6.51,35.05,Emerald Rapids
+n4-standard-80,80.0,320.0,65.12,350.53,Emerald Rapids
+t2d-standard-1,1.0,4.0,0.46,1.83,EPYC 3rd Gen
+t2d-standard-16,16.0,64.0,7.29,29.34,EPYC 3rd Gen
+t2d-standard-2,2.0,8.0,0.91,3.67,EPYC 3rd Gen
+t2d-standard-32,32.0,128.0,14.58,58.68,EPYC 3rd Gen
+t2d-standard-4,4.0,16.0,1.82,7.33,EPYC 3rd Gen
+t2d-standard-48,48.0,192.0,21.87,88.02,EPYC 3rd Gen
+t2d-standard-60,60.0,240.0,27.34,110.02,EPYC 3rd Gen
+t2d-standard-8,8.0,32.0,3.64,14.67,EPYC 3rd Gen
+x4-megamem-1440-metal,1440.0,24576.0,1492.25,5849.43,Sapphire Rapids
+x4-megamem-1920-metal,1920.0,32768.0,1989.67,7799.23,Sapphire Rapids
+x4-megamem-960-metal,960.0,16384.0,994.83,3899.62,Sapphire Rapids
+z3-highmem-176,176.0,1408.0,182.39,714.93,Sapphire Rapids
+z3-highmem-88,88.0,704.0,91.19,357.46,Sapphire Rapids
