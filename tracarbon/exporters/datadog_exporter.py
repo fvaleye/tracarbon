@@ -37,7 +37,7 @@ if DATADOG_INSTALLED:
                 disable_buffering=self.disable_buffering,
             )
             self.stats = ThreadStats()
-            self.stats.start()
+            self.stats.start(flush_interval=self.datadog_flush_interval)
 
         async def launch(self, metric_generator: MetricGenerator) -> None:
             """

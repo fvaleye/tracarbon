@@ -3,6 +3,16 @@ from tracarbon.exporters import Metric
 from tracarbon.exporters import MetricGenerator
 
 
+def test_datadog_flushes_at_the_configured_interval(mocker):
+    mocker.patch("tracarbon.exporters.datadog_exporter.initialize")
+
+    exporter = DatadogExporter(api_key="test", app_key="test", metric_generators=[], datadog_flush_interval=1)
+    try:
+        assert exporter.stats.flush_interval == 1
+    finally:
+        exporter.stats.stop()
+
+
 async def test_datadog_preserves_zero_and_skips_missing_values(mocker):
     mocker.patch("tracarbon.exporters.datadog_exporter.initialize")
     stats = mocker.patch("tracarbon.exporters.datadog_exporter.ThreadStats").return_value
