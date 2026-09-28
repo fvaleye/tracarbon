@@ -3,12 +3,10 @@ import bisect
 import csv
 import importlib.resources
 import math
-import statistics
 import struct
 from abc import ABC
 from abc import abstractmethod
 from typing import Any
-from typing import ClassVar
 
 from loguru import logger
 from pydantic import BaseModel
@@ -327,21 +325,6 @@ class WindowsEnergyConsumption(EnergyConsumption):
         return EnergyUsage(host_energy_usage=None, gpu_energy_usage=NvidiaGPU.get_gpu_power_usage())
 
 
-_INSTANCE_TYPES_WARNED_ABOUT: set[str] = set()
-
-
-def _warn_once_per_instance_type(instance_type: str, message: str) -> None:
-    """
-    Log a warning the first time an instance type needs it, since every metric generator builds its own sensor.
-
-    :param instance_type: the instance type the warning is about
-    :param message: the warning
-    """
-    if instance_type not in _INSTANCE_TYPES_WARNED_ABOUT:
-        _INSTANCE_TYPES_WARNED_ABOUT.add(instance_type)
-        logger.warning(message)
-
-
 class AWSEC2EnergyConsumption(EnergyConsumption):
     """
     The AWS EC2 Energy Consumption.
@@ -358,17 +341,6 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
     has_gpu: bool
     delta_full_machine: float
     _cpu_times: Any = None
-    _WATTS_COLUMNS: ClassVar[dict[str, int]] = {
-        "cpu_idle": 14,
-        "cpu_at_10": 15,
-        "cpu_at_50": 16,
-        "cpu_at_100": 17,
-        "memory_idle": 18,
-        "memory_at_10": 19,
-        "memory_at_50": 20,
-        "memory_at_100": 21,
-        "delta_full_machine": 26,
-    }
 
     def __init__(self, instance_type: str, **data: Any) -> None:
         resource_file = importlib.resources.files("tracarbon.hardwares.data").joinpath("aws-instances.csv")
@@ -376,32 +348,21 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
             with resource_file.open("r", encoding="utf-8") as csvfile:
                 reader = csv.reader(csvfile)
                 next(reader)  # Skip header
-                instances_without_gpu = []
                 for row in reader:
-                    has_gpu = float(row[22].replace(",", ".")) > 0
                     if row[0] == instance_type:
-                        for field, column in self._WATTS_COLUMNS.items():
-                            data[field] = float(row[column].replace(",", "."))
-                        data["has_gpu"] = has_gpu
+                        data["cpu_idle"] = float(row[14].replace(",", "."))
+                        data["cpu_at_10"] = float(row[15].replace(",", "."))
+                        data["cpu_at_50"] = float(row[16].replace(",", "."))
+                        data["cpu_at_100"] = float(row[17].replace(",", "."))
+                        data["memory_idle"] = float(row[18].replace(",", "."))
+                        data["memory_at_10"] = float(row[19].replace(",", "."))
+                        data["memory_at_50"] = float(row[20].replace(",", "."))
+                        data["memory_at_100"] = float(row[21].replace(",", "."))
+                        data["has_gpu"] = float(row[22].replace(",", ".")) > 0
+                        data["delta_full_machine"] = float(row[26].replace(",", "."))
                         super().__init__(**data)
                         return
-                    if not has_gpu:
-                        instances_without_gpu.append(row)
-            _warn_once_per_instance_type(
-                instance_type,
-                f"The AWS instance type [{instance_type}] is missing from the aws instances file, falling back to "
-                "the median power per vCPU and per GB of memory of the instances without GPU it lists.",
-            )
-            vcpus = HardwareInfo.get_number_of_cores()
-            memory_gb = HardwareInfo.get_memory_total() / 1024**3
-            for field, column in self._WATTS_COLUMNS.items():
-                size, size_column = (memory_gb, 5) if field.startswith("memory") else (vcpus, 2)
-                data[field] = size * statistics.median(
-                    float(row[column].replace(",", ".")) / float(row[size_column]) for row in instances_without_gpu
-                )
-            # Nothing tells whether an unknown instance has a GPU, so it is read live as on GCP and Azure.
-            data["has_gpu"] = True
-            super().__init__(**data)
+            raise AWSSensorException(f"The AWS instance type [{instance_type}] is missing from the aws instances file.")
         except Exception as exception:
             logger.exception("Error in the AWSSensor")
             raise AWSSensorException(exception) from exception
@@ -409,10 +370,10 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
     @staticmethod
     def _watts_at(cpu_usage: float, watts: tuple[float, float, float, float]) -> float:
         """
-        Interpolate linearly between the power measured at idle, 10%, 50% and 100% of CPU load.
+        Interpolate linearly between the power estimates at idle, 10%, 50% and 100% load.
 
         :param cpu_usage: the CPU load in %
-        :param watts: the power measured at idle, 10%, 50% and 100% of CPU load
+        :param watts: the power estimates at idle, 10%, 50% and 100% load
         :return: the power in W at this CPU load
         """
         cpu_loads = (0.0, 10.0, 50.0, 100.0)
@@ -430,7 +391,7 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
         cpu_watts = self._watts_at(cpu_usage, (self.cpu_idle, self.cpu_at_10, self.cpu_at_50, self.cpu_at_100))
         logger.debug(f"CPU: {cpu_watts}W")
 
-        # The dataset measured the memory power at the same CPU load levels, not at a memory usage.
+        # ponytail: CPU load approximates RAM activity; replace with measured RAM power when available.
         memory_watts = self._watts_at(
             cpu_usage, (self.memory_idle, self.memory_at_10, self.memory_at_50, self.memory_at_100)
         )
@@ -488,7 +449,6 @@ class CloudEnergyConsumption(EnergyConsumption):
             with resource_file.open("r", encoding="utf-8") as csvfile:
                 reader = csv.reader(csvfile)
                 next(reader)  # Skip header
-                watts_per_vcpu = []
                 for row in reader:
                     if row[0].casefold() == instance_key:
                         data["vcpus"] = float(row[1])
@@ -497,18 +457,12 @@ class CloudEnergyConsumption(EnergyConsumption):
                         data["max_watts"] = float(row[4])
                         super().__init__(**data)
                         return
-                    watts_per_vcpu.append((float(row[3]) / float(row[1]), float(row[4]) / float(row[1])))
-            _warn_once_per_instance_type(
-                instance_type,
-                f"The {provider_name} instance type [{instance_type}] is missing from the "
-                f"{provider_name.lower()} instances file, falling back to the median power per vCPU of the "
-                "instances it lists.",
+            raise exception_class(
+                f"The {provider_name} instance type [{instance_type}] "
+                f"is missing from the {provider_name.lower()} instances file."
             )
-            data["vcpus"] = HardwareInfo.get_number_of_cores()
-            data["memory_gb"] = HardwareInfo.get_memory_total() / 1024**3
-            data["min_watts"] = data["vcpus"] * statistics.median(minimum for minimum, _ in watts_per_vcpu)
-            data["max_watts"] = data["vcpus"] * statistics.median(maximum for _, maximum in watts_per_vcpu)
-            super().__init__(**data)
+        except exception_class:
+            raise
         except Exception as exception:
             logger.exception(f"Error in the {provider_name}Sensor")
             raise exception_class(exception) from exception
