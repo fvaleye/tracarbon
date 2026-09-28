@@ -37,7 +37,9 @@ def test_container_normalizes_kubernetes_quantities(mocker, cpu_usage, memory_us
     assert (container.cpu_usage, container.memory_usage) == pytest.approx((expected_cpu, expected_memory))
 
 
-def test_get_pods_usage(mocker):
+def test_get_pods_usage(mocker, monkeypatch, caplog):
+    monkeypatch.delenv("NODE_NAME", raising=False)
+    monkeypatch.delenv("TRACARBON_KUBERNETES_NODE_NAME", raising=False)
     return_value = {
         "kind": "PodMetricsList",
         "apiVersion": "metrics.k8s.io/v1beta1",
@@ -100,12 +102,10 @@ def test_get_pods_usage(mocker):
     mocker.patch.object(HardwareInfo, "get_number_of_cores", return_value=number_of_cores)
     memory_total = 1000000000
     mocker.patch.object(HardwareInfo, "get_memory_total", return_value=memory_total)
-    mocker.patch.object(CustomObjectsApi, "list_namespaced_custom_object", return_value=return_value)
-    mocker.patch.object(
-        CoreV1Api,
-        "list_namespace",
-        return_value=V1NamespaceList(items=[V1Namespace(metadata=V1ObjectMeta(name="default"))]),
+    list_cluster_custom_object = mocker.patch.object(
+        CustomObjectsApi, "list_cluster_custom_object", return_value=return_value
     )
+    list_namespace = mocker.patch.object(CoreV1Api, "list_namespace")
     mocker.patch.object(config, "load_kube_config", return_value=None)
     pods_usage_expected = [
         Pod(
@@ -129,6 +129,9 @@ def test_get_pods_usage(mocker):
     pods_usage = list(kubernetes.get_pods_usage())
 
     assert pods_usage == pods_usage_expected
+    list_cluster_custom_object.assert_called_once_with(group="metrics.k8s.io", version="v1beta1", plural="pods")
+    list_namespace.assert_not_called()
+    assert caplog.text.count("NODE_NAME is not set") == 1
 
 
 def test_get_pods_usage_filters_by_node_name(mocker):
@@ -161,18 +164,17 @@ def test_get_pods_usage_filters_by_node_name(mocker):
     mocker.patch.object(HardwareInfo, "get_number_of_cores", return_value=number_of_cores)
     memory_total = 1000000000
     mocker.patch.object(HardwareInfo, "get_memory_total", return_value=memory_total)
-    mocker.patch.object(CustomObjectsApi, "list_namespaced_custom_object", return_value=return_value)
-    mocker.patch.object(
-        CoreV1Api,
-        "list_namespace",
-        return_value=V1NamespaceList(items=[V1Namespace(metadata=V1ObjectMeta(name="default"))]),
+    list_cluster_custom_object = mocker.patch.object(
+        CustomObjectsApi, "list_cluster_custom_object", return_value=return_value
     )
-    list_namespaced_pod = mocker.patch.object(
+    list_namespace = mocker.patch.object(CoreV1Api, "list_namespace")
+    list_pod_for_all_namespaces = mocker.patch.object(
         CoreV1Api,
-        "list_namespaced_pod",
+        "list_pod_for_all_namespaces",
         return_value=V1PodList(
             items=[
-                V1Pod(metadata=V1ObjectMeta(name="grafana-5745b58656-8q4q8")),
+                V1Pod(metadata=V1ObjectMeta(name="grafana-5745b58656-8q4q8", namespace="default")),
+                V1Pod(metadata=V1ObjectMeta(name="shorty-5469f85799-n4k2x", namespace="elsewhere")),
             ]
         ),
     )
@@ -188,13 +190,53 @@ def test_get_pods_usage_filters_by_node_name(mocker):
             containers=[Container(name="grafana", cpu_usage=0.004779815, memory_usage=0.022777856)],
         )
     ]
+    list_pod_for_all_namespaces.assert_called_once_with(field_selector="spec.nodeName=node-a")
+    list_cluster_custom_object.assert_called_once()
+    list_namespace.assert_not_called()
+
+
+def test_get_pods_usage_of_one_namespace_lists_only_that_namespace(mocker):
+    mocker.patch.object(HardwareInfo, "get_number_of_cores", return_value=2)
+    mocker.patch.object(HardwareInfo, "get_memory_total", return_value=1000000000)
+    list_namespaced_custom_object = mocker.patch.object(
+        CustomObjectsApi,
+        "list_namespaced_custom_object",
+        return_value={
+            "items": [
+                {
+                    "metadata": {"name": "worker", "namespace": "default"},
+                    "containers": [{"name": "app", "usage": {"cpu": "1000m", "memory": "500M"}}],
+                }
+            ]
+        },
+    )
+    mocker.patch.object(
+        CoreV1Api,
+        "list_namespace",
+        return_value=V1NamespaceList(items=[V1Namespace(metadata=V1ObjectMeta(name="default"))]),
+    )
+    list_namespaced_pod = mocker.patch.object(
+        CoreV1Api,
+        "list_namespaced_pod",
+        return_value=V1PodList(items=[V1Pod(metadata=V1ObjectMeta(name="worker", namespace="default"))]),
+    )
+    mocker.patch.object(config, "load_kube_config", return_value=None)
+
+    assert list(Kubernetes(node_name="node-a").get_pods_usage(namespace="default")) == [
+        Pod(name="worker", namespace="default", containers=[Container(name="app", cpu_usage=0.5, memory_usage=0.5)])
+    ]
     list_namespaced_pod.assert_called_once_with(namespace="default", field_selector="spec.nodeName=node-a")
+    list_namespaced_custom_object.assert_called_once_with(
+        group="metrics.k8s.io", version="v1beta1", namespace="default", plural="pods"
+    )
 
 
-def test_kubernetes_uses_node_name_from_env(mocker, monkeypatch):
+def test_kubernetes_uses_node_name_from_env(mocker, monkeypatch, caplog):
     mocker.patch.object(config, "load_kube_config", return_value=None)
     monkeypatch.setenv("NODE_NAME", "node-a")
+    monkeypatch.delenv("TRACARBON_KUBERNETES_NODE_NAME", raising=False)
 
     kubernetes = Kubernetes()
 
     assert kubernetes.node_name == "node-a"
+    assert "NODE_NAME is not set" not in caplog.text

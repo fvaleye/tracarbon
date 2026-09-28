@@ -3,6 +3,7 @@ from typing import Any
 from typing import Iterator
 from typing import List
 
+from loguru import logger
 from pydantic import BaseModel
 from pydantic import PrivateAttr
 
@@ -77,6 +78,11 @@ if KUBERNETES_INSTALLED:
                 data["api"] = CustomObjectsApi()
             if not data.get("node_name"):
                 data["node_name"] = os.environ.get("TRACARBON_KUBERNETES_NODE_NAME") or os.environ.get("NODE_NAME")
+            if not data["node_name"]:
+                logger.warning(
+                    "NODE_NAME is not set, so the pods of every node in the cluster are attributed to this one. "
+                    "Set NODE_NAME from spec.nodeName with the Downward API."
+                )
             super().__init__(**data)
 
         def refresh_namespaces(self) -> None:
@@ -85,53 +91,52 @@ if KUBERNETES_INSTALLED:
             """
             self.namespaces = [item.metadata.name for item in self._core_api.list_namespace().items]
 
-        def _get_node_pod_names(self, namespace: str) -> set[str] | None:
+        def _get_node_pod_keys(self, namespace: str | None) -> set[tuple[str, str]] | None:
             if not self.node_name:
                 return None
-            pods = self._core_api.list_namespaced_pod(
-                namespace=namespace,
-                field_selector=f"spec.nodeName={self.node_name}",
-            )
-            return {item.metadata.name for item in pods.items}
+            field_selector = f"spec.nodeName={self.node_name}"
+            if namespace:
+                pods = self._core_api.list_namespaced_pod(namespace=namespace, field_selector=field_selector)
+            else:
+                pods = self._core_api.list_pod_for_all_namespaces(field_selector=field_selector)
+            return {(item.metadata.namespace, item.metadata.name) for item in pods.items}
 
         def get_pods_usage(self, namespace: str | None = None) -> Iterator[Pod]:
             """
-            Get Pods with usage.
+            Yield pod usage for the configured node, or all nodes if unset.
 
-            :param: namespaces: list of namespaces for getting the pods.
-            :return: an iterator of the pods
+            :param namespace: namespace to query, or None for all namespaces
+            :return: pods with per-container CPU and memory usage
             """
-            self.refresh_namespaces()
-            if namespace and self.namespaces and namespace not in self.namespaces:
-                raise TracarbonException(
-                    ValueError(
-                        f"The Kubernetes namespace {namespace} is not available in the namespaces {self.namespaces}."
+            if namespace:
+                self.refresh_namespaces()
+                if self.namespaces and namespace not in self.namespaces:
+                    raise TracarbonException(
+                        ValueError(
+                            f"The Kubernetes namespace {namespace} is not available "
+                            f"in the namespaces {self.namespaces}."
+                        )
                     )
-                )
-            for n in self.namespaces or []:
-                if namespace and namespace != n:
-                    continue
-
-                node_pod_names = self._get_node_pod_names(namespace=n)
                 resource = self.api.list_namespaced_custom_object(
-                    group=self.group,
-                    version=self.version,
-                    namespace=n,
-                    plural="pods",
+                    group=self.group, version=self.version, namespace=namespace, plural="pods"
                 )
-                for pod in resource["items"]:
-                    pod_name = pod["metadata"]["name"]
-                    if node_pod_names is not None and pod_name not in node_pod_names:
-                        continue
-                    yield Pod(
-                        name=pod_name,
-                        namespace=pod["metadata"]["namespace"],
-                        containers=[
-                            Container(
-                                name=container["name"],
-                                cpu_usage=container["usage"]["cpu"],
-                                memory_usage=container["usage"]["memory"],
-                            )
-                            for container in pod["containers"]
-                        ],
-                    )
+            else:
+                resource = self.api.list_cluster_custom_object(group=self.group, version=self.version, plural="pods")
+            node_pod_keys = self._get_node_pod_keys(namespace=namespace)
+            for pod in resource["items"]:
+                pod_name = pod["metadata"]["name"]
+                pod_namespace = pod["metadata"]["namespace"]
+                if node_pod_keys is not None and (pod_namespace, pod_name) not in node_pod_keys:
+                    continue
+                yield Pod(
+                    name=pod_name,
+                    namespace=pod_namespace,
+                    containers=[
+                        Container(
+                            name=container["name"],
+                            cpu_usage=container["usage"]["cpu"],
+                            memory_usage=container["usage"]["memory"],
+                        )
+                        for container in pod["containers"]
+                    ],
+                )
