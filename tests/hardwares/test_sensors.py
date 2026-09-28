@@ -11,6 +11,7 @@ from pytest_mock import MockerFixture
 from tracarbon import AMDRAPL
 from tracarbon import RAPL
 from tracarbon import AWSEC2EnergyConsumption
+from tracarbon import Country
 from tracarbon import EnergyConsumption
 from tracarbon import LinuxEnergyConsumption
 from tracarbon import TracarbonException
@@ -33,6 +34,7 @@ from tracarbon.hardwares.ioreport import IOReportEnergy
 from tracarbon.hardwares.sensors import AzureEnergyConsumption
 from tracarbon.hardwares.sensors import GCPEnergyConsumption
 from tracarbon.hardwares.sensors import MacEnergyConsumption
+from tracarbon.locations import AzureLocation
 
 
 @pytest.fixture(autouse=True)
@@ -543,6 +545,31 @@ def test_azure_sensor_should_return_error_when_instance_type_is_missing():
 
     with pytest.raises(AzureSensorException):
         AzureEnergyConsumption(instance_type=instance_type)
+
+
+@pytest.mark.parametrize(
+    ("vm_size", "location", "instance_type", "region_name"),
+    [
+        ("Standard_D2s_v3", "westeurope", "D2s v3", "West Europe"),
+        ("Standard_B2ms", "eastus", "B2MS", "East US"),
+        ("Standard_NC4as_T4_v3", "westus3", "NC4as T4 v3", "West US 3"),
+    ],
+)
+def test_azure_metadata_names_find_the_instance_and_the_region(mocker, vm_size, location, instance_type, region_name):
+    mocker.patch.object(AWS, "is_ec2", return_value=False)
+    mocker.patch.object(GCP, "is_gcp", return_value=False)
+    imds_response = mocker.Mock(status_code=200)
+    imds_response.json.return_value = {"compute": {"vmSize": vm_size, "location": location}}
+    mocker.patch.object(requests, "get", return_value=imds_response)
+    CloudProviders.auto_detect.cache_clear()
+    try:
+        energy_consumption = EnergyConsumption.from_platform()
+        country = Country.get_location()
+    finally:
+        CloudProviders.auto_detect.cache_clear()
+
+    assert energy_consumption == AzureEnergyConsumption(instance_type=instance_type)
+    assert country.co2g_kwh == AzureLocation(region_name=region_name).co2g_kwh
 
 
 @pytest.mark.parametrize(

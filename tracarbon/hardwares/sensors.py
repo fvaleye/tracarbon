@@ -445,12 +445,14 @@ class CloudEnergyConsumption(EnergyConsumption):
         resource_file = importlib.resources.files("tracarbon.hardwares.data").joinpath(self._get_csv_filename())
         exception_class = self._get_exception_class()
         provider_name = self._get_provider_name()
+        # Azure metadata reports the "D2s v3" size of the instances file as "Standard_D2s_v3".
+        instance_key = instance_type.removeprefix("Standard_").replace("_", " ").casefold()
         try:
             with resource_file.open("r", encoding="utf-8") as csvfile:
                 reader = csv.reader(csvfile)
                 next(reader)  # Skip header
                 for row in reader:
-                    if row[0] == instance_type:
+                    if row[0].casefold() == instance_key:
                         data["vcpus"] = float(row[1])
                         data["memory_gb"] = float(row[2])
                         data["min_watts"] = float(row[3])
