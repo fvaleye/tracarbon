@@ -205,15 +205,19 @@ class MacEnergyConsumption(EnergyConsumption):
         :return: the power in watts, or None if the hardware reports no such key
         :raises asyncio.TimeoutError: if ioreg does not answer within PROBE_TIMEOUT_SECONDS
         """
-        proc = await asyncio.create_subprocess_shell(
-            shell_command,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-            start_new_session=True,
+        creation = asyncio.create_task(
+            asyncio.create_subprocess_shell(
+                shell_command,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                start_new_session=True,
+            )
         )
         try:
+            proc = await asyncio.shield(creation)
             result, _ = await asyncio.wait_for(proc.communicate(), timeout=PROBE_TIMEOUT_SECONDS)
         except (asyncio.TimeoutError, asyncio.CancelledError):
+            proc = await creation
             # ioreg and plutil are children of the shell, so stop the whole pipeline.
             with contextlib.suppress(ProcessLookupError):
                 if os.name == "posix":

@@ -651,8 +651,12 @@ async def test_mac_energy_consumption_reports_unknown_power_when_ioreg_reports_n
 @pytest.mark.asyncio
 @pytest.mark.linux
 @pytest.mark.darwin
-@pytest.mark.parametrize("cancel_reading", [False, True], ids=["timeout", "cancellation"])
-async def test_stopping_ioreg_stops_pipeline_children(mocker, monkeypatch, tmp_path, cancel_reading):
+@pytest.mark.parametrize(
+    ("cancel_reading", "during_creation"),
+    [(False, False), (True, False), (True, True)],
+    ids=["timeout", "cancellation", "creation-cancellation"],
+)
+async def test_stopping_ioreg_stops_pipeline_children(mocker, monkeypatch, tmp_path, cancel_reading, during_creation):
     launched_commands = mocker.spy(asyncio, "create_subprocess_shell")
     mocker.patch.object(
         AppleSiliconPowerMetrics,
@@ -667,6 +671,16 @@ async def test_stopping_ioreg_stops_pipeline_children(mocker, monkeypatch, tmp_p
         command = f"echo $$ > {shlex.quote(str(pid_file))}; exec sleep 30"
         commands.append(f"sh -c {shlex.quote(command)}")
     sensor = MacEnergyConsumption(shell_command=" | ".join(commands), adapter_shell_command="printf ''")
+    creation_can_finish = asyncio.Event()
+    if during_creation:
+        loop = asyncio.get_running_loop()
+        connect_read_pipe = loop.connect_read_pipe
+
+        async def connect_after_cancellation(*args, **kwargs):
+            await creation_can_finish.wait()
+            return await connect_read_pipe(*args, **kwargs)
+
+        mocker.patch.object(loop, "connect_read_pipe", side_effect=connect_after_cancellation)
 
     started_at = time.monotonic()
     reading = asyncio.create_task(sensor.get_energy_usage())
@@ -676,6 +690,7 @@ async def test_stopping_ioreg_stops_pipeline_children(mocker, monkeypatch, tmp_p
                 assert time.monotonic() - started_at < 3, "Pipeline did not start"
                 await asyncio.sleep(0.01)
             reading.cancel()
+            creation_can_finish.set()
             with pytest.raises(asyncio.CancelledError):
                 await reading
         else:
@@ -695,6 +710,7 @@ async def test_stopping_ioreg_stops_pipeline_children(mocker, monkeypatch, tmp_p
             else:
                 pytest.fail(f"Pipeline child {probe_pid} survived stopping the reading")
     finally:
+        creation_can_finish.set()
         reading.cancel()
         with contextlib.suppress(asyncio.CancelledError):
             await reading
