@@ -116,9 +116,6 @@ When running in Kubernetes, deploy Tracarbon per node and set `NODE_NAME` from `
 
 ## ⚙️ Configuration
 
-Creating `TracarbonConfiguration` loads the nearest `.env` in the working directory or its parents. Pass `env_file_path="path/to/.env"` to load a specific file.
-Existing environment variables take precedence over `.env`; both override constructor arguments.
-
 | Parameter | Description |
 | --- | --- |
 | `TRACARBON_CO2SIGNAL_API_KEY` | The [Electricity Maps](https://app.electricitymaps.com/developer-hub/api/reference) API key. The variable keeps its CO2Signal name for compatibility. |
