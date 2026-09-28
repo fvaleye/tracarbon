@@ -144,12 +144,11 @@ def test_unknown_location(mocker):
     assert exception.value.args[0] == "The country [ze] is not in the co2 emission file."
 
 
-@pytest.mark.parametrize("method_name", ["from_file", "from_eu_file"])
-def test_world_emission_should_get_country(method_name):
+def test_world_emission_should_get_country():
     country_code_alpha_iso_2 = "fr"
     co2g_kwh_expected = 41.44
 
-    country = getattr(Country, method_name)(country_code_alpha_iso_2=country_code_alpha_iso_2)
+    country = Country.from_file(country_code_alpha_iso_2=country_code_alpha_iso_2)
 
     assert country.name == country_code_alpha_iso_2
     assert country.co2g_kwh == co2g_kwh_expected

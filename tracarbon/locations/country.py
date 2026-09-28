@@ -91,8 +91,6 @@ class Country(Location):
                     )
         raise CountryIsMissing(f"The country [{country_code_alpha_iso_2}] is not in the co2 emission file.")
 
-    from_eu_file = from_file
-
     @classmethod
     def get_current_country(
         cls,
