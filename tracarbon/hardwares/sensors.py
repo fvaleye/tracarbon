@@ -432,12 +432,15 @@ class CloudEnergyConsumption(EnergyConsumption):
         """Get the exception class for this cloud provider."""
         raise NotImplementedError
 
+    @staticmethod
+    def _normalize_instance_type(instance_type: str) -> str:
+        return instance_type.casefold()
+
     def __init__(self, instance_type: str, **data: Any) -> None:
         resource_file = importlib.resources.files("tracarbon.hardwares.data").joinpath(self._get_csv_filename())
         exception_class = self._get_exception_class()
         provider_name = self._get_provider_name()
-        # Azure metadata uses "Standard_D2s_v3"; the dataset uses "D2s v3".
-        instance_key = instance_type.casefold().removeprefix("standard_").replace("_", " ")
+        instance_key = self._normalize_instance_type(instance_type)
         try:
             with resource_file.open("r", encoding="utf-8") as csvfile:
                 reader = csv.reader(csvfile)
@@ -520,6 +523,10 @@ class AzureEnergyConsumption(CloudEnergyConsumption):
     @classmethod
     def _get_exception_class(cls) -> type[Exception]:
         return AzureSensorException
+
+    @staticmethod
+    def _normalize_instance_type(instance_type: str) -> str:
+        return instance_type.casefold().removeprefix("standard_").replace("_", " ")
 
     def __init__(self, instance_type: str, **data: Any) -> None:
         super().__init__(instance_type=instance_type, **data)

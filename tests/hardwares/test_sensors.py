@@ -225,13 +225,15 @@ async def test_aws_sensor_interpolates_the_cpu_and_memory_power_at_the_cpu_load(
     [
         (AWSEC2EnergyConsumption, "m7i.large", AWSSensorException),
         (GCPEnergyConsumption, "c4a-standard-4", GCPSensorException),
+        (GCPEnergyConsumption, "Standard_n2-standard-4", GCPSensorException),
         (AzureEnergyConsumption, "Standard_D4s_v5", AzureSensorException),
     ],
-    ids=["aws", "gcp", "azure"],
+    ids=["aws", "gcp", "gcp-with-azure-prefix", "azure"],
 )
 def test_cloud_sensors_reject_an_unknown_instance_type(sensor_type, instance_type, exception_class):
-    with pytest.raises(exception_class, match="is missing from the"):
+    with pytest.raises(exception_class, match="is missing from the") as exception:
         sensor_type(instance_type=instance_type)
+    assert f"[{instance_type}]" in str(exception.value)
 
 
 @pytest.mark.parametrize("head_status", [200, 401])
