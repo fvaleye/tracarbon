@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 from datetime import timezone
 from typing import Any
+from typing import Dict
 
 import aiofiles
 import aiofiles.os
@@ -15,14 +16,14 @@ from tracarbon.exporters.exporter import MetricGenerator
 
 class JSONExporter(Exporter):
     """
-    Write the metrics to a local JSON file.
+    Write the metrics to a local JSON file: a JSON array, or JSON Lines with one object per line when the path
+    ends with ``.jsonl``.
     """
 
     path: str = ""
     indent: int = 4
 
     def __init__(self, **data: Any) -> None:
-        # Register flush at exit
         if "path" not in data or not data.get("path"):
             data["path"] = datetime.now().strftime("tracarbon_export_%d_%m_%Y.json")
         super().__init__(**data)
@@ -53,26 +54,23 @@ class JSONExporter(Exporter):
                         file.truncate(0 if ch == b"[" else closing_bracket)
                     break
         except Exception as exc:
-            # Log and continue; we can still write a fresh array
             from loguru import logger
 
             logger.debug(f"JSONExporter: could not strip trailing bracket for {self.path}: {exc}")
 
     def flush(self) -> None:
         """
-        Close the JSON array if needed by appending a closing bracket.
+        Close the JSON array if needed by appending a closing bracket. A JSON Lines file has nothing to close.
         """
-        if not os.path.isfile(self.path):
+        if self.path.endswith(".jsonl") or not os.path.isfile(self.path):
             return
         try:
             with open(self.path, "rb+") as file:
                 file.seek(0, os.SEEK_END)
                 size = file.tell()
                 if size == 0:
-                    # Write empty array
                     file.write(b"[]")
                     return
-                # Check if already closed
                 pos = size
                 last = None
                 while pos > 0:
@@ -95,18 +93,45 @@ class JSONExporter(Exporter):
         finally:
             await asyncio.to_thread(self.flush)
 
+    def _append_line(self, record: Dict[str, Any]) -> None:
+        """
+        Append a JSON line, separating it from an unterminated previous record.
+
+        :param record: the record to append
+        """
+        line = orjson.dumps(record, option=orjson.OPT_APPEND_NEWLINE)
+        with open(self.path, "a+b") as file:
+            end = file.seek(0, os.SEEK_END)
+            if end > 0:
+                file.seek(end - 1)
+                if file.read(1) != b"\n":
+                    line = b"\n" + line
+            file.write(line)
+
     async def launch(self, metric_generator: MetricGenerator) -> None:
         """
-        Append each metric value as a JSON object inside a growing JSON array file.
+        Append each metric value as a JSON object inside a growing JSON array file, or on its own line when the
+        path ends with ``.jsonl``.
 
         :param metric_generator: produces metrics to serialize
         """
-        await asyncio.to_thread(self._strip_trailing_closing_bracket)
+        json_lines = self.path.endswith(".jsonl")
+        if not json_lines:
+            await asyncio.to_thread(self._strip_trailing_closing_bracket)
         async for metric in metric_generator.generate():
             metric_value = await metric.value()
             if metric_value is None:
                 continue
             await self.add_metric_to_report(metric=metric, value=metric_value)
+            record = {
+                "timestamp": str(datetime.now(timezone.utc)),
+                "metric_name": metric.format_name(metric_prefix_name=self.metric_prefix_name),
+                "metric_value": metric_value,
+                "metric_tags": metric.format_tags(),
+            }
+            if json_lines:
+                await asyncio.to_thread(self._append_line, record)
+                continue
             try:
                 path_stat = await aiofiles.os.stat(self.path)
             except FileNotFoundError:
@@ -119,15 +144,7 @@ class JSONExporter(Exporter):
                 else:
                     await file.write(f"[{os.linesep}")
                 indent_opt = orjson.OPT_INDENT_2 if self.indent >= 2 else 0
-                payload = orjson.dumps(
-                    {
-                        "timestamp": str(datetime.now(timezone.utc)),
-                        "metric_name": metric.format_name(metric_prefix_name=self.metric_prefix_name),
-                        "metric_value": metric_value,
-                        "metric_tags": metric.format_tags(),
-                    },
-                    option=indent_opt,
-                )
+                payload = orjson.dumps(record, option=indent_opt)
                 await file.write(payload.decode("utf-8"))
 
     @classmethod

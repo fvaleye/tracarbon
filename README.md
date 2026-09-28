@@ -103,7 +103,7 @@ When running in Kubernetes, deploy Tracarbon per node and set `NODE_NAME` from `
 | Exporter | Description |
 | --- | --- |
 | Stdout | Print the metrics in Stdout. |
-| JSON | Write the metrics in a JSON file. |
+| JSON | Write a JSON array by default, or [JSON Lines](https://jsonlines.org/) with a `.jsonl` path. |
 | Prometheus | Send the metrics to Prometheus. |
 | Datadog | Send the metrics to Datadog. |
 

@@ -1,6 +1,7 @@
 import sys
 from datetime import datetime
 from datetime import timezone
+from unittest.mock import AsyncMock
 
 import orjson
 import psutil
@@ -117,3 +118,77 @@ def test_json_exporter_preserves_report_and_records_when_final_collection_fails(
         assert [record["metric_name"] for record in records] == ["carbon_emission_host", "carbon_emission_host"]
     finally:
         exporter.stop()
+
+
+def test_json_exporter_defaults_to_a_json_array(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    metric = Metric(name="default", value=AsyncMock(return_value=1.0))
+    exporter = JSONExporter(metric_generators=[MetricGenerator(metrics=[metric])])
+
+    exporter.start(interval_in_seconds=60)
+    exporter.stop()
+
+    records = orjson.loads((tmp_path / exporter.path).read_bytes())
+    assert [record["metric_value"] for record in records] == [1.0]
+
+
+def test_jsonl_appends_across_restarts(mocker, tmp_path):
+    fixed_timestamp = datetime(2021, 12, 21, tzinfo=timezone.utc)
+    mocker.patch("tracarbon.exporters.json_exporter.datetime").now.return_value = fixed_timestamp
+    output = tmp_path / "metrics.jsonl"
+    metric = Metric(name="test_metric_1", value=AsyncMock(return_value=70), tags=[Tag(key="test", value="tags")])
+    exporter = JSONExporter(path=str(output), metric_generators=[MetricGenerator(metrics=[metric])])
+
+    for _ in range(2):
+        exporter.start(interval_in_seconds=60)
+        exporter.stop()
+    exporter.flush()
+
+    record = {
+        "timestamp": str(fixed_timestamp),
+        "metric_name": "test_metric_1",
+        "metric_value": 70,
+        "metric_tags": ["test:tags"],
+    }
+    assert [orjson.loads(line) for line in output.read_bytes().splitlines()] == [record, record]
+
+
+def test_jsonl_records_are_readable_during_collection(tmp_path):
+    output = tmp_path / "metrics.jsonl"
+    records_read_mid_cycle = []
+
+    async def read_records_during_collection() -> float:
+        records_read_mid_cycle.extend(orjson.loads(line) for line in output.read_bytes().splitlines())
+        return 2.0
+
+    exporter = JSONExporter(
+        path=str(output),
+        metric_generators=[
+            MetricGenerator(
+                metrics=[
+                    Metric(name="first", value=AsyncMock(return_value=1.0)),
+                    Metric(name="second", value=read_records_during_collection),
+                ]
+            )
+        ],
+    )
+    exporter.start(interval_in_seconds=60)
+    exporter.stop()
+
+    assert [record["metric_name"] for record in records_read_mid_cycle] == ["first"]
+
+
+def test_jsonl_separates_a_torn_record_from_the_next(tmp_path):
+    output = tmp_path / "metrics.jsonl"
+    output.write_bytes(b'{"metric_name": "complete"}\n{"metric_na')
+    exporter = JSONExporter(
+        path=str(output),
+        metric_generators=[MetricGenerator(metrics=[Metric(name="after", value=AsyncMock(return_value=1.0))])],
+    )
+
+    exporter.start(interval_in_seconds=60)
+    exporter.stop()
+
+    complete, torn, after = output.read_bytes().splitlines()
+    assert torn == b'{"metric_na'
+    assert [orjson.loads(line)["metric_name"] for line in (complete, after)] == ["complete", "after"]
