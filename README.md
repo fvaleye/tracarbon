@@ -133,9 +133,6 @@ Set the variables below in your environment or a `.env` file. See [configuration
 | `DATADOG_API_KEY` | The Datadog API key of the Datadog exporter. |
 | `DATADOG_APP_KEY` | The Datadog application key of the Datadog exporter. |
 
-Python applications configure their own [Loguru handlers](https://loguru.readthedocs.io/en/stable/resources/recipes.html#configuring-loguru-to-be-used-by-a-library-or-an-application). Creating `TracarbonConfiguration` leaves those handlers unchanged.
-The CLI configures its own handler with local variables hidden in tracebacks. For application handlers, set `LOGURU_DIAGNOSE=False` before starting Python or pass `diagnose=False` to `logger.add()`.
-
 ## 💻 Development
 
 ### Local: using uv

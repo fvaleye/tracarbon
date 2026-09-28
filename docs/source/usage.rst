@@ -66,6 +66,17 @@ directory or its parents. Pass ``env_file_path="path/to/.env"`` to load a specif
 file. Existing environment variables take precedence over ``.env``; both override
 constructor arguments.
 
+Logging
+-------
+
+Python applications configure their own
+`Loguru handlers <https://loguru.readthedocs.io/en/stable/resources/recipes.html#configuring-loguru-to-be-used-by-a-library-or-an-application>`_.
+Creating ``TracarbonConfiguration`` leaves those handlers unchanged.
+
+The CLI configures its own handler with local variables hidden in tracebacks.
+For application handlers, set ``LOGURU_DIAGNOSE=False`` before starting Python
+or pass ``diagnose=False`` to ``logger.add()``.
+
 Choose metrics
 ==============
 
