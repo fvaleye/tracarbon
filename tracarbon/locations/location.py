@@ -14,9 +14,7 @@ REQUEST_TIMEOUT_IN_SECONDS = 10
 
 
 class _HiddenInRepr(str):
-    """
-    A header value that aiohttp sends as is but that reprs, tracebacks and aiohttp errors print masked.
-    """
+    """Send the real header value while masking its repr in aiohttp errors."""
 
     def __repr__(self) -> str:
         return "'**********'"

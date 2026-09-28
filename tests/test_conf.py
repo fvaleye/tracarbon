@@ -55,8 +55,10 @@ def test_configuration_loads_explicit_env_file(mocker, tmp_path):
     assert TracarbonConfiguration(env_file_path=str(env_file)).metric_prefix_name == "from_env_file"
 
 
-def test_configuration_repr_hides_api_key():
-    assert "SECRET_API_KEY" not in repr(TracarbonConfiguration(co2signal_api_key="SECRET_API_KEY"))
+def test_configuration_repr_hides_api_key(monkeypatch):
+    monkeypatch.setenv("TRACARBON_CO2SIGNAL_API_KEY", "SECRET_API_KEY")
+
+    assert "SECRET_API_KEY" not in repr(TracarbonConfiguration())
 
 
 def test_logger_configuration_hides_traceback_locals(capsys):
