@@ -22,8 +22,6 @@ def no_requests(monkeypatch):
 
 @pytest.fixture
 def run_python(tmp_path):
-    """Run a fresh interpreter in tmp_path, without the TRACARBON_ variables of the tests, and return its stderr."""
-
     def run(*arguments: str, **environment: str) -> str:
         inherited_environment = {name: value for name, value in os.environ.items() if not name.startswith("TRACARBON_")}
         completed = subprocess.run(
