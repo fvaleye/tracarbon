@@ -53,7 +53,9 @@ def test_get_cpu_usage_since_counts_guest_and_iowait_time_the_way_psutil_does(mo
     mocker.patch.object(
         psutil,
         "cpu_times",
-        return_value=since._replace(user=50.0, system=10.0, idle=20.0, iowait=20.0, guest=10.0),
+        return_value=since._replace(
+            user=40.0, nice=10.0, system=10.0, idle=20.0, iowait=20.0, guest=10.0, guest_nice=5.0
+        ),
     )
 
     cpu_usage, _ = HardwareInfo.get_cpu_usage_since(since=since)

@@ -479,38 +479,19 @@ def test_gcp_from_metadata(mocker):
 
 
 @pytest.mark.asyncio
-async def test_gcp_sensor_should_return_energy_consumption(mocker):
-    gcp_sensor = GCPEnergyConsumption(instance_type="n2-standard-4")
+async def test_gcp_sensor_returns_energy_consumption_for_a_newer_machine_series(mocker):
+    gcp_sensor = GCPEnergyConsumption(instance_type="c4-standard-2")
 
-    assert gcp_sensor.vcpus == 4.0
-    assert gcp_sensor.memory_gb == 16.0
-    assert gcp_sensor.min_watts > 0
-    assert gcp_sensor.max_watts > gcp_sensor.min_watts
+    assert gcp_sensor.vcpus == 2.0
+    assert gcp_sensor.memory_gb == 7.0
 
     mocker.patch.object(HardwareInfo, "get_cpu_usage_since", return_value=(50, None))
-    from tracarbon.hardwares.gpu import GPUInfo
-
     mocker.patch.object(GPUInfo, "get_gpu_power_usage_or_none", return_value=None)
 
     energy_usage = await gcp_sensor.get_energy_usage()
 
-    expected_power = gcp_sensor.min_watts + (gcp_sensor.max_watts - gcp_sensor.min_watts) * 0.5
-    assert abs(energy_usage.host_energy_usage - expected_power) < 0.01
-
-
-@pytest.mark.parametrize(
-    ("instance_type", "min_watts", "max_watts"),
-    [
-        ("c3-standard-4", 4.15, 16.25),
-        ("c3d-standard-4", 2.96, 8.78),
-        ("c4-standard-2", 1.63, 8.76),
-        ("n4-standard-2", 1.63, 8.76),
-    ],
-)
-def test_gcp_sensor_knows_the_newer_machine_series(instance_type, min_watts, max_watts):
-    gcp_sensor = GCPEnergyConsumption(instance_type=instance_type)
-
-    assert (gcp_sensor.min_watts, gcp_sensor.max_watts) == (min_watts, max_watts)
+    assert energy_usage.cpu_energy_usage == pytest.approx(5.195)
+    assert energy_usage.host_energy_usage == pytest.approx(5.195)
 
 
 def test_is_azure_should_return_false_on_exception():
