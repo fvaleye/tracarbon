@@ -106,16 +106,23 @@ Export Kubernetes container metrics to Prometheus on Linux:
 
 With the default metric prefix, container metrics are exposed with these Prometheus names:
 
-===============================================  ====================================================================
-Metric                                           Labels
-===============================================  ====================================================================
-tracarbon_energy_consumption_kubernetes_total    pod_name, pod_namespace, container_name, platform, containers, location, units
-tracarbon_energy_consumption_kubernetes_cpu      pod_name, pod_namespace, container_name, platform, containers, location, units
-tracarbon_energy_consumption_kubernetes_memory   pod_name, pod_namespace, container_name, platform, containers, location, units
-tracarbon_carbon_emission_kubernetes_total       pod_name, pod_namespace, container_name, platform, containers, location, source, units
-tracarbon_carbon_emission_kubernetes_cpu         pod_name, pod_namespace, container_name, platform, containers, location, source, units
-tracarbon_carbon_emission_kubernetes_memory      pod_name, pod_namespace, container_name, platform, containers, location, source, units
-===============================================  ====================================================================
+=======================================================  ====================================================================
+Metric                                                   Labels
+=======================================================  ====================================================================
+tracarbon_energy_consumption_kubernetes_total            pod_name, pod_namespace, container_name, platform, containers, location, units
+tracarbon_energy_consumption_kubernetes_cpu              pod_name, pod_namespace, container_name, platform, containers, location, units
+tracarbon_energy_consumption_kubernetes_memory           pod_name, pod_namespace, container_name, platform, containers, location, units
+tracarbon_carbon_emission_kubernetes_total               pod_name, pod_namespace, container_name, platform, containers, location, source, units
+tracarbon_carbon_emission_kubernetes_cpu                 pod_name, pod_namespace, container_name, platform, containers, location, source, units
+tracarbon_carbon_emission_kubernetes_memory              pod_name, pod_namespace, container_name, platform, containers, location, source, units
+tracarbon_carbon_emission_kubernetes_grams_total         pod_name, pod_namespace, container_name, platform, containers, location, source
+tracarbon_carbon_emission_kubernetes_cpu_grams_total     pod_name, pod_namespace, container_name, platform, containers, location, source
+tracarbon_carbon_emission_kubernetes_memory_grams_total  pod_name, pod_namespace, container_name, platform, containers, location, source
+=======================================================  ====================================================================
+
+Energy gauges report power; carbon gauges report emissions over the latest collection interval.
+Host and container carbon counters ending in ``_grams_total`` accumulate grams of CO2 eq without
+a ``units`` label.
 
 Zero values are exported. If Kubernetes returns no pod metrics, the CLI logs
 ``No Kubernetes container metrics were collected.`` Host metrics are still exported.

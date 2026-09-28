@@ -67,23 +67,7 @@ print(report.total_co2g)
 tracarbon run --exporter-name Prometheus --containers
 ```
 
-<details>
-<summary>Container metric names and labels</summary>
-
-With the default metric prefix, container metrics are exposed with these Prometheus names:
-
-| Metric | Labels |
-| --- | --- |
-| `tracarbon_energy_consumption_kubernetes_total` | `pod_name`, `pod_namespace`, `container_name`, `platform`, `containers`, `location`, `units` |
-| `tracarbon_energy_consumption_kubernetes_cpu` | `pod_name`, `pod_namespace`, `container_name`, `platform`, `containers`, `location`, `units` |
-| `tracarbon_energy_consumption_kubernetes_memory` | `pod_name`, `pod_namespace`, `container_name`, `platform`, `containers`, `location`, `units` |
-| `tracarbon_carbon_emission_kubernetes_total` | `pod_name`, `pod_namespace`, `container_name`, `platform`, `containers`, `location`, `source`, `units` |
-| `tracarbon_carbon_emission_kubernetes_cpu` | `pod_name`, `pod_namespace`, `container_name`, `platform`, `containers`, `location`, `source`, `units` |
-| `tracarbon_carbon_emission_kubernetes_memory` | `pod_name`, `pod_namespace`, `container_name`, `platform`, `containers`, `location`, `source`, `units` |
-
-</details>
-
-Zero values are exported. If Kubernetes returns no pod metrics, the CLI logs `No Kubernetes container metrics were collected.` Host metrics are still exported.
+See the [Prometheus metric reference](docs/source/usage.rst#export-metrics) for metric names, labels, and units.
 
 When running in Kubernetes, deploy Tracarbon per node and set `NODE_NAME` from `spec.nodeName` with the Downward API so container metrics are scoped to the measured node.
 
@@ -119,7 +103,7 @@ When running in Kubernetes, deploy Tracarbon per node and set `NODE_NAME` from `
 | Exporter | Description |
 | --- | --- |
 | Stdout | Print the metrics in Stdout. |
-| JSON | Write the metrics in a JSON file. |
+| JSON | Write a JSON array by default, or [JSON Lines](https://jsonlines.org/) with a `.jsonl` path. |
 | Prometheus | Send the metrics to Prometheus. |
 | Datadog | Send the metrics to Datadog. |
 

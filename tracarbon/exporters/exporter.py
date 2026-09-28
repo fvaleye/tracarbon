@@ -197,6 +197,7 @@ class Exporter(BaseModel, metaclass=ABCMeta):
     _start_lock: RLock = PrivateAttr(default_factory=RLock)
     _run_lock: RLock = PrivateAttr(default_factory=RLock)
     _collection_thread: Thread | None = PrivateAttr(default=None)
+    _final_collection_pending: bool = PrivateAttr(default=False)
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -281,15 +282,18 @@ class Exporter(BaseModel, metaclass=ABCMeta):
                 executor.submit(self.finish).result()
             return
         with self._start_lock:
-            should_collect = self.event is not None and not self.event.is_set() and not self.stopped
-            self.stop()
-            if should_collect:
-                with self._run_lock:
-                    self._collection_thread = current_thread()
-                    try:
-                        asyncio.run(self._launch_all())
-                    finally:
-                        self._collection_thread = None
+            self._final_collection_pending = self.event is not None and not self.event.is_set() and not self.stopped
+            try:
+                self.stop()
+                if self._final_collection_pending:
+                    with self._run_lock:
+                        self._collection_thread = current_thread()
+                        try:
+                            asyncio.run(self._launch_all())
+                        finally:
+                            self._collection_thread = None
+            finally:
+                self._final_collection_pending = False
 
     async def _launch_all(self) -> None:
         """
