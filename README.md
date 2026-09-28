@@ -53,7 +53,7 @@ print(report.total_co2g)
 
 `total_co2g` is `None` when no host carbon emission metric was collected. The total reflects collected samples.
 
-### Carbon intensity API (optional)
+### Carbon intensity API
 
 For the latest electricity carbon intensity, get an [Electricity Maps API key](https://app.electricitymaps.com/developer-hub/api/reference) and set `TRACARBON_CO2SIGNAL_API_KEY` in your environment or `.env` file, or pass `co2signal_api_key` to `TracarbonConfiguration`.
 Without a key, Tracarbon uses bundled data for [supported countries](tracarbon/locations/data/eu-co2-emission-intensity.json) and cloud regions.
