@@ -59,7 +59,7 @@ class HardwareInfo(BaseModel):
         window = cpu_times
         if since is not None:
             window = type(cpu_times)(*(max(0.0, now - before) for now, before in zip(cpu_times, since, strict=True)))
-        # Avoid double-counting Linux guest time; exclude iowait from busy time.
+        # Linux includes guest time in user/nice. I/O wait is not CPU work.
         total = sum(window) - getattr(window, "guest", 0.0) - getattr(window, "guest_nice", 0.0)
         busy = total - window.idle - getattr(window, "iowait", 0.0)
         return (100.0 * busy / total if total > 0 else 0.0), cpu_times
