@@ -7,6 +7,8 @@ import psutil
 from tracarbon import HardwareInfo
 from tracarbon.hardwares.gpu import NvidiaGPU
 
+CPUTimes = namedtuple("CPUTimes", "user nice system idle")
+
 
 def test_get_platform_should_return_the_platform():
     platform_expected = platform.system()
@@ -23,10 +25,6 @@ def test_get_cpu_usage(mocker):
     cpu_usage = HardwareInfo.get_cpu_usage()
 
     assert cpu_usage == cpu_usage_expected
-
-
-CPUTimes = namedtuple("CPUTimes", "user nice system idle")
-LinuxCPUTimes = namedtuple("LinuxCPUTimes", "user nice system idle iowait irq softirq steal guest guest_nice")
 
 
 def test_get_cpu_usage_since_measures_the_load_since_the_cpu_times_given(mocker):
@@ -50,6 +48,7 @@ def test_get_cpu_usage_since_measures_the_load_since_boot_without_earlier_cpu_ti
 
 
 def test_get_cpu_usage_since_counts_guest_and_iowait_time_the_way_psutil_does(mocker):
+    LinuxCPUTimes = namedtuple("LinuxCPUTimes", "user nice system idle iowait irq softirq steal guest guest_nice")
     since = LinuxCPUTimes(*[0.0] * 10)
     mocker.patch.object(
         psutil,
