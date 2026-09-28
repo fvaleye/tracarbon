@@ -1,0 +1,1074 @@
+{
+  "source": "Ember (2026), with major processing by Our World in Data",
+  "license": "CC BY 4.0 https://creativecommons.org/licenses/by/4.0/",
+  "modifications": "Latest available year of each country, keyed by ISO 3166 alpha-2 code",
+  "url": "https://ourworldindata.org/grapher/carbon-intensity-electricity",
+  "updated_at": "2026-06-30",
+  "countries": [
+    {
+      "name": "ae",
+      "co2g_kwh": 467.51,
+      "year": 2024
+    },
+    {
+      "name": "af",
+      "co2g_kwh": 131.31,
+      "year": 2024
+    },
+    {
+      "name": "ag",
+      "co2g_kwh": 594.6,
+      "year": 2024
+    },
+    {
+      "name": "al",
+      "co2g_kwh": 25.18,
+      "year": 2024
+    },
+    {
+      "name": "am",
+      "co2g_kwh": 211.93,
+      "year": 2025
+    },
+    {
+      "name": "ao",
+      "co2g_kwh": 185.38,
+      "year": 2024
+    },
+    {
+      "name": "ar",
+      "co2g_kwh": 346.0,
+      "year": 2025
+    },
+    {
+      "name": "as",
+      "co2g_kwh": 611.11,
+      "year": 2024
+    },
+    {
+      "name": "at",
+      "co2g_kwh": 116.91,
+      "year": 2025
+    },
+    {
+      "name": "au",
+      "co2g_kwh": 525.18,
+      "year": 2025
+    },
+    {
+      "name": "aw",
+      "co2g_kwh": 550.0,
+      "year": 2024
+    },
+    {
+      "name": "az",
+      "co2g_kwh": 631.9,
+      "year": 2025
+    },
+    {
+      "name": "ba",
+      "co2g_kwh": 570.64,
+      "year": 2025
+    },
+    {
+      "name": "bb",
+      "co2g_kwh": 594.6,
+      "year": 2024
+    },
+    {
+      "name": "bd",
+      "co2g_kwh": 696.13,
+      "year": 2025
+    },
+    {
+      "name": "be",
+      "co2g_kwh": 149.82,
+      "year": 2025
+    },
+    {
+      "name": "bf",
+      "co2g_kwh": 562.13,
+      "year": 2024
+    },
+    {
+      "name": "bg",
+      "co2g_kwh": 275.55,
+      "year": 2025
+    },
+    {
+      "name": "bh",
+      "co2g_kwh": 902.24,
+      "year": 2024
+    },
+    {
+      "name": "bi",
+      "co2g_kwh": 183.67,
+      "year": 2024
+    },
+    {
+      "name": "bj",
+      "co2g_kwh": 584.16,
+      "year": 2024
+    },
+    {
+      "name": "bm",
+      "co2g_kwh": 639.34,
+      "year": 2024
+    },
+    {
+      "name": "bn",
+      "co2g_kwh": 892.09,
+      "year": 2024
+    },
+    {
+      "name": "bo",
+      "co2g_kwh": 481.29,
+      "year": 2025
+    },
+    {
+      "name": "br",
+      "co2g_kwh": 109.95,
+      "year": 2025
+    },
+    {
+      "name": "bs",
+      "co2g_kwh": 653.33,
+      "year": 2024
+    },
+    {
+      "name": "bt",
+      "co2g_kwh": 23.64,
+      "year": 2024
+    },
+    {
+      "name": "bw",
+      "co2g_kwh": 851.31,
+      "year": 2024
+    },
+    {
+      "name": "by",
+      "co2g_kwh": 309.25,
+      "year": 2025
+    },
+    {
+      "name": "bz",
+      "co2g_kwh": 170.21,
+      "year": 2024
+    },
+    {
+      "name": "ca",
+      "co2g_kwh": 190.72,
+      "year": 2025
+    },
+    {
+      "name": "cd",
+      "co2g_kwh": 27.64,
+      "year": 2024
+    },
+    {
+      "name": "cf",
+      "co2g_kwh": 111.11,
+      "year": 2012
+    },
+    {
+      "name": "cg",
+      "co2g_kwh": 716.12,
+      "year": 2024
+    },
+    {
+      "name": "ch",
+      "co2g_kwh": 39.22,
+      "year": 2025
+    },
+    {
+      "name": "ci",
+      "co2g_kwh": 405.01,
+      "year": 2024
+    },
+    {
+      "name": "ck",
+      "co2g_kwh": 250.0,
+      "year": 2024
+    },
+    {
+      "name": "cl",
+      "co2g_kwh": 289.49,
+      "year": 2025
+    },
+    {
+      "name": "cm",
+      "co2g_kwh": 225.9,
+      "year": 2024
+    },
+    {
+      "name": "cn",
+      "co2g_kwh": 525.34,
+      "year": 2025
+    },
+    {
+      "name": "co",
+      "co2g_kwh": 186.81,
+      "year": 2025
+    },
+    {
+      "name": "cr",
+      "co2g_kwh": 24.2,
+      "year": 2025
+    },
+    {
+      "name": "cu",
+      "co2g_kwh": 642.82,
+      "year": 2024
+    },
+    {
+      "name": "cv",
+      "co2g_kwh": 461.54,
+      "year": 2024
+    },
+    {
+      "name": "cy",
+      "co2g_kwh": 489.0,
+      "year": 2025
+    },
+    {
+      "name": "cz",
+      "co2g_kwh": 401.46,
+      "year": 2025
+    },
+    {
+      "name": "de",
+      "co2g_kwh": 329.65,
+      "year": 2025
+    },
+    {
+      "name": "dj",
+      "co2g_kwh": 450.0,
+      "year": 2024
+    },
+    {
+      "name": "dk",
+      "co2g_kwh": 114.41,
+      "year": 2025
+    },
+    {
+      "name": "dm",
+      "co2g_kwh": 600.0,
+      "year": 2023
+    },
+    {
+      "name": "do",
+      "co2g_kwh": 537.48,
+      "year": 2025
+    },
+    {
+      "name": "dz",
+      "co2g_kwh": 632.94,
+      "year": 2024
+    },
+    {
+      "name": "ec",
+      "co2g_kwh": 159.02,
+      "year": 2025
+    },
+    {
+      "name": "ee",
+      "co2g_kwh": 319.15,
+      "year": 2025
+    },
+    {
+      "name": "eg",
+      "co2g_kwh": 563.23,
+      "year": 2025
+    },
+    {
+      "name": "eh",
+      "co2g_kwh": 666.67,
+      "year": 2009
+    },
+    {
+      "name": "er",
+      "co2g_kwh": 577.78,
+      "year": 2024
+    },
+    {
+      "name": "es",
+      "co2g_kwh": 153.6,
+      "year": 2025
+    },
+    {
+      "name": "et",
+      "co2g_kwh": 23.08,
+      "year": 2025
+    },
+    {
+      "name": "fi",
+      "co2g_kwh": 57.47,
+      "year": 2025
+    },
+    {
+      "name": "fj",
+      "co2g_kwh": 278.26,
+      "year": 2024
+    },
+    {
+      "name": "fk",
+      "co2g_kwh": 1000.0,
+      "year": 2023
+    },
+    {
+      "name": "fo",
+      "co2g_kwh": 346.94,
+      "year": 2023
+    },
+    {
+      "name": "fr",
+      "co2g_kwh": 41.44,
+      "year": 2025
+    },
+    {
+      "name": "ga",
+      "co2g_kwh": 523.08,
+      "year": 2024
+    },
+    {
+      "name": "gb",
+      "co2g_kwh": 217.41,
+      "year": 2025
+    },
+    {
+      "name": "gd",
+      "co2g_kwh": 666.67,
+      "year": 2024
+    },
+    {
+      "name": "ge",
+      "co2g_kwh": 145.93,
+      "year": 2025
+    },
+    {
+      "name": "gf",
+      "co2g_kwh": 244.9,
+      "year": 2023
+    },
+    {
+      "name": "gh",
+      "co2g_kwh": 468.89,
+      "year": 2024
+    },
+    {
+      "name": "gi",
+      "co2g_kwh": 590.91,
+      "year": 2024
+    },
+    {
+      "name": "gl",
+      "co2g_kwh": 150.0,
+      "year": 2024
+    },
+    {
+      "name": "gm",
+      "co2g_kwh": 666.67,
+      "year": 2024
+    },
+    {
+      "name": "gn",
+      "co2g_kwh": 181.14,
+      "year": 2024
+    },
+    {
+      "name": "gp",
+      "co2g_kwh": 497.01,
+      "year": 2023
+    },
+    {
+      "name": "gq",
+      "co2g_kwh": 644.3,
+      "year": 2024
+    },
+    {
+      "name": "gr",
+      "co2g_kwh": 315.09,
+      "year": 2025
+    },
+    {
+      "name": "gt",
+      "co2g_kwh": 301.46,
+      "year": 2024
+    },
+    {
+      "name": "gu",
+      "co2g_kwh": 607.53,
+      "year": 2024
+    },
+    {
+      "name": "gw",
+      "co2g_kwh": 625.0,
+      "year": 2024
+    },
+    {
+      "name": "gy",
+      "co2g_kwh": 644.93,
+      "year": 2024
+    },
+    {
+      "name": "hk",
+      "co2g_kwh": 675.48,
+      "year": 2024
+    },
+    {
+      "name": "hn",
+      "co2g_kwh": 322.12,
+      "year": 2024
+    },
+    {
+      "name": "hr",
+      "co2g_kwh": 158.5,
+      "year": 2025
+    },
+    {
+      "name": "ht",
+      "co2g_kwh": 534.88,
+      "year": 2024
+    },
+    {
+      "name": "hu",
+      "co2g_kwh": 163.02,
+      "year": 2025
+    },
+    {
+      "name": "id",
+      "co2g_kwh": 680.25,
+      "year": 2024
+    },
+    {
+      "name": "ie",
+      "co2g_kwh": 256.54,
+      "year": 2025
+    },
+    {
+      "name": "il",
+      "co2g_kwh": 492.69,
+      "year": 2025
+    },
+    {
+      "name": "in",
+      "co2g_kwh": 670.13,
+      "year": 2025
+    },
+    {
+      "name": "iq",
+      "co2g_kwh": 683.1,
+      "year": 2024
+    },
+    {
+      "name": "ir",
+      "co2g_kwh": 659.53,
+      "year": 2025
+    },
+    {
+      "name": "is",
+      "co2g_kwh": 27.82,
+      "year": 2024
+    },
+    {
+      "name": "it",
+      "co2g_kwh": 284.78,
+      "year": 2025
+    },
+    {
+      "name": "jm",
+      "co2g_kwh": 563.01,
+      "year": 2024
+    },
+    {
+      "name": "jo",
+      "co2g_kwh": 529.79,
+      "year": 2024
+    },
+    {
+      "name": "jp",
+      "co2g_kwh": 477.26,
+      "year": 2025
+    },
+    {
+      "name": "ke",
+      "co2g_kwh": 95.44,
+      "year": 2025
+    },
+    {
+      "name": "kg",
+      "co2g_kwh": 152.73,
+      "year": 2025
+    },
+    {
+      "name": "kh",
+      "co2g_kwh": 498.87,
+      "year": 2025
+    },
+    {
+      "name": "ki",
+      "co2g_kwh": 500.0,
+      "year": 2024
+    },
+    {
+      "name": "km",
+      "co2g_kwh": 642.86,
+      "year": 2023
+    },
+    {
+      "name": "kn",
+      "co2g_kwh": 608.7,
+      "year": 2024
+    },
+    {
+      "name": "kp",
+      "co2g_kwh": 340.59,
+      "year": 2024
+    },
+    {
+      "name": "kr",
+      "co2g_kwh": 417.06,
+      "year": 2025
+    },
+    {
+      "name": "kw",
+      "co2g_kwh": 635.31,
+      "year": 2025
+    },
+    {
+      "name": "ky",
+      "co2g_kwh": 633.8,
+      "year": 2024
+    },
+    {
+      "name": "kz",
+      "co2g_kwh": 805.32,
+      "year": 2025
+    },
+    {
+      "name": "la",
+      "co2g_kwh": 232.08,
+      "year": 2024
+    },
+    {
+      "name": "lb",
+      "co2g_kwh": 389.51,
+      "year": 2024
+    },
+    {
+      "name": "lc",
+      "co2g_kwh": 650.0,
+      "year": 2024
+    },
+    {
+      "name": "lk",
+      "co2g_kwh": 329.28,
+      "year": 2025
+    },
+    {
+      "name": "lr",
+      "co2g_kwh": 315.79,
+      "year": 2024
+    },
+    {
+      "name": "ls",
+      "co2g_kwh": 20.83,
+      "year": 2022
+    },
+    {
+      "name": "lt",
+      "co2g_kwh": 138.36,
+      "year": 2025
+    },
+    {
+      "name": "lu",
+      "co2g_kwh": 123.38,
+      "year": 2025
+    },
+    {
+      "name": "lv",
+      "co2g_kwh": 138.76,
+      "year": 2025
+    },
+    {
+      "name": "ly",
+      "co2g_kwh": 826.83,
+      "year": 2024
+    },
+    {
+      "name": "ma",
+      "co2g_kwh": 596.4,
+      "year": 2025
+    },
+    {
+      "name": "md",
+      "co2g_kwh": 633.12,
+      "year": 2025
+    },
+    {
+      "name": "me",
+      "co2g_kwh": 264.23,
+      "year": 2025
+    },
+    {
+      "name": "mg",
+      "co2g_kwh": 432.1,
+      "year": 2024
+    },
+    {
+      "name": "mk",
+      "co2g_kwh": 441.35,
+      "year": 2025
+    },
+    {
+      "name": "ml",
+      "co2g_kwh": 538.59,
+      "year": 2024
+    },
+    {
+      "name": "mm",
+      "co2g_kwh": 502.99,
+      "year": 2024
+    },
+    {
+      "name": "mn",
+      "co2g_kwh": 816.31,
+      "year": 2025
+    },
+    {
+      "name": "mo",
+      "co2g_kwh": 474.36,
+      "year": 2024
+    },
+    {
+      "name": "mq",
+      "co2g_kwh": 529.8,
+      "year": 2023
+    },
+    {
+      "name": "mr",
+      "co2g_kwh": 512.08,
+      "year": 2024
+    },
+    {
+      "name": "ms",
+      "co2g_kwh": 1000.0,
+      "year": 2024
+    },
+    {
+      "name": "mt",
+      "co2g_kwh": 484.02,
+      "year": 2025
+    },
+    {
+      "name": "mu",
+      "co2g_kwh": 642.23,
+      "year": 2024
+    },
+    {
+      "name": "mv",
+      "co2g_kwh": 611.77,
+      "year": 2024
+    },
+    {
+      "name": "mw",
+      "co2g_kwh": 54.65,
+      "year": 2024
+    },
+    {
+      "name": "mx",
+      "co2g_kwh": 474.02,
+      "year": 2025
+    },
+    {
+      "name": "my",
+      "co2g_kwh": 601.97,
+      "year": 2025
+    },
+    {
+      "name": "mz",
+      "co2g_kwh": 129.36,
+      "year": 2024
+    },
+    {
+      "name": "na",
+      "co2g_kwh": 48.78,
+      "year": 2024
+    },
+    {
+      "name": "nc",
+      "co2g_kwh": 560.9,
+      "year": 2024
+    },
+    {
+      "name": "ne",
+      "co2g_kwh": 673.68,
+      "year": 2024
+    },
+    {
+      "name": "ng",
+      "co2g_kwh": 455.71,
+      "year": 2025
+    },
+    {
+      "name": "ni",
+      "co2g_kwh": 300.89,
+      "year": 2024
+    },
+    {
+      "name": "nl",
+      "co2g_kwh": 253.56,
+      "year": 2025
+    },
+    {
+      "name": "no",
+      "co2g_kwh": 28.11,
+      "year": 2025
+    },
+    {
+      "name": "np",
+      "co2g_kwh": 24.26,
+      "year": 2024
+    },
+    {
+      "name": "nr",
+      "co2g_kwh": 600.0,
+      "year": 2024
+    },
+    {
+      "name": "nz",
+      "co2g_kwh": 92.76,
+      "year": 2025
+    },
+    {
+      "name": "om",
+      "co2g_kwh": 544.47,
+      "year": 2025
+    },
+    {
+      "name": "pa",
+      "co2g_kwh": 221.15,
+      "year": 2024
+    },
+    {
+      "name": "pe",
+      "co2g_kwh": 238.25,
+      "year": 2025
+    },
+    {
+      "name": "pf",
+      "co2g_kwh": 430.56,
+      "year": 2024
+    },
+    {
+      "name": "pg",
+      "co2g_kwh": 513.74,
+      "year": 2024
+    },
+    {
+      "name": "ph",
+      "co2g_kwh": 588.29,
+      "year": 2025
+    },
+    {
+      "name": "pk",
+      "co2g_kwh": 346.56,
+      "year": 2025
+    },
+    {
+      "name": "pl",
+      "co2g_kwh": 588.6,
+      "year": 2025
+    },
+    {
+      "name": "pm",
+      "co2g_kwh": 600.0,
+      "year": 2023
+    },
+    {
+      "name": "pr",
+      "co2g_kwh": 654.66,
+      "year": 2025
+    },
+    {
+      "name": "ps",
+      "co2g_kwh": 414.14,
+      "year": 2024
+    },
+    {
+      "name": "pt",
+      "co2g_kwh": 127.91,
+      "year": 2025
+    },
+    {
+      "name": "py",
+      "co2g_kwh": 24.7,
+      "year": 2025
+    },
+    {
+      "name": "qa",
+      "co2g_kwh": 581.52,
+      "year": 2025
+    },
+    {
+      "name": "re",
+      "co2g_kwh": 394.14,
+      "year": 2023
+    },
+    {
+      "name": "ro",
+      "co2g_kwh": 250.75,
+      "year": 2025
+    },
+    {
+      "name": "rs",
+      "co2g_kwh": 695.8,
+      "year": 2025
+    },
+    {
+      "name": "ru",
+      "co2g_kwh": 449.73,
+      "year": 2025
+    },
+    {
+      "name": "rw",
+      "co2g_kwh": 353.98,
+      "year": 2024
+    },
+    {
+      "name": "sa",
+      "co2g_kwh": 691.95,
+      "year": 2024
+    },
+    {
+      "name": "sb",
+      "co2g_kwh": 636.36,
+      "year": 2024
+    },
+    {
+      "name": "sc",
+      "co2g_kwh": 555.56,
+      "year": 2024
+    },
+    {
+      "name": "sd",
+      "co2g_kwh": 153.69,
+      "year": 2024
+    },
+    {
+      "name": "se",
+      "co2g_kwh": 35.26,
+      "year": 2025
+    },
+    {
+      "name": "sg",
+      "co2g_kwh": 497.09,
+      "year": 2025
+    },
+    {
+      "name": "sh",
+      "co2g_kwh": 1000.0,
+      "year": 2023
+    },
+    {
+      "name": "si",
+      "co2g_kwh": 183.29,
+      "year": 2025
+    },
+    {
+      "name": "sk",
+      "co2g_kwh": 94.85,
+      "year": 2025
+    },
+    {
+      "name": "sl",
+      "co2g_kwh": 47.62,
+      "year": 2024
+    },
+    {
+      "name": "sn",
+      "co2g_kwh": 539.97,
+      "year": 2024
+    },
+    {
+      "name": "so",
+      "co2g_kwh": 511.63,
+      "year": 2024
+    },
+    {
+      "name": "sr",
+      "co2g_kwh": 321.84,
+      "year": 2024
+    },
+    {
+      "name": "ss",
+      "co2g_kwh": 642.86,
+      "year": 2024
+    },
+    {
+      "name": "st",
+      "co2g_kwh": 555.56,
+      "year": 2023
+    },
+    {
+      "name": "sv",
+      "co2g_kwh": 139.32,
+      "year": 2025
+    },
+    {
+      "name": "sy",
+      "co2g_kwh": 706.19,
+      "year": 2024
+    },
+    {
+      "name": "sz",
+      "co2g_kwh": 131.15,
+      "year": 2024
+    },
+    {
+      "name": "tc",
+      "co2g_kwh": 629.63,
+      "year": 2024
+    },
+    {
+      "name": "td",
+      "co2g_kwh": 621.62,
+      "year": 2024
+    },
+    {
+      "name": "tg",
+      "co2g_kwh": 422.54,
+      "year": 2024
+    },
+    {
+      "name": "th",
+      "co2g_kwh": 545.74,
+      "year": 2025
+    },
+    {
+      "name": "tj",
+      "co2g_kwh": 72.56,
+      "year": 2025
+    },
+    {
+      "name": "tl",
+      "co2g_kwh": 666.67,
+      "year": 2024
+    },
+    {
+      "name": "tm",
+      "co2g_kwh": 1306.27,
+      "year": 2024
+    },
+    {
+      "name": "tn",
+      "co2g_kwh": 560.29,
+      "year": 2025
+    },
+    {
+      "name": "to",
+      "co2g_kwh": 571.43,
+      "year": 2024
+    },
+    {
+      "name": "tr",
+      "co2g_kwh": 474.74,
+      "year": 2025
+    },
+    {
+      "name": "tt",
+      "co2g_kwh": 681.68,
+      "year": 2024
+    },
+    {
+      "name": "tw",
+      "co2g_kwh": 633.21,
+      "year": 2025
+    },
+    {
+      "name": "tz",
+      "co2g_kwh": 345.02,
+      "year": 2024
+    },
+    {
+      "name": "ua",
+      "co2g_kwh": 250.47,
+      "year": 2022
+    },
+    {
+      "name": "ug",
+      "co2g_kwh": 58.52,
+      "year": 2024
+    },
+    {
+      "name": "us",
+      "co2g_kwh": 384.4,
+      "year": 2025
+    },
+    {
+      "name": "uy",
+      "co2g_kwh": 80.4,
+      "year": 2025
+    },
+    {
+      "name": "uz",
+      "co2g_kwh": 1000.0,
+      "year": 2025
+    },
+    {
+      "name": "vc",
+      "co2g_kwh": 600.0,
+      "year": 2024
+    },
+    {
+      "name": "ve",
+      "co2g_kwh": 85.86,
+      "year": 2024
+    },
+    {
+      "name": "vg",
+      "co2g_kwh": 647.06,
+      "year": 2023
+    },
+    {
+      "name": "vi",
+      "co2g_kwh": 632.35,
+      "year": 2023
+    },
+    {
+      "name": "vn",
+      "co2g_kwh": 460.73,
+      "year": 2025
+    },
+    {
+      "name": "vu",
+      "co2g_kwh": 500.0,
+      "year": 2023
+    },
+    {
+      "name": "ws",
+      "co2g_kwh": 375.0,
+      "year": 2024
+    },
+    {
+      "name": "ye",
+      "co2g_kwh": 592.38,
+      "year": 2024
+    },
+    {
+      "name": "za",
+      "co2g_kwh": 699.29,
+      "year": 2025
+    },
+    {
+      "name": "zm",
+      "co2g_kwh": 119.68,
+      "year": 2024
+    },
+    {
+      "name": "zw",
+      "co2g_kwh": 384.02,
+      "year": 2024
+    }
+  ]
+}
