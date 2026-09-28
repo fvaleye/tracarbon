@@ -530,14 +530,14 @@ toml = [
 
 [[package]]
 name = "datadog"
-version = "0.52.1"
+version = "0.54.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a9/e6/ec5e4b4dbecd63cecae94009ef6dde9ab421d7d0022e6027586cc3776921/datadog-0.52.1.tar.gz", hash = "sha256:44c6deb563c4522dba206fba2e2bb93d3b04113c40191851ba3a241d82b5fd0b", size = 368037, upload-time = "2025-07-31T15:49:43.425Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e4/01/0f7b044e0cd3f3d851948a612fc09d48cd28b436fe09dd357fbde8f134aa/datadog-0.54.0.tar.gz", hash = "sha256:62afcedb3e56b8ea6fff04aa807ebcbf9a6bd843bd1c7feab0a9035ce21b8ca2", size = 407291, upload-time = "2026-09-22T20:53:51.34Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/90/19/e0e39f10169ca3e37fa6b5be2f6d1c729c92d677f1bd21ad6d448df8bec8/datadog-0.52.1-py2.py3-none-any.whl", hash = "sha256:b8c92cd761618ee062f114171067e4c400d48c9f0dad16cb285042439d9d5d4e", size = 129952, upload-time = "2025-07-31T15:49:41.8Z" },
+    { url = "https://files.pythonhosted.org/packages/1c/7f/d9538fded4be4f13b26e2848e74aafdf8d20d4bee94b966c443145c53cf8/datadog-0.54.0-py2.py3-none-any.whl", hash = "sha256:5a3d47154ed5ef223ca85533da3703691ba8707812db1a95f335094cdf884d4b", size = 152270, upload-time = "2026-09-22T20:53:49.677Z" },
 ]
 
 [[package]]
@@ -2144,8 +2144,8 @@ requires-dist = [
     { name = "aiofiles", specifier = ">=23.2,<26.0" },
     { name = "aiohttp", specifier = ">=3.14.3,<4.0.0" },
     { name = "bandit", marker = "extra == 'dev'", specifier = ">=1.7.9,<2.0.0" },
-    { name = "datadog", marker = "extra == 'datadog'", specifier = ">=0.44,<0.54" },
-    { name = "datadog", marker = "extra == 'dev'", specifier = ">=0.44,<0.54" },
+    { name = "datadog", marker = "extra == 'datadog'", specifier = ">=0.44,<0.55" },
+    { name = "datadog", marker = "extra == 'dev'", specifier = ">=0.44,<0.55" },
     { name = "ec2-metadata", specifier = ">=2.14.0,<4.0.0" },
     { name = "kubernetes", marker = "extra == 'dev'", specifier = ">=26.1,<37.0" },
     { name = "kubernetes", marker = "extra == 'kubernetes'", specifier = ">=26.1,<37.0" },
