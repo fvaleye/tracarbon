@@ -130,7 +130,7 @@ When running in Kubernetes, deploy Tracarbon per node and set `NODE_NAME` from `
 | Worldwide | Get the latest co2g/kwh in near real-time using the CO2Signal or ElectricityMaps APIs. See [here](https://app.electricitymaps.com/developer-hub/api/reference) for available Electricity Maps query modes.<br><br>[CO2Signal API](https://www.co2signal.com) or [ElectricityMaps](https://app.electricitymaps.com/developer-hub/api/reference) |
 | Europe | Static file created from the European Environment Agency Emission for the co2g/kwh in European countries.<br><br>[EEA website](https://www.eea.europa.eu/en/analysis/maps-and-charts/co2-emission-intensity-15) |
 | AWS | Static file of the AWS Grid emissions factors.<br><br>[cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/cloud-carbon-coefficients/blob/main/data/grid-emissions-factors-aws.csv) |
-| GCP | Static file of the GCP Grid emissions factors (2024 yearly data).<br><br>[GoogleCloudPlatform/region-carbon-info](https://github.com/GoogleCloudPlatform/region-carbon-info/blob/main/data/yearly/2024.csv) |
+| GCP | Static file of the GCP Grid emissions factors (2025 yearly data).<br><br>[GoogleCloudPlatform/region-carbon-info](https://github.com/GoogleCloudPlatform/region-carbon-info/blob/main/data/yearly/2025.csv) |
 | Azure | Static file of the Azure Grid emissions factors.<br><br>[cloud-carbon-coefficients](https://github.com/cloud-carbon-footprint/cloud-carbon-coefficients/blob/main/data/grid-emissions-factors-azure.csv) |
 
 ## ⚙️ Configuration

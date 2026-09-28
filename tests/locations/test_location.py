@@ -146,8 +146,7 @@ def test_gcp_location_should_return_ok_if_region_exists():
     location = GCPLocation(region_name=region_name)
 
     assert location.name == "GCP(europe-west1)"
-    assert location.co2g_kwh > 100
-    assert location.co2g_kwh < 110
+    assert location.co2g_kwh == 126.43
     assert location.co2g_kwh_source.value == "file"
 
 
@@ -157,8 +156,7 @@ def test_gcp_location_us_central1():
     location = GCPLocation(region_name=region_name)
 
     assert location.name == "GCP(us-central1)"
-    assert location.co2g_kwh > 400
-    assert location.co2g_kwh < 420
+    assert location.co2g_kwh == 431.95
 
 
 def test_azure_location_should_return_an_error_if_region_not_exists():
