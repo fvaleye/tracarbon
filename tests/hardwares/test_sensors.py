@@ -15,8 +15,6 @@ from tracarbon import Country
 from tracarbon import EnergyConsumption
 from tracarbon import LinuxEnergyConsumption
 from tracarbon import TracarbonException
-from tracarbon.exceptions import AzureSensorException
-from tracarbon.exceptions import GCPSensorException
 from tracarbon.exceptions import HardwareIOReportException
 from tracarbon.exceptions import HardwareNoGPUDetectedException
 from tracarbon.hardwares import EnergyUsage
@@ -219,11 +217,24 @@ async def test_aws_sensor_interpolates_the_cpu_and_memory_power_at_the_cpu_load(
     assert energy_usage.host_energy_usage == pytest.approx(cpu_watts + memory_watts + 2.0)
 
 
-def test_aws_sensor_should_return_error_when_instance_type_is_missing():
-    instance_type = "fefe"
+def test_aws_sensor_estimates_an_unknown_instance_per_vcpu_and_per_gb_of_memory(mocker, caplog):
+    mocker.patch.object(HardwareInfo, "get_number_of_cores", return_value=2)
+    mocker.patch.object(HardwareInfo, "get_memory_total", return_value=8 * 1024**3)
 
-    with pytest.raises(TracarbonException):
-        AWSEC2EnergyConsumption(instance_type=instance_type)
+    aws_ec2_sensor = AWSEC2EnergyConsumption(instance_type="m7i.large")
+
+    cpu_watts = (aws_ec2_sensor.cpu_idle, aws_ec2_sensor.cpu_at_10, aws_ec2_sensor.cpu_at_50, aws_ec2_sensor.cpu_at_100)
+    assert cpu_watts == pytest.approx((1.1398, 2.8733, 6.3944, 9.2788), abs=1e-4)
+    memory_watts = (
+        aws_ec2_sensor.memory_idle,
+        aws_ec2_sensor.memory_at_10,
+        aws_ec2_sensor.memory_at_50,
+        aws_ec2_sensor.memory_at_100,
+    )
+    assert memory_watts == pytest.approx((1.6, 2.4, 3.2, 4.8))
+    assert aws_ec2_sensor.delta_full_machine == pytest.approx(1.75)
+    assert aws_ec2_sensor.has_gpu is True
+    assert "AWS instance type [m7i.large] is missing" in caplog.text
 
 
 @pytest.mark.parametrize("head_status", [200, 401])
@@ -490,11 +501,26 @@ async def test_gcp_sensor_should_return_energy_consumption(mocker):
     assert abs(energy_usage.host_energy_usage - expected_power) < 0.01
 
 
-def test_gcp_sensor_should_return_error_when_instance_type_is_missing():
-    instance_type = "unknown-instance-type"
+@pytest.mark.parametrize(
+    ("sensor_type", "instance_type", "min_watts_per_vcpu", "max_watts_per_vcpu"),
+    [
+        (GCPEnergyConsumption, "c4a-standard-4", 0.63897, 3.6425),
+        (AzureEnergyConsumption, "Standard_D4s_v5", 0.84, 3.7),
+    ],
+    ids=["gcp", "azure"],
+)
+def test_cloud_sensors_estimate_an_unknown_instance_per_vcpu(
+    mocker, caplog, sensor_type, instance_type, min_watts_per_vcpu, max_watts_per_vcpu
+):
+    mocker.patch.object(HardwareInfo, "get_number_of_cores", return_value=4)
+    mocker.patch.object(HardwareInfo, "get_memory_total", return_value=16 * 1024**3)
 
-    with pytest.raises(GCPSensorException):
-        GCPEnergyConsumption(instance_type=instance_type)
+    sensor = sensor_type(instance_type=instance_type)
+
+    assert (sensor.vcpus, sensor.memory_gb) == (4, 16)
+    assert sensor.min_watts == pytest.approx(4 * min_watts_per_vcpu, abs=1e-4)
+    assert sensor.max_watts == pytest.approx(4 * max_watts_per_vcpu, abs=1e-4)
+    assert f"instance type [{instance_type}] is missing" in caplog.text
 
 
 def test_is_azure_should_return_false_on_exception():
@@ -538,13 +564,6 @@ async def test_azure_sensor_should_return_energy_consumption(mocker):
 
     expected_power = azure_sensor.min_watts + (azure_sensor.max_watts - azure_sensor.min_watts) * 0.5
     assert abs(energy_usage.host_energy_usage - expected_power) < 0.01
-
-
-def test_azure_sensor_should_return_error_when_instance_type_is_missing():
-    instance_type = "unknown-instance-type"
-
-    with pytest.raises(AzureSensorException):
-        AzureEnergyConsumption(instance_type=instance_type)
 
 
 @pytest.mark.parametrize(
