@@ -66,9 +66,9 @@ class Country(Location):
         )
 
     @classmethod
-    def from_eu_file(cls, country_code_alpha_iso_2: str) -> "Country":
+    def from_file(cls, country_code_alpha_iso_2: str) -> "Country":
         """
-        Get the country from the bundled yearly carbon intensity file, covering every country.
+        Load a country's bundled yearly carbon intensity.
 
         :param country_code_alpha_iso_2: the alpha_iso_2 name of the country
         :return:
@@ -90,6 +90,8 @@ class Country(Location):
                         ),
                     )
         raise CountryIsMissing(f"The country [{country_code_alpha_iso_2}] is not in the co2 emission file.")
+
+    from_eu_file = from_file
 
     @classmethod
     def get_current_country(
@@ -183,7 +185,7 @@ class Country(Location):
                 "The bundled carbon intensity only has lifecycle emission factors: "
                 "set an Electricity Maps API key to use direct emission factors."
             )
-        return cls.from_eu_file(country_code_alpha_iso_2=country_code_alpha_iso_2)
+        return cls.from_file(country_code_alpha_iso_2=country_code_alpha_iso_2)
 
     async def get_latest_co2g_kwh(self) -> float:
         """

@@ -144,11 +144,12 @@ def test_unknown_location(mocker):
     assert exception.value.args[0] == "The country [ze] is not in the co2 emission file."
 
 
-def test_world_emission_should_get_country():
+@pytest.mark.parametrize("method_name", ["from_file", "from_eu_file"])
+def test_world_emission_should_get_country(method_name):
     country_code_alpha_iso_2 = "fr"
     co2g_kwh_expected = 41.44
 
-    country = Country.from_eu_file(country_code_alpha_iso_2=country_code_alpha_iso_2)
+    country = getattr(Country, method_name)(country_code_alpha_iso_2=country_code_alpha_iso_2)
 
     assert country.name == country_code_alpha_iso_2
     assert country.co2g_kwh == co2g_kwh_expected
@@ -158,7 +159,7 @@ def test_world_emission_should_raise_error_when_country_is_missing():
     country_code_alpha_iso_2 = "zf"
 
     with pytest.raises(CountryIsMissing) as exception:
-        Country.from_eu_file(country_code_alpha_iso_2=country_code_alpha_iso_2)
+        Country.from_file(country_code_alpha_iso_2=country_code_alpha_iso_2)
 
     assert exception.value.args[0] == f"The country [{country_code_alpha_iso_2}] is not in the co2 emission file."
 

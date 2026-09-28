@@ -353,7 +353,7 @@ def test_get_location_without_api_key_warns_that_direct_emission_factors_are_una
 
 @pytest.mark.asyncio
 async def test_bundled_country_keeps_its_carbon_intensity_metadata_when_refreshed():
-    country = Country.from_eu_file("fr")
+    country = Country.from_file("fr")
 
     await country.get_latest_co2g_kwh()
 
