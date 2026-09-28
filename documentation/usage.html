@@ -39,8 +39,8 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
 
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="_static/doctools.js?v=9bcbadda"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'usage';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="icon" href="_static/logo.png"/>
@@ -50,7 +50,7 @@
     <link rel="prev" title="Installation" href="installation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.12.0" />
+  <meta name="docsearch:version" content="0.13.0" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -416,10 +416,12 @@ to measure a workload.</p>
 <section id="python-api">
 <h2>Python API<a class="headerlink" href="#python-api" title="Link to this heading">#</a></h2>
 <p>Wrap your workload in a tracker:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">tracarbon</span><span class="w"> </span><span class="kn">import</span> <span class="n">TracarbonBuilder</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">tracarbon</span><span class="w"> </span><span class="kn">import</span> <span class="n">TracarbonBuilder</span>
 
 <span class="k">with</span> <span class="n">TracarbonBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">build</span><span class="p">()</span> <span class="k">as</span> <span class="n">tracker</span><span class="p">:</span>
-    <span class="n">run_workload</span><span class="p">()</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># Replace with your workload.</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">tracker</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">total_co2g</span><span class="p">)</span>
 </pre></div>
@@ -430,14 +432,6 @@ or <code class="docutils literal notranslate"><span class="pre">None</span></cod
 </section>
 <section id="configuration">
 <h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h2>
-<p>Choose a country:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">tracarbon run --country-code-alpha-iso-2 fr</span>
-</pre></div>
-</div>
-<p>Set an API key for live carbon intensity:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">TRACARBON_CO2SIGNAL_API_KEY=API_KEY tracarbon run</span>
-</pre></div>
-</div>
 <p>In Python, pass a <a class="reference internal" href="api_reference.html#tracarbon.conf.TracarbonConfiguration" title="tracarbon.conf.TracarbonConfiguration"><code class="xref py py-class docutils literal notranslate"><span class="pre">TracarbonConfiguration</span></code></a> to the builder:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">tracarbon</span><span class="w"> </span><span class="kn">import</span> <span class="n">TracarbonBuilder</span><span class="p">,</span> <span class="n">TracarbonConfiguration</span>
 
@@ -445,39 +439,163 @@ or <code class="docutils literal notranslate"><span class="pre">None</span></cod
 <span class="n">tracker</span> <span class="o">=</span> <span class="n">TracarbonBuilder</span><span class="p">(</span><span class="n">configuration</span><span class="o">=</span><span class="n">configuration</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
 </pre></div>
 </div>
+<p>Creating <code class="docutils literal notranslate"><span class="pre">TracarbonConfiguration</span></code> loads the nearest <code class="docutils literal notranslate"><span class="pre">.env</span></code> in the working
+directory or its parents. Pass <code class="docutils literal notranslate"><span class="pre">env_file_path=&quot;path/to/.env&quot;</span></code> to load a specific
+file. Existing environment variables take precedence over <code class="docutils literal notranslate"><span class="pre">.env</span></code>; both override
+constructor arguments.</p>
+<p><code class="docutils literal notranslate"><span class="pre">metric_prefix_name</span></code> applies to the default exporter. When supplying your own
+exporter, set its prefix and its generators’ locations explicitly. The CLI defaults
+to collecting both power and carbon emissions; the Python builder collects carbon
+emissions.</p>
+</section>
+<section id="carbon-intensity">
+<h2>Carbon intensity<a class="headerlink" href="#carbon-intensity" title="Link to this heading">#</a></h2>
+<section id="bundled-files">
+<h3>Bundled files<a class="headerlink" href="#bundled-files" title="Link to this heading">#</a></h3>
+<p>Without an API key, Tracarbon reads yearly lifecycle factors from its packaged
+country and cloud-region files. These are static estimates, not live readings.
+Choose a country explicitly to avoid the IP geolocation request:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">TRACARBON_CO2SIGNAL_API_KEY= tracarbon run --country-code-alpha-iso-2 fr</span>
+</pre></div>
+</div>
+<p>The empty environment variable overrides a key in <code class="docutils literal notranslate"><span class="pre">.env</span></code>. Cloud-provider
+detection still runs; a detected cloud region takes precedence over the country.
+In Python, select the bundled country directly:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">tracarbon</span><span class="w"> </span><span class="kn">import</span> <span class="n">Country</span><span class="p">,</span> <span class="n">TracarbonBuilder</span>
+
+<span class="n">location</span> <span class="o">=</span> <span class="n">Country</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;fr&quot;</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">TracarbonBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_location</span><span class="p">(</span><span class="n">location</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span> <span class="k">as</span> <span class="n">tracker</span><span class="p">:</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">tracker</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">total_co2g</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">Country.from_file</span></code> uses the packaged data even when an API key is configured.
+Unsupported countries raise <code class="docutils literal notranslate"><span class="pre">CountryIsMissing</span></code>. Bundled data only provides
+<code class="docutils literal notranslate"><span class="pre">lifecycle</span></code> factors; choosing <code class="docutils literal notranslate"><span class="pre">direct</span></code> without a key logs a warning and uses
+the lifecycle value.</p>
+</section>
+<section id="live-api">
+<h3>Live API<a class="headerlink" href="#live-api" title="Link to this heading">#</a></h3>
+<p>Set <code class="docutils literal notranslate"><span class="pre">TRACARBON_CO2SIGNAL_API_KEY</span></code> to an Electricity Maps key. The default
+endpoint is <code class="docutils literal notranslate"><span class="pre">https://api.electricitymaps.com/v4/carbon-intensity/latest</span></code>.
+Set <code class="docutils literal notranslate"><span class="pre">TRACARBON_EMISSION_FACTOR_TYPE</span></code> to <code class="docutils literal notranslate"><span class="pre">lifecycle</span></code> (default) or <code class="docutils literal notranslate"><span class="pre">direct</span></code>.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">TRACARBON_CO2SIGNAL_API_KEY=API_KEY TRACARBON_EMISSION_FACTOR_TYPE=direct tracarbon run --country-code-alpha-iso-2 fr</span>
+</pre></div>
+</div>
+<p>Each location caches a successful response for one hour, independently of the
+measurement interval. A failed refresh uses the last successful value and marks
+<code class="docutils literal notranslate"><span class="pre">location.carbon_intensity_metadata.fallback_used</span></code>. If the first request fails,
+the error propagates and the CLI exits with an error. An invalid key does not
+automatically select bundled files. On AWS, GCP, and Azure, the default API uses
+the detected provider and region; without a key, their packaged region files apply.</p>
+</section>
+</section>
+<section id="application-logging">
+<h2>Application logging<a class="headerlink" href="#application-logging" title="Link to this heading">#</a></h2>
+<p>Python applications configure their own
+<a class="reference external" href="https://loguru.readthedocs.io/en/stable/resources/recipes.html#configuring-loguru-to-be-used-by-a-library-or-an-application">Loguru handlers</a>.
+Creating <code class="docutils literal notranslate"><span class="pre">TracarbonConfiguration</span></code> leaves those handlers unchanged.</p>
+<p>The CLI configures its own handler with local variables hidden in tracebacks.
+For application handlers, set <code class="docutils literal notranslate"><span class="pre">LOGURU_DIAGNOSE=False</span></code> before starting Python
+or pass <code class="docutils literal notranslate"><span class="pre">diagnose=False</span></code> to <code class="docutils literal notranslate"><span class="pre">logger.add()</span></code>.</p>
 </section>
 <section id="choose-metrics">
 <h2>Choose metrics<a class="headerlink" href="#choose-metrics" title="Link to this heading">#</a></h2>
 <p>To collect both energy consumption and carbon emissions:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">tracarbon</span><span class="w"> </span><span class="kn">import</span> <span class="n">TracarbonBuilder</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">tracarbon</span><span class="w"> </span><span class="kn">import</span> <span class="n">Country</span><span class="p">,</span> <span class="n">TracarbonBuilder</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tracarbon.exporters</span><span class="w"> </span><span class="kn">import</span> <span class="n">StdoutExporter</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tracarbon.general_metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">CarbonEmissionGenerator</span><span class="p">,</span> <span class="n">EnergyConsumptionGenerator</span>
 
-<span class="n">metrics</span> <span class="o">=</span> <span class="p">[</span><span class="n">EnergyConsumptionGenerator</span><span class="p">(),</span> <span class="n">CarbonEmissionGenerator</span><span class="p">()]</span>
-<span class="n">exporter</span> <span class="o">=</span> <span class="n">StdoutExporter</span><span class="p">(</span><span class="n">metric_generators</span><span class="o">=</span><span class="n">metrics</span><span class="p">)</span>
-<span class="k">with</span> <span class="n">TracarbonBuilder</span><span class="p">(</span><span class="n">exporter</span><span class="o">=</span><span class="n">exporter</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span> <span class="k">as</span> <span class="n">tracker</span><span class="p">:</span>
-    <span class="n">run_workload</span><span class="p">()</span>
+<span class="n">location</span> <span class="o">=</span> <span class="n">Country</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;fr&quot;</span><span class="p">)</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="p">[</span><span class="n">EnergyConsumptionGenerator</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">),</span> <span class="n">CarbonEmissionGenerator</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)]</span>
+<span class="n">exporter</span> <span class="o">=</span> <span class="n">StdoutExporter</span><span class="p">(</span><span class="n">metric_generators</span><span class="o">=</span><span class="n">metrics</span><span class="p">,</span> <span class="n">metric_prefix_name</span><span class="o">=</span><span class="s2">&quot;tracarbon&quot;</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">TracarbonBuilder</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">,</span> <span class="n">exporter</span><span class="o">=</span><span class="n">exporter</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span> <span class="k">as</span> <span class="n">tracker</span><span class="p">:</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>For custom metrics, pass your async measurement function as <code class="docutils literal notranslate"><span class="pre">value</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">tracarbon</span><span class="w"> </span><span class="kn">import</span> <span class="n">TracarbonBuilder</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">tracarbon</span><span class="w"> </span><span class="kn">import</span> <span class="n">TracarbonBuilder</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tracarbon.exporters</span><span class="w"> </span><span class="kn">import</span> <span class="n">Metric</span><span class="p">,</span> <span class="n">MetricGenerator</span><span class="p">,</span> <span class="n">StdoutExporter</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_metric</span><span class="p">():</span>
+    <span class="k">return</span> <span class="mf">1.0</span>
 
 <span class="n">metric</span> <span class="o">=</span> <span class="n">Metric</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;custom_metric&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">read_metric</span><span class="p">)</span>
 <span class="n">exporter</span> <span class="o">=</span> <span class="n">StdoutExporter</span><span class="p">(</span><span class="n">metric_generators</span><span class="o">=</span><span class="p">[</span><span class="n">MetricGenerator</span><span class="p">(</span><span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="n">metric</span><span class="p">])])</span>
 <span class="k">with</span> <span class="n">TracarbonBuilder</span><span class="p">(</span><span class="n">exporter</span><span class="o">=</span><span class="n">exporter</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span> <span class="k">as</span> <span class="n">tracker</span><span class="p">:</span>
-    <span class="n">run_workload</span><span class="p">()</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="export-metrics">
 <h2>Export metrics<a class="headerlink" href="#export-metrics" title="Link to this heading">#</a></h2>
-<p>Send metrics to Datadog:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">DATADOG_API_KEY=API_KEY DATADOG_APP_KEY=APP_KEY tracarbon run --exporter-name Datadog</span>
+<p>Use <code class="docutils literal notranslate"><span class="pre">tracarbon</span> <span class="pre">list-exporters</span></code> to list the exporters available in your installation.
+<code class="docutils literal notranslate"><span class="pre">Stdout</span></code> and <code class="docutils literal notranslate"><span class="pre">JSON</span></code> are included in the base package. <code class="docutils literal notranslate"><span class="pre">Stdout</span></code> logs to stderr
+in the CLI.</p>
+<section id="json-and-json-lines">
+<h3>JSON and JSON Lines<a class="headerlink" href="#json-and-json-lines" title="Link to this heading">#</a></h3>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">tracarbon run --exporter-name JSON --country-code-alpha-iso-2 fr</span>
 </pre></div>
 </div>
+<p>The CLI writes a JSON array to <code class="docutils literal notranslate"><span class="pre">tracarbon_export_DD_MM_YYYY.json</span></code> in the working
+directory. It appends to an existing file and closes the array after each collection
+cycle and at shutdown. For a custom path or JSON Lines, configure the exporter in Python:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">tracarbon</span><span class="w"> </span><span class="kn">import</span> <span class="n">Country</span><span class="p">,</span> <span class="n">TracarbonBuilder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tracarbon.exporters</span><span class="w"> </span><span class="kn">import</span> <span class="n">JSONExporter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tracarbon.general_metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">CarbonEmissionGenerator</span><span class="p">,</span> <span class="n">EnergyConsumptionGenerator</span>
+
+<span class="n">location</span> <span class="o">=</span> <span class="n">Country</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;fr&quot;</span><span class="p">)</span>
+<span class="n">exporter</span> <span class="o">=</span> <span class="n">JSONExporter</span><span class="p">(</span>
+    <span class="n">path</span><span class="o">=</span><span class="s2">&quot;metrics.jsonl&quot;</span><span class="p">,</span>
+    <span class="n">metric_prefix_name</span><span class="o">=</span><span class="s2">&quot;tracarbon&quot;</span><span class="p">,</span>
+    <span class="n">metric_generators</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">EnergyConsumptionGenerator</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">),</span>
+        <span class="n">CarbonEmissionGenerator</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">),</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+<span class="k">with</span> <span class="n">TracarbonBuilder</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">,</span> <span class="n">exporter</span><span class="o">=</span><span class="n">exporter</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span> <span class="k">as</span> <span class="n">tracker</span><span class="p">:</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">tracker</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">total_co2g</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Each record contains <code class="docutils literal notranslate"><span class="pre">timestamp</span></code>, <code class="docutils literal notranslate"><span class="pre">metric_name</span></code>, <code class="docutils literal notranslate"><span class="pre">metric_value</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">metric_tags</span></code>. The CLI has no output-path option; <code class="docutils literal notranslate"><span class="pre">.jsonl</span></code> paths are selected
+through the Python API.</p>
+</section>
+<section id="datadog">
+<h3>Datadog<a class="headerlink" href="#datadog" title="Link to this heading">#</a></h3>
+<p>Send metrics to Datadog:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">pip install &#39;tracarbon[datadog]&#39;</span>
+<span class="go">DATADOG_API_KEY=API_KEY DATADOG_APP_KEY=APP_KEY tracarbon run --exporter-name Datadog</span>
+</pre></div>
+</div>
+<p>The Python <code class="docutils literal notranslate"><span class="pre">DatadogExporter</span></code> accepts <code class="docutils literal notranslate"><span class="pre">datadog_flush_interval</span></code> (default: 10
+seconds). Measurements are buffered by the Datadog client, which also flushes at
+process exit. Stopping a tracker does not immediately flush that buffer; use
+<code class="docutils literal notranslate"><span class="pre">exporter.stats.flush(float(&quot;inf&quot;))</span></code> when delivery is needed before process exit.</p>
+</section>
+<section id="prometheus">
+<h3>Prometheus<a class="headerlink" href="#prometheus" title="Link to this heading">#</a></h3>
+<p>Expose host metrics on a local HTTP endpoint:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">pip install &#39;tracarbon[prometheus]&#39;</span>
+<span class="go">PROMETHEUS_ADDRESS=127.0.0.1 PROMETHEUS_PORT=8081 tracarbon run --exporter-name Prometheus --country-code-alpha-iso-2 fr</span>
+</pre></div>
+</div>
+<p>In another terminal, run <code class="docutils literal notranslate"><span class="pre">curl</span> <span class="pre">http://127.0.0.1:8081/metrics</span></code>. Prometheus scrapes
+this endpoint. By default it listens on <code class="docutils literal notranslate"><span class="pre">::</span></code> at port <code class="docutils literal notranslate"><span class="pre">8081</span></code>.</p>
 <p>Export Kubernetes container metrics to Prometheus on Linux:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">tracarbon run --exporter-name Prometheus --containers</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">pip install &#39;tracarbon[prometheus,kubernetes]&#39;</span>
+<span class="go">tracarbon run --exporter-name Prometheus --containers</span>
 </pre></div>
 </div>
 <p>With the default metric prefix, container metrics are exposed with these Prometheus names:</p>
@@ -506,11 +624,24 @@ or <code class="docutils literal notranslate"><span class="pre">None</span></cod
 <tr class="row-odd"><td><p>tracarbon_carbon_emission_kubernetes_memory</p></td>
 <td><p>pod_name, pod_namespace, container_name, platform, containers, location, source, units</p></td>
 </tr>
+<tr class="row-even"><td><p>tracarbon_carbon_emission_kubernetes_grams_total</p></td>
+<td><p>pod_name, pod_namespace, container_name, platform, containers, location, source</p></td>
+</tr>
+<tr class="row-odd"><td><p>tracarbon_carbon_emission_kubernetes_cpu_grams_total</p></td>
+<td><p>pod_name, pod_namespace, container_name, platform, containers, location, source</p></td>
+</tr>
+<tr class="row-even"><td><p>tracarbon_carbon_emission_kubernetes_memory_grams_total</p></td>
+<td><p>pod_name, pod_namespace, container_name, platform, containers, location, source</p></td>
+</tr>
 </tbody>
 </table>
 </div>
+<p>Energy gauges report power; carbon gauges report emissions over the latest collection interval.
+Host and container carbon counters ending in <code class="docutils literal notranslate"><span class="pre">_grams_total</span></code> accumulate grams of CO2 eq without
+a <code class="docutils literal notranslate"><span class="pre">units</span></code> label.</p>
 <p>Zero values are exported. If Kubernetes returns no pod metrics, the CLI logs
 <code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">Kubernetes</span> <span class="pre">container</span> <span class="pre">metrics</span> <span class="pre">were</span> <span class="pre">collected.</span></code> Host metrics are still exported.</p>
+</section>
 </section>
 </section>
 
@@ -564,8 +695,19 @@ or <code class="docutils literal notranslate"><span class="pre">None</span></cod
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cli">CLI</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#python-api">Python API</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#carbon-intensity">Carbon intensity</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#bundled-files">Bundled files</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#live-api">Live API</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#application-logging">Application logging</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choose-metrics">Choose metrics</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#export-metrics">Export metrics</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#export-metrics">Export metrics</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#json-and-json-lines">JSON and JSON Lines</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#datadog">Datadog</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prometheus">Prometheus</a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 
@@ -612,7 +754,7 @@ or <code class="docutils literal notranslate"><span class="pre">None</span></cod
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     <br/>
   </p>
 </div>
