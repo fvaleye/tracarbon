@@ -30,7 +30,7 @@ if PROMETHEUS_INSTALLED:
 
     class PrometheusExporter(Exporter):
         """
-        Send the metrics to Prometheus by running an HTTP server for the metrics exposure.
+        Expose metrics through an HTTP server for Prometheus to scrape.
 
         Exporters share collectors created in the default registry.
         """

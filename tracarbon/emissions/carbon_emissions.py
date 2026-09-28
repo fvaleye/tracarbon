@@ -84,7 +84,7 @@ class CarbonUsage(BaseModel):
 
 class CarbonEmission(Sensor):
     """
-    Carbon Metric sensor in watts per second to calculate the CO2g/kwh emitted.
+    Estimate carbon emissions from measured power and electricity carbon intensity.
     """
 
     location: Location

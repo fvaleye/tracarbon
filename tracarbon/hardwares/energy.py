@@ -103,14 +103,14 @@ class Power(BaseModel):
 
         :param watts: the wattage in W
         :param seconds: the duration of the window
-        :return: watt-hours W/h
+        :return: watt-hours (Wh)
         """
         return watts * (seconds / Power.SECONDS_TO_HOURS_FACTOR)
 
     @staticmethod
     def watts_to_watt_hours(watts: float, previous_energy_measurement_time: datetime | None = None) -> float:
         """
-        Convert current watts to watt-hours W/h using the previous energy measurement.
+        Convert current watts to watt-hours (Wh) using the previous energy measurement.
 
         The wattage is held flat over the interval, so a shorter interval smooths away less of a
         varying load. The first measurement has no interval behind it and returns zero: it only
@@ -118,7 +118,7 @@ class Power(BaseModel):
 
         :param watts: the wattage in W
         :param previous_energy_measurement_time: the previous measurement time
-        :return: watt-hours W/h
+        :return: watt-hours (Wh)
         """
         if previous_energy_measurement_time is None:
             return 0.0
