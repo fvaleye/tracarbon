@@ -1,4 +1,5 @@
 import platform
+from typing import Any
 
 import psutil
 from pydantic import BaseModel
@@ -35,14 +36,25 @@ class HardwareInfo(BaseModel):
         return psutil.cpu_count(logical=logical)
 
     @staticmethod
-    def get_cpu_usage(interval: float | None = None) -> float:
+    def get_cpu_usage(since: Any = None) -> tuple[float, Any]:
         """
-        Get the CPU load percentage usage.
+        Get the CPU load percentage usage since the CPU times of the previous reading.
 
-        :param interval: the minimal interval to wait between two consecutive measures
-        :return: the CPU load in %
+        psutil.cpu_percent keeps its own previous reading per thread instead, so two readers on one
+        thread measure each other's windows and a reader on a new thread reads no load at all.
+
+        :param since: the CPU times returned by the previous reading, or None to measure since boot
+        :return: the CPU load in % and the CPU times to pass to the next reading
         """
-        return psutil.cpu_percent(interval=interval)
+        cpu_times = psutil.cpu_times()
+        window = cpu_times
+        if since is not None:
+            window = type(cpu_times)(*(max(0.0, now - before) for now, before in zip(cpu_times, since, strict=True)))
+        # Counted as psutil's _cpu_tot_time and _cpu_busy_time do: Linux already counts guest time
+        # in user time, and iowait is idle time.
+        total = sum(window) - getattr(window, "guest", 0.0) - getattr(window, "guest_nice", 0.0)
+        busy = total - window.idle - getattr(window, "iowait", 0.0)
+        return (100.0 * busy / total if total > 0 else 0.0), cpu_times
 
     @staticmethod
     def get_memory_usage() -> float:

@@ -16,13 +16,56 @@ def test_get_platform_should_return_the_platform():
     assert platform_returned == platform_expected
 
 
-def test_get_cpu_usage(mocker):
-    cpu_usage_expected = 10.0
-    mocker.patch.object(psutil, "cpu_percent", return_value=10.0)
+CPUTimes = namedtuple("CPUTimes", "user nice system idle")
+LinuxCPUTimes = namedtuple("LinuxCPUTimes", "user nice system idle iowait irq softirq steal guest guest_nice")
 
-    cpu_usage = HardwareInfo.get_cpu_usage()
 
-    assert cpu_usage == cpu_usage_expected
+def test_get_cpu_usage_measures_the_load_since_the_cpu_times_given(mocker):
+    now = CPUTimes(user=130.0, nice=0.0, system=20.0, idle=150.0)
+    mocker.patch.object(psutil, "cpu_times", return_value=now)
+
+    cpu_usage, cpu_times = HardwareInfo.get_cpu_usage(since=CPUTimes(user=100.0, nice=0.0, system=10.0, idle=90.0))
+
+    assert cpu_usage == 40.0
+    assert cpu_times == now
+
+
+def test_get_cpu_usage_measures_the_load_since_boot_without_earlier_cpu_times(mocker):
+    mocker.patch.object(psutil, "cpu_times", return_value=CPUTimes(user=20.0, nice=0.0, system=10.0, idle=70.0))
+
+    cpu_usage, _ = HardwareInfo.get_cpu_usage()
+
+    assert cpu_usage == 30.0
+
+
+def test_get_cpu_usage_counts_guest_and_iowait_time_the_way_psutil_does(mocker):
+    since = LinuxCPUTimes(*[0.0] * 10)
+    mocker.patch.object(
+        psutil,
+        "cpu_times",
+        return_value=since._replace(user=50.0, system=10.0, idle=20.0, iowait=20.0, guest=10.0),
+    )
+
+    cpu_usage, _ = HardwareInfo.get_cpu_usage(since=since)
+
+    assert cpu_usage == 60.0
+
+
+def test_get_cpu_usage_ignores_a_counter_that_went_backwards(mocker):
+    mocker.patch.object(psutil, "cpu_times", return_value=CPUTimes(user=150.0, nice=0.0, system=0.0, idle=80.0))
+
+    cpu_usage, _ = HardwareInfo.get_cpu_usage(since=CPUTimes(user=100.0, nice=0.0, system=0.0, idle=90.0))
+
+    assert cpu_usage == 100.0
+
+
+def test_get_cpu_usage_reads_no_load_when_no_cpu_time_was_counted_since(mocker):
+    now = CPUTimes(user=100.0, nice=0.0, system=0.0, idle=100.0)
+    mocker.patch.object(psutil, "cpu_times", return_value=now)
+
+    cpu_usage, _ = HardwareInfo.get_cpu_usage(since=now)
+
+    assert cpu_usage == 0.0
 
 
 def test_get_memory_usage(mocker):

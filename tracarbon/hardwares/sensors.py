@@ -339,6 +339,7 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
     memory_at_100: float
     has_gpu: bool
     delta_full_machine: float
+    _cpu_times: Any = None
 
     def __init__(self, instance_type: str, **data: Any) -> None:
         resource_file = importlib.resources.files("tracarbon.hardwares.data").joinpath("aws-instances.csv")
@@ -373,7 +374,7 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
 
         :return: the generated energy usage.
         """
-        cpu_usage = HardwareInfo.get_cpu_usage()
+        cpu_usage, self._cpu_times = HardwareInfo.get_cpu_usage(since=self._cpu_times)
         if cpu_usage >= 90:
             cpu_watts = self.cpu_at_100
         elif cpu_usage >= 50:
@@ -420,6 +421,7 @@ class CloudEnergyConsumption(EnergyConsumption):
     max_watts: float
     vcpus: float
     memory_gb: float
+    _cpu_times: Any = None
 
     @classmethod
     def _get_csv_filename(cls) -> str:
@@ -469,7 +471,8 @@ class CloudEnergyConsumption(EnergyConsumption):
         :return: the generated energy usage.
         """
         provider_name = self._get_provider_name()
-        cpu_usage = HardwareInfo.get_cpu_usage() / 100.0  # Convert to 0-1 range
+        cpu_usage, self._cpu_times = HardwareInfo.get_cpu_usage(since=self._cpu_times)
+        cpu_usage /= 100.0  # Convert to 0-1 range
 
         # Linear interpolation: power = min_watts + (max_watts - min_watts) * cpu_usage
         cpu_watts = self.min_watts + (self.max_watts - self.min_watts) * cpu_usage
