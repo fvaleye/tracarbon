@@ -320,7 +320,7 @@ class LinuxEnergyConsumption(EnergyConsumption):
             if self._active_sensor is not _SensorBackend.GPU:
                 logger.warning(
                     "No readable RAPL interface found, so the host power is unknown and only the GPU is read. "
-                    "Intel RAPL requires a readable /sys/class/powercap/intel-rapl/*/energy_uj, which only root "
+                    f"Intel RAPL requires a readable {self.rapl.path}/*/energy_uj, which only root "
                     "can read by default. AMD RAPL requires kernel 5.8+ or amd_energy driver."
                 )
                 self._active_sensor = _SensorBackend.GPU
@@ -348,7 +348,7 @@ class LinuxEnergyConsumption(EnergyConsumption):
         if self._active_sensor is _SensorBackend.GPU and energy_usage.gpu_energy_usage is None:
             raise TracarbonException(
                 "No supported RAPL interface found, nor any GPU. "
-                "Intel RAPL requires /sys/class/powercap/intel-rapl. "
+                f"Intel RAPL requires {self.rapl.path}. "
                 "AMD RAPL requires kernel 5.8+ or amd_energy driver."
             )
         return energy_usage
