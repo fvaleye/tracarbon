@@ -1,6 +1,7 @@
 import os
 import sys
 
+import pytest
 from loguru import logger
 
 from tracarbon.conf import TracarbonConfiguration
@@ -85,26 +86,35 @@ def test_logger_configuration_keeps_local_variables_out_of_tracebacks(capsys):
     assert "SECRET_API_KEY" not in logged
 
 
-def test_configuration_replaces_the_default_loguru_handler_with_the_tracarbon_one(run_python):
+def test_configuration_keeps_the_default_loguru_handler(run_python):
     script = (
         "from loguru import logger; from tracarbon import TracarbonConfiguration; "
-        "TracarbonConfiguration(); logger.debug('debug line'); logger.info('info line')"
+        "TracarbonConfiguration(log_level='ERROR'); logger.debug('debug line')"
     )
 
     logged = run_python("-c", script)
 
-    assert "| INFO     info line" in logged
-    assert "debug line" not in logged
+    assert "| DEBUG    | __main__:<module>:1 - debug line" in logged
 
 
-def test_configuration_keeps_the_handlers_of_a_host_that_configured_loguru(run_python):
-    script = (
-        "import sys; from loguru import logger; logger.remove(0); "
-        "logger.add(sys.stderr, format='HOST {level} {message}', level='DEBUG'); "
-        "from tracarbon import TracarbonConfiguration; TracarbonConfiguration(); logger.debug('debug line')"
-    )
+@pytest.mark.parametrize("autoinit", ["True", "False"])
+def test_configuration_keeps_the_handlers_of_a_host_that_configured_loguru(run_python, tmp_path, autoinit):
+    (tmp_path / ".env").write_text("LOGURU_AUTOINIT=True\n")
+    script = """
+import os
+import sys
+from loguru import logger
 
-    assert run_python("-c", script) == "HOST DEBUG debug line\n"
+logger.remove()
+logger.add(sys.stderr, format="HOST {level} {message}", level="DEBUG")
+del os.environ["LOGURU_AUTOINIT"]
+from tracarbon import TracarbonConfiguration
+
+TracarbonConfiguration()
+logger.debug("debug line")
+"""
+
+    assert run_python("-c", script, LOGURU_AUTOINIT=autoinit) == "HOST DEBUG debug line\n"
 
 
 def test_importing_tracarbon_leaves_loguru_untouched(run_python):

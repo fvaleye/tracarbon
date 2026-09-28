@@ -26,7 +26,6 @@ PROMETHEUS_INSTALLED = check_optional_dependency(name="prometheus_client")
 _LOG_FORMAT = (
     "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <cyan><level>{level: <8}</level></cyan> <level>{message}</level>"
 )
-_LOGURU_DEFAULT_HANDLER_ID = 0
 
 
 def logger_configuration(level: str) -> None:
@@ -38,16 +37,6 @@ def logger_configuration(level: str) -> None:
     from loguru import logger
 
     logger.configure(handlers=[{"sink": sys.stderr, "format": _LOG_FORMAT, "level": level, "diagnose": False}])
-
-
-def _replace_the_default_loguru_handler(level: str) -> None:
-    from loguru import logger
-
-    try:
-        logger.remove(_LOGURU_DEFAULT_HANDLER_ID)
-    except ValueError:
-        return  # The application already configured loguru: keep its handlers.
-    logger.add(sys.stderr, format=_LOG_FORMAT, level=level, diagnose=False)
 
 
 class TracarbonConfiguration(BaseModel):
@@ -83,4 +72,3 @@ class TracarbonConfiguration(BaseModel):
             emission_factor_type=os.environ.get("TRACARBON_EMISSION_FACTOR_TYPE", emission_factor_type),
             **data,
         )
-        _replace_the_default_loguru_handler(level=self.log_level)

@@ -127,7 +127,7 @@ Existing environment variables take precedence over `.env`; both override constr
 | `TRACARBON_EMISSION_FACTOR_TYPE` | The Electricity Maps emission factor: `lifecycle` (default) or `direct`. |
 | `TRACARBON_METRIC_PREFIX_NAME` | Metric name prefix. Defaults to `tracarbon`. |
 | `TRACARBON_INTERVAL_IN_SECONDS` | Measurement interval in seconds. Defaults to `60`. |
-| `TRACARBON_LOG_LEVEL` | Minimum level for Tracarbon's log handler. Defaults to `INFO`. |
+| `TRACARBON_LOG_LEVEL` | Minimum log level for the CLI. Defaults to `INFO`. |
 | `TRACARBON_IPINFO_TOKEN` | An optional [ipinfo.io](https://ipinfo.io) API token used for country detection from the IP address, lifting the anonymous rate limit. |
 | `TRACARBON_KUBERNETES_NODE_NAME` | The Kubernetes node name used to scope container metrics to the node being measured. Falls back to `NODE_NAME` when unset. |
 | `PROMETHEUS_ADDRESS` | The address the Prometheus exporter listens on. Defaults to `::`. |
@@ -135,8 +135,8 @@ Existing environment variables take precedence over `.env`; both override constr
 | `DATADOG_API_KEY` | The Datadog API key of the Datadog exporter. |
 | `DATADOG_APP_KEY` | The Datadog application key of the Datadog exporter. |
 
-Configuration replaces [Loguru](https://loguru.readthedocs.io/en/stable/api/logger.html)'s default stderr handler once, using the configured log level. If your application already removed the default handler, its handlers are preserved.
-The CLI configures its own handler. Tracarbon's handlers hide local variables in tracebacks; for host handlers, set `LOGURU_DIAGNOSE=False` before starting Python or pass `diagnose=False` to `logger.add()`.
+Python applications configure their own [Loguru handlers](https://loguru.readthedocs.io/en/stable/resources/recipes.html#configuring-loguru-to-be-used-by-a-library-or-an-application). Creating `TracarbonConfiguration` leaves those handlers unchanged.
+The CLI configures its own handler with local variables hidden in tracebacks. For application handlers, set `LOGURU_DIAGNOSE=False` before starting Python or pass `diagnose=False` to `logger.add()`.
 
 ## 💻 Development
 
