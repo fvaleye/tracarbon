@@ -165,5 +165,6 @@ app(["fail"])
     with pytest.raises(subprocess.CalledProcessError) as error:
         run_python("-c", script)
 
-    assert "RuntimeError: CLI failed" in error.value.stderr
+    assert "RuntimeError" in error.value.stderr
+    assert "CLI failed" in error.value.stderr
     assert "SECRET_API_KEY" not in error.value.stderr

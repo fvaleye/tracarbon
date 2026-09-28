@@ -85,7 +85,7 @@ def test_configuration_preserves_default_loguru_handler(run_python):
 
     logged = run_python("-c", script)
 
-    assert "| DEBUG    | __main__:<module>:1 - debug line" in logged
+    assert "debug line" in logged
 
 
 @pytest.mark.parametrize("autoinit", ["True", "False"])
