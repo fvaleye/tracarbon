@@ -96,6 +96,64 @@ def prometheus_registry(mocker: MockerFixture) -> CollectorRegistry:
 
 
 @pytest.mark.asyncio
+async def test_prometheus_reports_healthy_metrics_after_a_read_fails(prometheus_registry: CollectorRegistry) -> None:
+    generator = MetricGenerator(
+        metrics=[Metric(name="power", value=AsyncMock(return_value=42.0), tags=[Tag(key="pod_name", value="old")])]
+    )
+    exporter = PrometheusExporter(metric_generators=[generator])
+    await exporter._launch_all()
+    generator.metrics = [
+        Metric(name="failed", value=AsyncMock(side_effect=OSError("sensor unavailable"))),
+        Metric(name="power", value=AsyncMock(return_value=0.0), tags=[Tag(key="pod_name", value="new")]),
+    ]
+
+    with pytest.raises(OSError, match="sensor unavailable"):
+        await exporter._launch_all()
+
+    assert prometheus_registry.get_sample_value("power", {"pod_name": "new"}) == 0.0
+    assert prometheus_registry.get_sample_value("power", {"pod_name": "old"}) == 42.0
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("failing_first", [False, True], ids=["failure_last", "failure_first"])
+async def test_prometheus_removes_vanished_pods_while_another_generator_fails(
+    prometheus_registry: CollectorRegistry, failing_first: bool
+) -> None:
+    healthy, failing = [
+        MetricGenerator(
+            metrics=[
+                Metric(
+                    name="carbon",
+                    value=AsyncMock(return_value=1.0),
+                    tags=[Tag(key="pod_name", value=name), Tag(key="units", value="co2g")],
+                )
+            ]
+        )
+        for name in ("old", "unavailable")
+    ]
+    exporter = PrometheusExporter(metric_generators=[failing, healthy] if failing_first else [healthy, failing])
+    await exporter._launch_all()
+    failing.metrics[0].value = AsyncMock(side_effect=OSError("sensor unavailable"))
+
+    for pod_name in ("new", "newer", "newest"):
+        healthy.metrics[0].tags[0].value = pod_name
+        with pytest.raises(OSError, match="sensor unavailable"):
+            await exporter._launch_all()
+
+        assert {sample.labels["pod_name"] for metric in prometheus_registry.collect() for sample in metric.samples} == {
+            pod_name,
+            "unavailable",
+        }
+        for expected_pod in (pod_name, "unavailable"):
+            assert prometheus_registry.get_sample_value("carbon", {"pod_name": expected_pod, "units": "co2g"}) == 1.0
+            assert prometheus_registry.get_sample_value("carbon_grams_total", {"pod_name": expected_pod}) == 1.0
+
+    exporter.metric_generators = []
+    await exporter._launch_all()
+    assert [sample for metric in prometheus_registry.collect() for sample in metric.samples] == []
+
+
+@pytest.mark.asyncio
 async def test_prometheus_reuses_a_supplied_gauge(prometheus_registry: CollectorRegistry) -> None:
     gauge = Gauge("custom", "A supplied gauge", ["location"], registry=prometheus_registry)
     metric = Metric(name="custom", value=AsyncMock(return_value=7.0), tags=[Tag(key="location", value="fr")])

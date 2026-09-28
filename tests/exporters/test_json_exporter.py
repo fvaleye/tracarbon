@@ -108,7 +108,7 @@ def test_json_exporter_preserves_report_and_records_when_final_collection_fails(
     tracarbon = TracarbonBuilder(exporter=exporter, location=Country(name="fr", co2g_kwh=400.0)).build()
     try:
         tracarbon.start()
-        generator.metrics.append(Metric(name="failed", value=failing_value))
+        generator.metrics.insert(0, Metric(name="failed", value=failing_value))
         with pytest.raises(ValueError, match="A sensor failed"):
             tracarbon.stop()
 

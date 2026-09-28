@@ -1,3 +1,6 @@
+import asyncio
+import os
+import signal
 import sys
 from threading import Event
 from threading import Thread
@@ -7,8 +10,10 @@ from threading import current_thread
 import psutil
 import pytest
 
+import tracarbon.exporters.exporter as exporter_module
 from tracarbon import Country
 from tracarbon import MetricGenerator
+from tracarbon.exporters import JSONExporter
 from tracarbon.exporters import Metric
 from tracarbon.exporters import MetricReport
 from tracarbon.exporters import StdoutExporter
@@ -92,6 +97,136 @@ def test_exporter_settles_an_active_sample_before_stopping_or_restarting(mocker,
     assert previous_report["sample"].call_count == 2
     assert exporter.metric_report["sample"].call_count == (1 if restart else 2)
     assert not timer.is_alive()
+
+
+@pytest.mark.parametrize("exporter_type", [JSONExporter, StdoutExporter])
+def test_exporter_start_raises_when_its_first_collection_fails(tmp_path, exporter_type):
+    async def sample() -> float:
+        raise OSError("sensor unavailable")
+
+    exporter = exporter_type(
+        path=str(tmp_path / "metrics.json"),
+        metric_generators=[MetricGenerator(metrics=[Metric(name="sample", value=sample)])],
+    )
+    try:
+        with pytest.raises(OSError, match="sensor unavailable"):
+            exporter.start(interval_in_seconds=0)
+        assert exporter._timer is None
+    finally:
+        exporter.stop()
+
+
+def test_exporter_keeps_collecting_after_a_failed_periodic_cycle(tmp_path, caplog):
+    collected_after_the_failure = Event()
+    readings = []
+
+    async def sample() -> float:
+        readings.append(1.0)
+        if len(readings) == 2:
+            raise OSError("transient sensor read failure")
+        if len(readings) == 3:
+            collected_after_the_failure.set()
+        return 1.0
+
+    exporter = JSONExporter(
+        path=str(tmp_path / "metrics.json"),
+        metric_generators=[MetricGenerator(metrics=[Metric(name="sample", value=sample)])],
+    )
+    try:
+        exporter.start(interval_in_seconds=0)
+        assert collected_after_the_failure.wait(timeout=2)
+    finally:
+        exporter.stop()
+
+    assert "transient sensor read failure" in caplog.text
+
+
+def test_exporter_keeps_collecting_the_other_generators_while_one_keeps_failing(tmp_path):
+    healthy_collected_while_the_other_failed = Event()
+    failing_readings = []
+    healthy_readings = []
+
+    async def failing_sample() -> float:
+        failing_readings.append(1.0)
+        if len(failing_readings) > 1:
+            raise OSError("sensor unavailable")
+        return 1.0
+
+    async def healthy_sample() -> float:
+        healthy_readings.append(1.0)
+        if len(healthy_readings) == 3:
+            healthy_collected_while_the_other_failed.set()
+        return 1.0
+
+    exporter = JSONExporter(
+        path=str(tmp_path / "metrics.json"),
+        metric_generators=[
+            MetricGenerator(metrics=[Metric(name="failing", value=failing_sample)]),
+            MetricGenerator(metrics=[Metric(name="healthy", value=healthy_sample)]),
+        ],
+    )
+    try:
+        exporter.start(interval_in_seconds=0)
+        assert healthy_collected_while_the_other_failed.wait(timeout=2)
+    finally:
+        exporter.stop()
+
+
+@pytest.mark.parametrize("inside_an_event_loop", [False, True])
+def test_exporter_starts_and_finishes_with_or_without_a_running_event_loop(inside_an_event_loop):
+    async def sample() -> float:
+        return 1.0
+
+    exporter = StdoutExporter(metric_generators=[MetricGenerator(metrics=[Metric(name="sample", value=sample)])])
+
+    def measure() -> None:
+        exporter.start(interval_in_seconds=3600)
+        exporter.finish()
+
+    async def measure_inside_an_event_loop() -> None:
+        measure()
+
+    try:
+        if inside_an_event_loop:
+            asyncio.run(measure_inside_an_event_loop())
+        else:
+            measure()
+    finally:
+        exporter.stop()
+
+    assert exporter.metric_report["sample"].call_count == 2
+
+
+@pytest.mark.darwin
+@pytest.mark.linux
+def test_exporter_stops_when_start_is_interrupted_inside_an_event_loop():
+    interrupted = Event()
+
+    async def sample() -> float:
+        os.kill(os.getpid(), signal.SIGINT)
+        assert interrupted.wait(timeout=2)
+        return 1.0
+
+    def interrupt(signum, frame):
+        interrupted.set()
+        signal.default_int_handler(signum, frame)
+
+    exporter = StdoutExporter(metric_generators=[MetricGenerator(metrics=[Metric(name="sample", value=sample)])])
+
+    async def start() -> None:
+        previous_handler = signal.signal(signal.SIGINT, interrupt)
+        try:
+            with pytest.raises(KeyboardInterrupt):
+                exporter.start(interval_in_seconds=3600)
+        finally:
+            signal.signal(signal.SIGINT, previous_handler)
+
+    try:
+        asyncio.run(start())
+        assert exporter.stopped
+        assert exporter._timer is None
+    finally:
+        exporter.stop()
 
 
 def test_exporter_rejects_restarting_from_a_collection_callback():
@@ -355,3 +490,68 @@ async def test_metric_report_totals_a_metric_that_is_not_power_as_itself():
     assert report.total == 4.0
     assert report.total_unit == "co2g"
     assert report.average == 2.0
+
+
+def test_stdout_keeps_reporting_the_metrics_that_work_while_another_metric_fails():
+    reported_after_the_failures = Event()
+    energy_readings = []
+
+    async def failing_carbon() -> float:
+        if energy_readings:
+            raise OSError("carbon intensity unavailable")
+        return 1.0
+
+    async def energy() -> float:
+        energy_readings.append(1.0)
+        if len(energy_readings) == 3:
+            reported_after_the_failures.set()
+        return 1.0
+
+    exporter = StdoutExporter(
+        metric_generators=[
+            MetricGenerator(metrics=[Metric(name="carbon", value=failing_carbon), Metric(name="energy", value=energy)])
+        ]
+    )
+    try:
+        exporter.start(interval_in_seconds=0)
+        assert reported_after_the_failures.wait(timeout=2)
+    finally:
+        exporter.stop()
+
+    assert exporter.metric_report["energy"].call_count >= 3
+
+
+def test_exporter_forgets_series_that_stopped_reporting_while_another_generator_keeps_failing(tmp_path, monkeypatch):
+    monkeypatch.setattr(exporter_module, "_SERIES_ARE_FORGOTTEN_AFTER_SECONDS", 0.0)
+    pod_names = iter(range(1000))
+    carbon_calls = []
+    cycles_after_the_outage = Event()
+
+    async def pod_energy() -> float:
+        return 1.0
+
+    async def carbon() -> float:
+        carbon_calls.append(1.0)
+        if len(carbon_calls) == 5:
+            cycles_after_the_outage.set()
+        if len(carbon_calls) > 1:
+            raise OSError("carbon intensity unavailable")
+        return 1.0
+
+    class RestartingPods(MetricGenerator):
+        async def generate(self):
+            yield Metric(
+                name="pod_energy", value=pod_energy, tags=[Tag(key="pod_name", value=f"pod-{next(pod_names)}")]
+            )
+
+    exporter = JSONExporter(
+        path=str(tmp_path / "metrics.json"),
+        metric_generators=[RestartingPods(metrics=[]), MetricGenerator(metrics=[Metric(name="carbon", value=carbon)])],
+    )
+    try:
+        exporter.start(interval_in_seconds=0)
+        assert cycles_after_the_outage.wait(timeout=2)
+    finally:
+        exporter.stop()
+
+    assert len(exporter.metric_report["pod_energy"]._measured_at_by_series) <= 2

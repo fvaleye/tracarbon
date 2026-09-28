@@ -37,7 +37,7 @@ if DATADOG_INSTALLED:
                 disable_buffering=self.disable_buffering,
             )
             self.stats = ThreadStats()
-            self.stats.start()
+            self.stats.start(flush_interval=self.datadog_flush_interval)
 
         async def launch(self, metric_generator: MetricGenerator) -> None:
             """
@@ -46,8 +46,15 @@ if DATADOG_INSTALLED:
             :param metric_generator: the metric generators
             :return:
             """
+            first_failure: Exception | None = None
             async for metric in metric_generator.generate():
-                metric_value = await metric.value()
+                try:
+                    metric_value = await metric.value()
+                except Exception as failure:
+                    logger.error(f"Error reading metric '{metric.name}': {failure}")
+                    if first_failure is None:
+                        first_failure = failure
+                    continue
                 if metric_value is not None:
                     await self.add_metric_to_report(metric=metric, value=metric_value)
                     metric_name = metric.format_name(metric_prefix_name=self.metric_prefix_name)
@@ -58,6 +65,8 @@ if DATADOG_INSTALLED:
                     if self.stats is None:
                         raise RuntimeError("DatadogExporter stats not initialized")
                     self.stats.gauge(metric_name, metric_value, tags=metric.format_tags())
+            if first_failure is not None:
+                raise first_failure
 
         @classmethod
         def get_name(cls) -> str:
