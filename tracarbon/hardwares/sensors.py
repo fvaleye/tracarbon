@@ -467,7 +467,7 @@ class CloudEnergyConsumption(EnergyConsumption):
         exception_class = self._get_exception_class()
         provider_name = self._get_provider_name()
         # Azure metadata reports the "D2s v3" size of the instances file as "Standard_D2s_v3".
-        instance_key = instance_type.removeprefix("Standard_").replace("_", " ").casefold()
+        instance_key = instance_type.casefold().removeprefix("standard_").replace("_", " ")
         try:
             with resource_file.open("r", encoding="utf-8") as csvfile:
                 reader = csv.reader(csvfile)

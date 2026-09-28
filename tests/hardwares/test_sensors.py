@@ -587,6 +587,7 @@ async def test_azure_sensor_should_return_energy_consumption(mocker):
     [
         ("Standard_D2s_v3", "westeurope", "D2s v3", "West Europe"),
         ("Standard_B2ms", "eastus", "B2MS", "East US"),
+        ("standard_b2ms", "EastUS", "B2MS", "East US"),
         ("Standard_NC4as_T4_v3", "westus3", "NC4as T4 v3", "West US 3"),
     ],
 )
