@@ -410,7 +410,7 @@ class AWSEC2EnergyConsumption(EnergyConsumption):
 
         :return: the generated energy usage.
         """
-        cpu_usage, self._cpu_times = HardwareInfo.get_cpu_usage(since=self._cpu_times)
+        cpu_usage, self._cpu_times = HardwareInfo.get_cpu_usage_since(since=self._cpu_times)
         cpu_watts = self._watts_at(cpu_usage, (self.cpu_idle, self.cpu_at_10, self.cpu_at_50, self.cpu_at_100))
         logger.debug(f"CPU: {cpu_watts}W")
 
@@ -503,7 +503,7 @@ class CloudEnergyConsumption(EnergyConsumption):
         :return: the generated energy usage.
         """
         provider_name = self._get_provider_name()
-        cpu_usage, self._cpu_times = HardwareInfo.get_cpu_usage(since=self._cpu_times)
+        cpu_usage, self._cpu_times = HardwareInfo.get_cpu_usage_since(since=self._cpu_times)
         cpu_usage /= 100.0  # Convert to 0-1 range
 
         # Linear interpolation: power = min_watts + (max_watts - min_watts) * cpu_usage

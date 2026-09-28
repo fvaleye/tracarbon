@@ -163,7 +163,7 @@ async def test_aws_sensor_with_gpu_should_return_energy_consumption(mocker):
     assert aws_ec2_sensor.has_gpu is True
     assert aws_ec2_sensor.delta_full_machine == 25.8
 
-    mocker.patch.object(HardwareInfo, "get_cpu_usage", return_value=(50, None))
+    mocker.patch.object(HardwareInfo, "get_cpu_usage_since", return_value=(50, None))
     gpu_power_usage = 1805.4
     mocker.patch.object(HardwareInfo, "get_gpu_power_usage", return_value=gpu_power_usage)
     value_expected = (
@@ -190,7 +190,7 @@ async def test_aws_sensor_without_gpu_should_return_energy_consumption(mocker):
     assert aws_ec2_sensor.has_gpu is False
     assert aws_ec2_sensor.delta_full_machine == 32.0
 
-    mocker.patch.object(HardwareInfo, "get_cpu_usage", return_value=(50, None))
+    mocker.patch.object(HardwareInfo, "get_cpu_usage_since", return_value=(50, None))
     value_expected = aws_ec2_sensor.cpu_at_50 + aws_ec2_sensor.memory_at_50 + aws_ec2_sensor.delta_full_machine
 
     energy_usage = await aws_ec2_sensor.get_energy_usage()
@@ -207,7 +207,7 @@ async def test_aws_sensor_interpolates_the_cpu_and_memory_power_at_the_cpu_load(
     mocker, cpu_usage, cpu_watts, memory_watts
 ):
     aws_ec2_sensor = AWSEC2EnergyConsumption(instance_type="m5.large")
-    mocker.patch.object(HardwareInfo, "get_cpu_usage", return_value=(cpu_usage, None))
+    mocker.patch.object(HardwareInfo, "get_cpu_usage_since", return_value=(cpu_usage, None))
     mocker.patch.object(HardwareInfo, "get_memory_usage", return_value=20.0)
 
     energy_usage = await aws_ec2_sensor.get_energy_usage()
@@ -490,7 +490,7 @@ async def test_gcp_sensor_should_return_energy_consumption(mocker):
     assert gcp_sensor.min_watts > 0
     assert gcp_sensor.max_watts > gcp_sensor.min_watts
 
-    mocker.patch.object(HardwareInfo, "get_cpu_usage", return_value=(50, None))
+    mocker.patch.object(HardwareInfo, "get_cpu_usage_since", return_value=(50, None))
     from tracarbon.hardwares.gpu import GPUInfo
 
     mocker.patch.object(GPUInfo, "get_gpu_power_usage_or_none", return_value=None)
@@ -571,7 +571,7 @@ async def test_azure_sensor_should_return_energy_consumption(mocker):
     assert azure_sensor.min_watts > 0
     assert azure_sensor.max_watts > azure_sensor.min_watts
 
-    mocker.patch.object(HardwareInfo, "get_cpu_usage", return_value=(50, None))
+    mocker.patch.object(HardwareInfo, "get_cpu_usage_since", return_value=(50, None))
     from tracarbon.hardwares.gpu import GPUInfo
 
     mocker.patch.object(GPUInfo, "get_gpu_power_usage_or_none", return_value=None)

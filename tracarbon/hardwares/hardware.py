@@ -36,7 +36,17 @@ class HardwareInfo(BaseModel):
         return psutil.cpu_count(logical=logical)
 
     @staticmethod
-    def get_cpu_usage(since: Any = None) -> tuple[float, Any]:
+    def get_cpu_usage(interval: float | None = None) -> float:
+        """
+        Get the CPU load percentage usage.
+
+        :param interval: the minimal interval to wait between two consecutive measures
+        :return: the CPU load in %
+        """
+        return psutil.cpu_percent(interval=interval)
+
+    @staticmethod
+    def get_cpu_usage_since(since: Any) -> tuple[float, Any]:
         """
         Get the CPU load percentage usage since the CPU times of the previous reading.
 
