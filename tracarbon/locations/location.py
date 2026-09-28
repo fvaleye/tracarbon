@@ -10,6 +10,15 @@ from loguru import logger
 from pydantic import BaseModel
 from pydantic import Field
 
+REQUEST_TIMEOUT_IN_SECONDS = 10
+
+
+class _HiddenInRepr(str):
+    """Send the real header value while masking its repr in aiohttp errors."""
+
+    def __repr__(self) -> str:
+        return "'**********'"
+
 
 class CarbonIntensitySource(str, Enum):
     FILE = "file"
@@ -45,7 +54,7 @@ class Location(ABC, BaseModel):
 
     name: str
     co2g_kwh_source: CarbonIntensitySource = CarbonIntensitySource.FILE
-    co2signal_api_key: str | None = None
+    co2signal_api_key: str | None = Field(default=None, repr=False)
     co2signal_url: str | None = None
     co2g_kwh: float | None = None
     emission_factor_type: EmissionFactorType = EmissionFactorType.LIFECYCLE
@@ -61,7 +70,8 @@ class Location(ABC, BaseModel):
         :return: the response
         """
 
-        async with aiohttp.ClientSession() as session:
+        headers = {name: _HiddenInRepr(value) for name, value in (headers or {}).items()}
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_IN_SECONDS)) as session:
             async with session.get(url, headers=headers) as response:
                 try:
                     logger.info(f"Sending request to the url: {url}.")

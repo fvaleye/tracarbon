@@ -1,6 +1,8 @@
 from typing import Any
 from typing import AsyncGenerator
 
+from pydantic import Field
+
 from tracarbon.conf import KUBERNETES_INSTALLED
 from tracarbon.emissions import CarbonEmission
 from tracarbon.emissions import CarbonUsageUnit
@@ -63,7 +65,7 @@ class CarbonEmissionGenerator(MetricGenerator):
     """
 
     carbon_emission: CarbonEmission
-    co2signal_api_key: str | None = None
+    co2signal_api_key: str | None = Field(default=None, repr=False)
 
     def reset(self) -> None:
         self.carbon_emission.reset()
@@ -203,7 +205,7 @@ if KUBERNETES_INSTALLED:
 
         carbon_emission: CarbonEmission
         kubernetes: Kubernetes
-        co2signal_api_key: str | None = None
+        co2signal_api_key: str | None = Field(default=None, repr=False)
 
         def reset(self) -> None:
             self.carbon_emission.reset()

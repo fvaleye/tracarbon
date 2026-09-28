@@ -2,6 +2,7 @@ import os
 from typing import Any
 
 from loguru import logger
+from pydantic import Field
 
 from tracarbon.conf import DATADOG_INSTALLED
 from tracarbon.exporters.exporter import Exporter
@@ -16,8 +17,8 @@ if DATADOG_INSTALLED:
         Datadog exporter for the metrics.
         """
 
-        api_key: str | None = None
-        app_key: str | None = None
+        api_key: str | None = Field(default=None, repr=False)
+        app_key: str | None = Field(default=None, repr=False)
         stats: ThreadStats | None = None
         disable_buffering: bool = False
         datadog_flush_interval: int = 10

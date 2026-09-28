@@ -1,32 +1,64 @@
+import asyncio
+
 import pytest
+import requests
+from aiohttp import ClientResponseError
+from aiohttp import web
+from aiohttp.test_utils import RawTestServer
+from loguru import logger
 
 from tracarbon.exceptions import CloudProviderRegionIsMissing
 from tracarbon.exceptions import CountryIsMissing
 from tracarbon.hardwares import CloudProviders
 from tracarbon.locations import AWSLocation
+from tracarbon.locations import CarbonIntensitySource
 from tracarbon.locations import Country
 from tracarbon.locations import Location
+from tracarbon.locations import location
 from tracarbon.locations.country import AzureLocation
 from tracarbon.locations.country import GCPLocation
 
 
-@pytest.mark.asyncio
-async def test_request_raises_for_http_error(mocker):
-    response = mocker.MagicMock()
-    response.raise_for_status.side_effect = RuntimeError("HTTP 401")
-    response.text = mocker.AsyncMock(return_value='{"error": "unauthorized"}')
-    response_context = mocker.MagicMock()
-    response_context.__aenter__ = mocker.AsyncMock(return_value=response)
-    response_context.__aexit__ = mocker.AsyncMock(return_value=None)
-    session = mocker.MagicMock()
-    session.get.return_value = response_context
-    session_context = mocker.MagicMock()
-    session_context.__aenter__ = mocker.AsyncMock(return_value=session)
-    session_context.__aexit__ = mocker.AsyncMock(return_value=None)
-    mocker.patch("tracarbon.locations.location.aiohttp.ClientSession", return_value=session_context)
+async def test_request_times_out(monkeypatch):
+    async def answer_late(request: web.BaseRequest) -> web.Response:
+        await asyncio.sleep(0.5)
+        return web.json_response({"carbonIntensity": 42.0})
 
-    with pytest.raises(RuntimeError, match="HTTP 401"):
-        await Location.request("https://example.com")
+    monkeypatch.setattr(location, "REQUEST_TIMEOUT_IN_SECONDS", 0.05)
+    async with RawTestServer(answer_late) as server:
+        with pytest.raises(asyncio.TimeoutError):
+            await Location.request(str(server.make_url("/")))
+
+
+async def test_http_error_preserves_status_and_hides_api_key():
+    received_tokens = []
+
+    async def fail(request: web.BaseRequest) -> web.Response:
+        received_tokens.append(request.headers["auth-token"])
+        return web.json_response({"error": "boom"}, status=500)
+
+    async with RawTestServer(fail) as server:
+        country = Country(
+            name="fr",
+            co2signal_api_key="SECRET_API_KEY",
+            co2signal_url=str(server.make_url("/?zone=")),
+            co2g_kwh_source=CarbonIntensitySource.CO2SignalAPI,
+        )
+        host_logs = []
+        host_handler_id = logger.add(host_logs.append, backtrace=True, diagnose=True)
+        raised = None
+        try:
+            await country.get_latest_co2g_kwh()
+        except Exception as error:
+            logger.exception("Host caught a failed request")
+            raised = error
+        finally:
+            logger.remove(host_handler_id)
+
+    assert isinstance(raised, ClientResponseError)
+    assert raised.status == 500
+    assert received_tokens == ["SECRET_API_KEY"]
+    assert "SECRET_API_KEY" not in repr(raised) + "".join(host_logs)
 
 
 def test_get_current_country_returns_country_code(mocker):
@@ -58,6 +90,26 @@ def test_get_current_country_reads_ipinfo_token_from_environment(mocker, monkeyp
     Country.get_current_country()
 
     assert get.call_args.kwargs["headers"] == {"Authorization": "Bearer env-token"}
+
+
+@pytest.mark.parametrize(
+    ("status_error", "text", "request_error"),
+    [
+        (requests.HTTPError("403 Client Error: Forbidden"), "<html>Forbidden</html>", None),
+        (None, "<html>Captive portal</html>", None),
+        (None, '{"ip": "10.0.0.1", "bogon": true}', None),
+        (None, None, requests.ConnectionError("offline")),
+        (None, None, requests.Timeout("read timed out")),
+    ],
+    ids=["http_error", "not_json", "no_country", "offline", "timeout"],
+)
+def test_country_detection_failure_suggests_explicit_country(mocker, status_error, text, request_error):
+    response = mocker.Mock(text=text)
+    response.raise_for_status.side_effect = status_error
+    mocker.patch("tracarbon.locations.country.requests.get", return_value=response, side_effect=request_error)
+
+    with pytest.raises(CountryIsMissing, match="--country-code-alpha-iso-2"):
+        Country.get_current_country()
 
 
 def test_country_location(mocker):

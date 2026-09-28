@@ -319,6 +319,12 @@ def build_metric_report(metric_name: str, total: float) -> MetricReport:
     )
 
 
+def test_builder_reads_the_environment_when_created(monkeypatch):
+    monkeypatch.setenv("TRACARBON_INTERVAL_IN_SECONDS", "5")
+
+    assert TracarbonBuilder().configuration.interval_in_seconds == 5
+
+
 @pytest.mark.darwin
 def test_builder_without_configuration(mocker):
     location = "fr"
