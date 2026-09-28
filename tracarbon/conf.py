@@ -5,6 +5,7 @@ from typing import Any
 from dotenv import find_dotenv
 from dotenv import load_dotenv
 from pydantic import BaseModel
+from pydantic import Field
 
 
 def check_optional_dependency(name: str) -> bool:
@@ -57,7 +58,7 @@ class TracarbonConfiguration(BaseModel):
     metric_prefix_name: str
     log_level: str
     interval_in_seconds: int
-    co2signal_api_key: str
+    co2signal_api_key: str = Field(repr=False)
     co2signal_url: str
     emission_factor_type: str
 

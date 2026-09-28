@@ -11,6 +11,15 @@ from pydantic import BaseModel
 from pydantic import Field
 
 
+class _HiddenInRepr(str):
+    """
+    A header value that aiohttp sends as is but that reprs, tracebacks and aiohttp errors print masked.
+    """
+
+    def __repr__(self) -> str:
+        return "'**********'"
+
+
 class CarbonIntensitySource(str, Enum):
     FILE = "file"
     CO2SignalAPI = "CO2SignalAPI"
@@ -45,7 +54,7 @@ class Location(ABC, BaseModel):
 
     name: str
     co2g_kwh_source: CarbonIntensitySource = CarbonIntensitySource.FILE
-    co2signal_api_key: str | None = None
+    co2signal_api_key: str | None = Field(default=None, repr=False)
     co2signal_url: str | None = None
     co2g_kwh: float | None = None
     emission_factor_type: EmissionFactorType = EmissionFactorType.LIFECYCLE
@@ -61,6 +70,7 @@ class Location(ABC, BaseModel):
         :return: the response
         """
 
+        headers = {name: _HiddenInRepr(value) for name, value in (headers or {}).items()}
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers) as response:
                 try:

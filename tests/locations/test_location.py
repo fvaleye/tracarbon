@@ -1,9 +1,15 @@
+import socket
+
 import pytest
+from aiohttp import web
+from loguru import logger
 
 from tracarbon.exceptions import CloudProviderRegionIsMissing
 from tracarbon.exceptions import CountryIsMissing
+from tracarbon.exceptions import TracarbonException
 from tracarbon.hardwares import CloudProviders
 from tracarbon.locations import AWSLocation
+from tracarbon.locations import CarbonIntensitySource
 from tracarbon.locations import Country
 from tracarbon.locations import Location
 from tracarbon.locations.country import AzureLocation
@@ -27,6 +33,69 @@ async def test_request_raises_for_http_error(mocker):
 
     with pytest.raises(RuntimeError, match="HTTP 401"):
         await Location.request("https://example.com")
+
+
+async def test_an_http_error_reaches_the_caller_unchanged_without_the_api_key():
+    received_tokens = []
+
+    async def fail(request: web.Request) -> web.Response:
+        received_tokens.append(request.headers["auth-token"])
+        return web.json_response({"error": "boom"}, status=500)
+
+    runner, url = await start_server(fail)
+    country = Country(
+        name="fr",
+        co2signal_api_key="SECRET_API_KEY",
+        co2signal_url=f"{url}?zone=",
+        co2g_kwh_source=CarbonIntensitySource.CO2SignalAPI,
+    )
+    host_logs = []
+    host_handler_id = logger.add(host_logs.append, backtrace=True, diagnose=True)
+    try:
+        await country.get_latest_co2g_kwh()
+    except Exception as error:
+        logger.exception("Host caught a failed request")
+        raised = error
+    finally:
+        logger.remove(host_handler_id)
+        await runner.cleanup()
+
+    assert not isinstance(raised, TracarbonException)
+    assert received_tokens == ["SECRET_API_KEY"]
+    assert "SECRET_API_KEY" not in repr(raised) + "".join(host_logs)
+
+
+async def test_a_refused_request_keeps_the_api_key_out_of_a_diagnosed_traceback():
+    with socket.socket() as probe:
+        probe.bind(("127.0.0.1", 0))
+        closed_port = probe.getsockname()[1]
+    country = Country(
+        name="fr",
+        co2signal_api_key="SECRET_API_KEY",
+        co2signal_url=f"http://127.0.0.1:{closed_port}/?zone=",
+        co2g_kwh_source=CarbonIntensitySource.CO2SignalAPI,
+    )
+    host_logs = []
+    host_handler_id = logger.add(host_logs.append, backtrace=True, diagnose=True)
+    try:
+        await country.get_latest_co2g_kwh()
+    except Exception:
+        logger.exception("Host caught a failed refresh")
+    finally:
+        logger.remove(host_handler_id)
+
+    host_log = "".join(host_logs)
+    assert "Traceback" in host_log
+    assert "SECRET_API_KEY" not in host_log
+
+
+async def start_server(handler) -> tuple[web.AppRunner, str]:
+    application = web.Application()
+    application.router.add_get("/", handler)
+    runner = web.AppRunner(application)
+    await runner.setup()
+    await web.TCPSite(runner, "127.0.0.1", 0).start()
+    return runner, f"http://127.0.0.1:{runner.addresses[0][1]}/"
 
 
 def test_get_current_country_returns_country_code(mocker):

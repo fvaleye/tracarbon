@@ -1,9 +1,11 @@
 import os
+import sys
 
 from loguru import logger
 
 from tracarbon.conf import TracarbonConfiguration
 from tracarbon.conf import check_optional_dependency
+from tracarbon.conf import logger_configuration
 
 
 def test_a_missing_optional_dependency_is_not_logged(caplog):
@@ -61,6 +63,26 @@ def test_configuration_loads_the_given_env_file(mocker, tmp_path):
     env_file.write_text("TRACARBON_METRIC_PREFIX_NAME=from_env_file\n")
 
     assert TracarbonConfiguration(env_file_path=str(env_file)).metric_prefix_name == "from_env_file"
+
+
+def test_configuration_keeps_the_api_key_out_of_its_repr():
+    assert "SECRET_API_KEY" not in repr(TracarbonConfiguration(co2signal_api_key="SECRET_API_KEY"))
+
+
+def test_logger_configuration_keeps_local_variables_out_of_tracebacks(capsys):
+    logger_configuration(level="INFO")
+    api_key = "SECRET_API_KEY"
+    try:
+        {"auth-token": api_key}["missing"]
+    except KeyError:
+        logger.exception("Request failed")
+    finally:
+        logger.remove()
+        logger.add(sys.__stderr__)
+
+    logged = capsys.readouterr().err
+    assert "KeyError" in logged
+    assert "SECRET_API_KEY" not in logged
 
 
 def test_configuration_replaces_the_default_loguru_handler_with_the_tracarbon_one(run_python):

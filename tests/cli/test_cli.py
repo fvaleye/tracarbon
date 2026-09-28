@@ -8,6 +8,7 @@ from tracarbon import EnergyConsumption
 from tracarbon import EnergyUsage
 from tracarbon import Kubernetes
 from tracarbon import MacEnergyConsumption
+from tracarbon.cli import app
 from tracarbon.cli import get_exporter
 from tracarbon.cli import run_metrics
 from tracarbon.exporters import DatadogExporter
@@ -146,3 +147,7 @@ def test_cli_reads_the_env_file_of_its_working_directory(run_python, tmp_path):
     (tmp_path / ".env").write_text("TRACARBON_LOG_LEVEL=ERROR\n")
 
     assert run_python("-m", "tracarbon", "list-exporters") == ""
+
+
+def test_cli_tracebacks_do_not_show_local_variables():
+    assert app.pretty_exceptions_show_locals is False

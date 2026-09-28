@@ -14,7 +14,7 @@ from tracarbon.general_metrics import CarbonEmissionGenerator
 from tracarbon.general_metrics import EnergyConsumptionGenerator
 from tracarbon.locations import Country
 
-app = typer.Typer()
+app = typer.Typer(pretty_exceptions_show_locals=False)
 
 
 @app.command(help="List the exporters")
