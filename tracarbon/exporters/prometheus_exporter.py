@@ -40,7 +40,6 @@ if PROMETHEUS_INSTALLED:
         port: int | None = None
         _container_series: set[tuple[Gauge | Counter, tuple[str, ...]]] = PrivateAttr(default_factory=set)
         _collected_container_series: set[tuple[Gauge | Counter, tuple[str, ...]]] = PrivateAttr(default_factory=set)
-        # Keep generator references to prevent ID reuse.
         _series_by_generator: Dict[int, tuple[MetricGenerator, set[tuple[Gauge | Counter, tuple[str, ...]]]]] = (
             PrivateAttr(default_factory=dict)
         )
@@ -159,7 +158,6 @@ if PROMETHEUS_INSTALLED:
                         )
                 if first_failure is not None:
                     raise first_failure
-                # Replace prior series only after a complete collection.
                 generator_series.clear()
             finally:
                 generator_series.update(self._collected_container_series)
