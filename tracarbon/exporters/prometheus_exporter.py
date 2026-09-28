@@ -39,7 +39,7 @@ if PROMETHEUS_INSTALLED:
         address: str | None = None
         port: int | None = None
         _container_series: set[tuple[Gauge | Counter, tuple[str, ...]]] = PrivateAttr(default_factory=set)
-        _collected_container_series: set[tuple[Gauge | Counter, tuple[str, ...]]] = PrivateAttr(default_factory=set)
+        _current_generator_series: set[tuple[Gauge | Counter, tuple[str, ...]]] = PrivateAttr(default_factory=set)
         _series_by_generator: Dict[int, tuple[MetricGenerator, set[tuple[Gauge | Counter, tuple[str, ...]]]]] = (
             PrivateAttr(default_factory=dict)
         )
@@ -60,9 +60,9 @@ if PROMETHEUS_INSTALLED:
                 await super()._launch_all()
             finally:
                 with _metrics_lock:
-                    active_generators = {id(generator) for generator in self.metric_generators}
+                    active_generator_ids = {id(generator) for generator in self.metric_generators}
                     self._series_by_generator = {
-                        key: value for key, value in self._series_by_generator.items() if key in active_generators
+                        key: value for key, value in self._series_by_generator.items() if key in active_generator_ids
                     }
                     previous_series = self._container_series
                     self._container_series = {
@@ -103,7 +103,7 @@ if PROMETHEUS_INSTALLED:
                 labels = tuple(tag.value for tag in tags)
                 if any(tag.key == "pod_name" for tag in tags):
                     self._container_series.add((metric, labels))
-                    self._collected_container_series.add((metric, labels))
+                    self._current_generator_series.add((metric, labels))
                 if value is None:
                     return
                 series = metric.labels(*labels) if labels else metric
@@ -122,8 +122,8 @@ if PROMETHEUS_INSTALLED:
 
             :param metric_generator: the metric generator
             """
-            _, generator_series = self._series_by_generator.setdefault(id(metric_generator), (metric_generator, set()))
-            self._collected_container_series = set()
+            _, retained_series = self._series_by_generator.setdefault(id(metric_generator), (metric_generator, set()))
+            self._current_generator_series = set()
             first_failure: Exception | None = None
             try:
                 async for metric in metric_generator.generate():
@@ -158,9 +158,9 @@ if PROMETHEUS_INSTALLED:
                         )
                 if first_failure is not None:
                     raise first_failure
-                generator_series.clear()
+                retained_series.clear()
             finally:
-                generator_series.update(self._collected_container_series)
+                retained_series.update(self._current_generator_series)
 
         @classmethod
         def get_name(cls) -> str:

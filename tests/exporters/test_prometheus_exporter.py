@@ -115,7 +115,7 @@ async def test_prometheus_reports_healthy_metrics_after_a_read_fails(prometheus_
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("failing_first", [False, True])
+@pytest.mark.parametrize("failing_first", [False, True], ids=["failure_last", "failure_first"])
 async def test_prometheus_removes_vanished_pods_while_another_generator_fails(
     prometheus_registry: CollectorRegistry, failing_first: bool
 ) -> None:
@@ -144,8 +144,9 @@ async def test_prometheus_removes_vanished_pods_while_another_generator_fails(
             pod_name,
             "unavailable",
         }
-        assert prometheus_registry.get_sample_value("carbon_grams_total", {"pod_name": pod_name}) == 1.0
-        assert prometheus_registry.get_sample_value("carbon_grams_total", {"pod_name": "unavailable"}) == 1.0
+        for expected_pod in (pod_name, "unavailable"):
+            assert prometheus_registry.get_sample_value("carbon", {"pod_name": expected_pod, "units": "co2g"}) == 1.0
+            assert prometheus_registry.get_sample_value("carbon_grams_total", {"pod_name": expected_pod}) == 1.0
 
     exporter.metric_generators = []
     await exporter._launch_all()
