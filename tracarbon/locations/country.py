@@ -92,6 +92,11 @@ class Country(Location):
         raise CountryIsMissing(f"The country [{country_code_alpha_iso_2}] is not in the co2 emission file.")
 
     @classmethod
+    def from_eu_file(cls, country_code_alpha_iso_2: str) -> "Country":
+        """Deprecated. Use Country.from_file instead."""
+        return cls.from_file(country_code_alpha_iso_2=country_code_alpha_iso_2)
+
+    @classmethod
     def get_current_country(
         cls,
         url: str = "https://ipinfo.io/json",
