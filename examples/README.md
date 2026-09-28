@@ -28,8 +28,8 @@ run on a quiet machine. Token counts and per-model attribution are unavailable.
 | Windows | NVIDIA GPU via `nvidia-smi`. CPU, memory and host totals are unavailable. |
 
 Country is detected by IP; `--country-code-alpha-iso-2 fr` overrides it. Without an API key,
-Tracarbon uses bundled factors for 28 European countries. Set
-`TRACARBON_CO2SIGNAL_API_KEY` for live factors, including supported zones outside Europe.
+Tracarbon uses bundled factors for 200+ supported countries. Set
+`TRACARBON_CO2SIGNAL_API_KEY` for live factors.
 
 Set `TRACARBON_INTERVAL_IN_SECONDS=1` for more frequent readings.
 Remote API calls only measure the client computer.

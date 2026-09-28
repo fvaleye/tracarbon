@@ -10,8 +10,8 @@ With Docker
     # Inside the root folder
     docker build -t tracarbon ./
 
-    # Build with Docker
-    docker run -it tracarbon bash
+    # Open a shell in the image
+    docker run --rm -it --entrypoint bash tracarbon
 
 With uv
 ===========
