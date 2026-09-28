@@ -1,6 +1,9 @@
+import asyncio
 import os
 import re
+import time
 from datetime import datetime
+from pathlib import Path
 from typing import Dict
 from typing import List
 
@@ -11,7 +14,9 @@ from pydantic import Field
 
 from tracarbon.exceptions import HardwareRAPLException
 from tracarbon.hardwares.energy import EnergyUsage
-from tracarbon.hardwares.energy import Power
+from tracarbon.hardwares.rapl import FIRST_INTERVAL_SECONDS
+from tracarbon.hardwares.rapl import RAPLResult
+from tracarbon.hardwares.rapl import watts_between
 
 __all__ = [
     "AMDRAPLResult",
@@ -19,15 +24,15 @@ __all__ = [
 ]
 
 
-class AMDRAPLResult(BaseModel):
+class AMDRAPLResult(RAPLResult):
     """
-    AMD RAPL result after reading the HWMON energy files.
+    Energy reading from the amd_energy HWMON driver.
+
+    The kernel extends 32-bit counters to 64 bits. Decreases are treated as resets.
     """
 
-    name: str
     label: str
-    energy_uj: float
-    timestamp: datetime
+    max_energy_uj: float = 0.0
 
 
 class AMDRAPL(BaseModel):
@@ -76,15 +81,16 @@ class AMDRAPL(BaseModel):
 
     async def is_amd_rapl_compatible(self) -> bool:
         """
-        Check if AMD RAPL energy measurement is available via HWMON.
+        Check for a readable AMD energy counter in HWMON.
 
         :return: True if AMD energy HWMON interface is available
         """
-        if self.amd_energy_path and os.path.exists(self.amd_energy_path):  # noqa: ASYNC240
-            return True
-
-        self.amd_energy_path = await self._find_amd_energy_hwmon()
-        return self.amd_energy_path is not None
+        if not (self.amd_energy_path and os.path.exists(self.amd_energy_path)):  # noqa: ASYNC240
+            self.amd_energy_path = await self._find_amd_energy_hwmon()
+        return self.amd_energy_path is not None and any(
+            os.access(counter, os.R_OK)
+            for counter in Path(self.amd_energy_path).glob("energy*_input")  # noqa: ASYNC240
+        )
 
     def get_energy_files_list(self) -> None:
         """
@@ -133,6 +139,7 @@ class AMDRAPL(BaseModel):
 
                 async with aiofiles.open(input_file) as f:
                     energy_uj = float((await f.read()).strip())
+                    monotonic_time = time.monotonic()
 
                 # Create a unique name combining index and label
                 name = f"amd-{energy_index}-{label}"
@@ -143,6 +150,7 @@ class AMDRAPL(BaseModel):
                         label=label,
                         energy_uj=energy_uj,
                         timestamp=datetime.now(),
+                        monotonic_time=monotonic_time,
                     )
                 )
 
@@ -171,54 +179,30 @@ class AMDRAPL(BaseModel):
 
     async def get_energy_report(self) -> EnergyUsage:
         """
-        Get the energy report based on AMD RAPL HWMON readings.
+        Return package power as host and CPU power.
 
-        AMD RAPL domains:
-        - Esocket*: Package-level power (similar to Intel's package domain)
-        - Ecore*: Per-core power
+        Without a previous sample, read twice over a short interval.
+        Memory and GPU power are not measured by this sensor.
 
-        Note: AMD RAPL does not expose separate RAM domain via HWMON.
-        For RAM measurements, the package domain includes integrated memory controller.
-
-        :return: EnergyUsage report from AMD RAPL measurements
+        :return: a power report with None for unmeasured domains
         """
         rapl_results = await self.get_amd_rapl_power_usage()
-
-        total_package_watts = 0.0
+        if not self.rapl_results:
+            self.rapl_results = {rapl_result.name: rapl_result for rapl_result in rapl_results}
+            await asyncio.sleep(FIRST_INTERVAL_SECONDS)
+            rapl_results = await self.get_amd_rapl_power_usage()
+        total_package_watts: float | None = None
 
         for rapl_result in rapl_results:
             previous_rapl_result = self.rapl_results.get(rapl_result.name, rapl_result)
-
-            time_difference_seconds = (rapl_result.timestamp - previous_rapl_result.timestamp).total_seconds()
-            if time_difference_seconds <= 0:
-                time_difference_seconds = 1.0
-
-            energy_uj = rapl_result.energy_uj
-
-            # Handle wrap-around for 32-bit counters on older AMD CPUs
-            # 32-bit counter max is ~4.29 billion microjoules
-            max_32bit_uj = 4294967295.0
-            if previous_rapl_result.energy_uj > rapl_result.energy_uj:
-                logger.debug(
-                    f"Wrap-around detected in AMD RAPL {rapl_result.name}. "
-                    f"Current: {rapl_result.energy_uj}, Previous: {previous_rapl_result.energy_uj}"
-                )
-                energy_uj = energy_uj + max_32bit_uj
-
-            energy_delta = energy_uj - previous_rapl_result.energy_uj
-            watts = Power.watts_from_microjoules(energy_delta / time_difference_seconds)
-
-            # Store current result for next comparison
             self.rapl_results[rapl_result.name] = rapl_result
-
-            domain = self._classify_domain(rapl_result.label)
-
-            if domain == "package":
-                total_package_watts += watts
+            watts = watts_between(previous=previous_rapl_result, current=rapl_result, max_power_watts=0.0)
+            if watts is not None and self._classify_domain(rapl_result.label) == "package":
+                total_package_watts = (total_package_watts or 0.0) + watts
 
         energy_usage_report = EnergyUsage(
             host_energy_usage=total_package_watts,
-            cpu_energy_usage=total_package_watts if total_package_watts > 0 else None,
+            cpu_energy_usage=total_package_watts,
             memory_energy_usage=None,
             gpu_energy_usage=None,
         )

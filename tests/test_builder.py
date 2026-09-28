@@ -50,7 +50,7 @@ def test_restart_opens_a_new_report_without_attributing_stopped_time(mocker):
         previous_report = tracarbon.report
 
         tracarbon.start()
-        assert exporter.metric_report["carbon_emission_host"].total == 0.0
+        assert "carbon_emission_host" not in exporter.metric_report
         assert tracarbon.report.end_time is None
         assert tracarbon.report.metric_report == {}
         asyncio.run(exporter._launch_all())
@@ -96,7 +96,7 @@ def test_stop_collects_a_short_async_job_once_and_closes_its_json_report(mocker,
             for record in orjson.loads(output.read_bytes())
             if record["metric_name"] == "carbon_emission_host"
         ]
-        assert host_values == pytest.approx([0.0, 1 / 3])
+        assert host_values == pytest.approx([1 / 3])
     finally:
         exporter.stop()
 
@@ -264,7 +264,7 @@ def test_start_discards_a_carbon_measurement_from_before_the_run(mocker, generat
     finally:
         exporter.stop()
 
-    assert get_co2_usage.spy_return.host_carbon_usage == 0.0
+    assert get_co2_usage.spy_return.host_carbon_usage is None
 
 
 def test_stop_publishes_the_report_after_collection_settles(mocker):

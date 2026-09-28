@@ -152,9 +152,7 @@ class CarbonEmission(Sensor):
         self.previous_energy_consumption_time = datetime.now()
         self._measured_at = measured_at
         return CarbonUsage(
-            host_carbon_usage=(co2g_from(energy_usage.host_energy_usage) or 0.0)
-            if energy_usage.host_energy_usage is not None
-            else None,
+            host_carbon_usage=co2g_from(energy_usage.host_energy_usage),
             cpu_carbon_usage=co2g_from(energy_usage.cpu_energy_usage),
             memory_carbon_usage=co2g_from(energy_usage.memory_energy_usage),
             gpu_carbon_usage=co2g_from(energy_usage.gpu_energy_usage),
