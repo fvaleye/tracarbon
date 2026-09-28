@@ -42,7 +42,7 @@ spec:
         - name: TRACARBON_LOG_LEVEL
           value: '{{ .Values.tracarbon.log_level }}'
         {{- end }}
-        {{- if .Values.tracarbon.log_level }}
+        {{- if .Values.tracarbon.metric_prefix_name }}
         - name: TRACARBON_METRIC_PREFIX_NAME
           value: '{{ .Values.tracarbon.metric_prefix_name }}'
         {{- end }}
@@ -54,11 +54,11 @@ spec:
         volumeMounts:
         - mountPath: /proc
           name: proc
-          readOnly: false
+          readOnly: true
         {{- if eq .Values.tracarbon.rapl_available true }}
         - mountPath: /sys/class/powercap
           name: powercap
-          readOnly: false
+          readOnly: true
         {{- end }}
       securityContext:
         runAsUser: {{ .Values.userID }}
