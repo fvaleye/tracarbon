@@ -216,7 +216,10 @@ class MacEnergyConsumption(EnergyConsumption):
         except (asyncio.TimeoutError, asyncio.CancelledError):
             # ioreg and plutil are children of the shell, so stop the whole pipeline.
             with contextlib.suppress(ProcessLookupError):
-                os.killpg(proc.pid, signal.SIGKILL)
+                if os.name == "posix":
+                    os.killpg(proc.pid, signal.SIGKILL)
+                else:
+                    proc.kill()
             try:
                 await asyncio.wait_for(proc.wait(), timeout=KILLED_PROBE_WAIT_SECONDS)
             except asyncio.TimeoutError:
