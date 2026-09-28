@@ -43,10 +43,6 @@ def check_new_year_available_for_gcp(base_url: str, current_year: int) -> None:
 if __name__ == "__main__":
     urls = [
         {
-            "url": "https://www.eea.europa.eu/en/analysis/maps-and-charts/co2-emission-intensity-15/@@download/file",
-            "content_length": "18552",
-        },
-        {
             "url": "https://raw.githubusercontent.com/cloud-carbon-footprint/ccf-coefficients/main/data/aws-instances.csv",
             "content_length": "160141",
         },

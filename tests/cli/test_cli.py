@@ -38,7 +38,7 @@ def test_get_exporter_by_name_should_raise_error():
 
 
 def test_run_metrics_reports_gpu_carbon_when_host_measurement_is_unavailable(mocker, caplog):
-    mocker.patch.object(Country, "get_location", return_value=Country.from_eu_file("fr"))
+    mocker.patch.object(Country, "get_location", return_value=Country.from_file("fr"))
     mocker.patch.object(EnergyConsumption, "from_platform", return_value=WindowsEnergyConsumption())
     mocker.patch.object(NvidiaGPU, "get_gpu_power_usage", return_value=50.0)
     clock = mocker.patch("tracarbon.emissions.carbon_emissions.time")
@@ -47,7 +47,7 @@ def test_run_metrics_reports_gpu_carbon_when_host_measurement_is_unavailable(moc
 
     assert "carbon_emission_gpu" in caplog.text
     assert "Total CO2 emitted: unavailable" in caplog.text
-    assert "GPU CO2 emitted: 0.0010g" in caplog.text
+    assert "GPU CO2 emitted: 0.0006g" in caplog.text
     assert "end_time=None" not in caplog.text
 
 
