@@ -6,11 +6,6 @@ import pytest
 from _pytest.logging import LogCaptureFixture
 from loguru import logger
 
-
-def test_some_interaction(monkeypatch):
-    monkeypatch.setattr("os.getcwd", lambda: "/")
-
-
 ALL = set("darwin linux windows".split())
 
 
