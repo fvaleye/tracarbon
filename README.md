@@ -45,7 +45,7 @@ tracarbon.start()
 total_co2g = tracarbon.stop() # The CO2 grams emitted while it was running
 
 with tracarbon:
-    # Your code
+    ...  # Your code
 
 report = tracarbon.report # Get the report
 print(report.total_co2g)
