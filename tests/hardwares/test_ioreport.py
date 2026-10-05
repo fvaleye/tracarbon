@@ -15,6 +15,7 @@ from tracarbon.hardwares.sensors import MacEnergyConsumption
 
 @pytest.fixture
 def native_reader(mocker):
+    mocker.patch.object(platform, "mac_ver", return_value=("26.0.0", ("", "", ""), "arm64"))
     reader = object.__new__(IOReportReader)
     reader._core_foundation = mocker.Mock()
     reader._ioreport = mocker.Mock()
@@ -94,6 +95,45 @@ async def test_the_first_report_measures_a_short_interval(mocker, native_reader)
     assert report.host_energy_usage == 4.0
     assert report.cpu_energy_usage is None
     sleep.assert_awaited_once_with(0.1)
+
+
+@pytest.mark.parametrize("release", ["27.0.0", "28.0.0"])
+@pytest.mark.parametrize("cpu_millijoules", [0.0, 9_100_000.0], ids=["stalled", "delayed-batch"])
+@pytest.mark.asyncio
+async def test_batched_macos_counters_keep_only_live_gpu_energy(mocker, native_reader, release, cpu_millijoules):
+    mocker.patch.object(platform, "system", return_value="Darwin")
+    mocker.patch.object(platform, "mac_ver", return_value=(release, ("", "", ""), "arm64"))
+    mocker.patch.object(platform, "release", return_value="26.0.0")
+    mocker.patch.object(
+        IOReportReader,
+        "_read_channels",
+        return_value={
+            UsageType.CPU: cpu_millijoules,
+            UsageType.MEMORY: 1000.0,
+            UsageType.GPU: 500.0,
+            UsageType.HOST: cpu_millijoules + 2000.0,
+        },
+    )
+
+    with IOReportEnergy() as energy:
+        report = await energy.get_energy_report()
+
+    assert report.cpu_energy_usage is None
+    assert report.memory_energy_usage is None
+    assert report.host_energy_usage is None
+    assert report.gpu_energy_usage == 0.25
+
+
+@pytest.mark.asyncio
+async def test_batched_macos_counters_do_not_require_a_gpu_channel(mocker, native_reader):
+    mocker.patch.object(platform, "system", return_value="Darwin")
+    mocker.patch.object(platform, "mac_ver", return_value=("27.0.0", ("", "", ""), "arm64"))
+    mocker.patch.object(IOReportReader, "_read_channels", return_value={UsageType.CPU: 0.0, UsageType.HOST: 0.0})
+
+    with IOReportEnergy() as energy:
+        report = await energy.get_energy_report()
+
+    assert report == EnergyUsage(host_energy_usage=None)
 
 
 @pytest.mark.asyncio
@@ -206,6 +246,13 @@ async def test_independent_readers_can_measure_repeatedly_on_this_machine():
             for value in (report.cpu_energy_usage, report.gpu_energy_usage, report.memory_energy_usage)
             if value is not None
         )
-        assert report.host_energy_usage > 0
-        assert report.host_energy_usage >= component_watts or report.host_energy_usage == pytest.approx(component_watts)
+        assert any(
+            value is not None
+            for value in (report.cpu_energy_usage, report.gpu_energy_usage, report.memory_energy_usage)
+        )
+        if report.host_energy_usage is not None:
+            assert report.host_energy_usage > 0
+            assert report.host_energy_usage >= component_watts or report.host_energy_usage == pytest.approx(
+                component_watts
+            )
         assert report.unit.value == "watts"

@@ -64,6 +64,7 @@ class _SensorBackend(Enum):
     IOREG = "ioreg"
     IOREG_SYSTEM = "ioreg SystemPower"
     IOREG_ADAPTER = "ioreg AdapterPower"
+    IOREG_TELEMETRY = "ioreg SystemLoad"
     INTEL_RAPL = "intel_rapl"
     AMD_RAPL = "amd_rapl"
     GPU = "gpu"
@@ -137,7 +138,8 @@ class MacEnergyConsumption(EnergyConsumption):
 
     Reads the IOReport energy counters on Apple Silicon, which give the energy of an interval
     rather than a power reading held over it, need no elevated privileges and cover CPU, GPU,
-    memory and ANE.
+    memory and ANE. On macOS 27 and later, only GPU energy is used because the other
+    counters arrive in delayed batches.
 
     Falls back to powermetrics, which measures the same components but has to be run as root, and
     then to the system power ioreg reports. That last one is the power of the whole machine rather
@@ -148,6 +150,9 @@ class MacEnergyConsumption(EnergyConsumption):
     shell_command: str = """ioreg -rw0 -a -c AppleSmartBattery | plutil -extract '0.BatteryData.SystemPower' raw -"""
     adapter_shell_command: str = (
         """ioreg -rw0 -a -c AppleSmartBattery | plutil -extract '0.BatteryData.AdapterPower' raw -"""
+    )
+    telemetry_shell_command: str = (
+        """ioreg -rw0 -a -c AppleSmartBattery | plutil -extract '0.PowerTelemetryData.SystemLoad' raw -"""
     )
     _active_sensor: _SensorBackend | None = None
     _ioreport: IOReportEnergy | None = None
@@ -191,7 +196,7 @@ class MacEnergyConsumption(EnergyConsumption):
             # anything unexpected coming back out of it should reach.
             logger.debug(f"The energy counters could not be read: {exception}")
             return None
-        if self._active_sensor is not _SensorBackend.IOREPORT:
+        if energy_usage.host_energy_usage is not None and self._active_sensor is not _SensorBackend.IOREPORT:
             logger.info("Using the IOReport energy counters for energy measurement (CPU + GPU + memory + ANE)")
             self._active_sensor = _SensorBackend.IOREPORT
         return energy_usage
@@ -241,16 +246,21 @@ class MacEnergyConsumption(EnergyConsumption):
         :return: the generated energy usage.
         """
         energy_usage = await self._read_energy_counters()
-        if energy_usage is not None:
+        if energy_usage is not None and energy_usage.host_energy_usage is not None:
             return energy_usage
 
+        gpu_power = energy_usage.gpu_energy_usage if energy_usage is not None else None
         try:
-            cpu_power, gpu_power, ane_power = AppleSiliconPowerMetrics.get_power_breakdown()
-            if cpu_power is not None or gpu_power is not None:
+            cpu_power, powermetrics_gpu_power, ane_power = await asyncio.to_thread(
+                AppleSiliconPowerMetrics.get_power_breakdown
+            )
+            if gpu_power is None:
+                gpu_power = powermetrics_gpu_power
+            if cpu_power is not None:
                 if self._active_sensor is not _SensorBackend.POWERMETRICS:
                     logger.info("Using powermetrics for energy measurement (CPU + GPU + ANE)")
                     self._active_sensor = _SensorBackend.POWERMETRICS
-                host_power = sum(p for p in (cpu_power, gpu_power, ane_power) if p is not None)
+                host_power = sum(p for p in (cpu_power, powermetrics_gpu_power, ane_power) if p is not None)
                 return EnergyUsage(
                     host_energy_usage=host_power,
                     cpu_energy_usage=cpu_power,
@@ -259,28 +269,37 @@ class MacEnergyConsumption(EnergyConsumption):
         except Exception:
             logger.debug("powermetrics not available, falling back to ioreg")
 
+        host_power = await self._read_ioreg_power()
+        if gpu_power is None:
+            gpu_power = await asyncio.to_thread(GPUInfo.get_gpu_power_usage_or_none)
+        return EnergyUsage(host_energy_usage=host_power, gpu_energy_usage=gpu_power)
+
+    async def _read_ioreg_power(self) -> float | None:
+        """Read whole-machine power from legacy battery data or power telemetry."""
         host_power: float | None = None
         sensor = _SensorBackend.IOREG
+        failure_level = "DEBUG" if self._active_sensor is sensor else "WARNING"
         try:
             for candidate, shell_command in (
                 (_SensorBackend.IOREG_SYSTEM, self.shell_command),
                 (_SensorBackend.IOREG_ADAPTER, self.adapter_shell_command),
+                (_SensorBackend.IOREG_TELEMETRY, self.telemetry_shell_command),
             ):
                 reading = await self._read_power(shell_command)
                 if reading is not None:
                     host_power, sensor = reading, candidate
                     break
             else:
-                logger.warning("ioreg returned no power reading, so the host power is unknown.")
+                logger.log(failure_level, "ioreg returned no power reading, so the host power is unknown.")
         except asyncio.TimeoutError:
-            logger.warning(f"ioreg did not answer within {PROBE_TIMEOUT_SECONDS} seconds. Host power is unknown.")
+            logger.log(
+                failure_level, f"ioreg did not answer within {PROBE_TIMEOUT_SECONDS} seconds. Host power is unknown."
+            )
         if self._active_sensor is not sensor:
             logger.info(f"Using {sensor.value} for energy measurement")
             self._active_sensor = sensor
 
-        gpu_power = GPUInfo.get_gpu_power_usage_or_none()
-
-        return EnergyUsage(host_energy_usage=host_power, gpu_energy_usage=gpu_power)
+        return host_power
 
 
 class LinuxEnergyConsumption(EnergyConsumption):

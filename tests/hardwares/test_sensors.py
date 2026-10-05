@@ -7,6 +7,7 @@ import subprocess
 import time
 from collections import namedtuple
 from operator import attrgetter
+from threading import Event
 
 import psutil
 import pytest
@@ -633,19 +634,54 @@ async def test_mac_energy_consumption_reads_the_adapter_when_no_system_power_is_
 
 
 @pytest.mark.asyncio
-async def test_mac_energy_consumption_reports_unknown_power_when_ioreg_reports_neither_key(mocker):
+async def test_mac_energy_consumption_reads_system_load_when_legacy_keys_are_missing(mocker):
+    mocker.patch.object(AppleSiliconPowerMetrics, "get_power_breakdown", return_value=(None, None, None))
+    mocker.patch.object(GPUInfo, "get_gpu_power_usage_or_none", return_value=None)
+    read_power = mocker.patch.object(MacEnergyConsumption, "_read_power", side_effect=[None, None, 45.964])
+
+    energy_usage = await MacEnergyConsumption().get_energy_usage()
+
+    assert energy_usage.host_energy_usage == 45.964
+    assert energy_usage.cpu_energy_usage is None
+    assert read_power.call_count == 3
+    assert "PowerTelemetryData.SystemLoad" in read_power.call_args.args[0]
+
+
+@pytest.mark.asyncio
+async def test_mac_energy_consumption_reports_unknown_power_when_ioreg_reports_no_key(mocker):
     mocker.patch.object(
         AppleSiliconPowerMetrics,
         "get_power_breakdown",
         side_effect=HardwareNoGPUDetectedException("powermetrics failed to run."),
     )
     mocker.patch.object(GPUInfo, "get_gpu_power_usage_or_none", return_value=None)
-    mocker.patch.object(MacEnergyConsumption, "_read_power", side_effect=[None, None])
+    mocker.patch.object(MacEnergyConsumption, "_read_power", return_value=None)
 
     mac_sensor = MacEnergyConsumption()
     energy_usage = await mac_sensor.get_energy_usage()
 
     assert energy_usage.host_energy_usage is None
+
+
+@pytest.mark.parametrize("timeout", [False, True])
+@pytest.mark.asyncio
+async def test_ioreg_warns_once_per_failure_streak_and_recovers(mocker, caplog, timeout):
+    read_power = mocker.patch.object(MacEnergyConsumption, "_read_power", return_value=None)
+    if timeout:
+        read_power.side_effect = asyncio.TimeoutError
+    sensor = MacEnergyConsumption()
+
+    missing_readings = [await sensor._read_ioreg_power() for _ in range(5)]
+    read_power.side_effect = None
+    read_power.return_value = 30.0
+    recovered_reading = await sensor._read_ioreg_power()
+    read_power.return_value = None
+    await sensor._read_ioreg_power()
+
+    assert missing_readings == [None] * 5
+    assert recovered_reading == 30.0
+    failures = [record for record in caplog.records if "unknown" in record.message]
+    assert [record.levelname for record in failures] == ["WARNING", "DEBUG", "DEBUG", "DEBUG", "DEBUG", "WARNING"]
 
 
 @pytest.mark.asyncio
@@ -751,3 +787,84 @@ async def test_mac_energy_consumption_falls_back_when_the_counters_cannot_be_rea
     energy_usage = await MacEnergyConsumption().get_energy_usage()
 
     assert energy_usage.host_energy_usage == 30.0
+
+
+@pytest.mark.parametrize("gpu_watts", [0.0, 2.0])
+@pytest.mark.parametrize("host_watts", [None, 30.0])
+@pytest.mark.asyncio
+async def test_partial_energy_counters_use_ioreg_and_preserve_gpu(mocker, gpu_watts, host_watts):
+    counted = EnergyUsage(host_energy_usage=None, gpu_energy_usage=gpu_watts)
+    mocker.patch.object(MacEnergyConsumption, "_read_energy_counters", return_value=counted)
+    mocker.patch.object(
+        AppleSiliconPowerMetrics, "get_power_breakdown", side_effect=HardwareNoGPUDetectedException("no permission")
+    )
+    mocker.patch.object(MacEnergyConsumption, "_read_power", return_value=host_watts)
+    gpu_probe = mocker.patch.object(GPUInfo, "get_gpu_power_usage_or_none")
+
+    report = await MacEnergyConsumption().get_energy_usage()
+
+    assert report.host_energy_usage == host_watts
+    assert report.gpu_energy_usage == gpu_watts
+    assert report.cpu_energy_usage is None
+    assert report.memory_energy_usage is None
+    gpu_probe.assert_not_called()
+
+
+@pytest.mark.parametrize("powermetrics_gpu_watts", [None, 0.0, 3.0])
+@pytest.mark.parametrize("gpu_watts", [0.0, 0.2])
+@pytest.mark.asyncio
+async def test_partial_energy_counters_fall_back_to_powermetrics(mocker, powermetrics_gpu_watts, gpu_watts):
+    counted = EnergyUsage(host_energy_usage=None, gpu_energy_usage=gpu_watts)
+    mocker.patch.object(MacEnergyConsumption, "_read_energy_counters", return_value=counted)
+    mocker.patch.object(
+        AppleSiliconPowerMetrics, "get_power_breakdown", return_value=(5.0, powermetrics_gpu_watts, 0.5)
+    )
+    ioreg_probe = mocker.patch.object(MacEnergyConsumption, "_read_power")
+
+    report = await MacEnergyConsumption().get_energy_usage()
+
+    assert report.cpu_energy_usage == 5.0
+    assert report.gpu_energy_usage == gpu_watts
+    assert report.host_energy_usage == 5.5 + (powermetrics_gpu_watts or 0.0)
+    ioreg_probe.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_powermetrics_gpu_only_uses_ioreg_for_host(mocker):
+    mocker.patch.object(AppleSiliconPowerMetrics, "get_power_breakdown", return_value=(None, 2.0, None))
+    mocker.patch.object(MacEnergyConsumption, "_read_power", return_value=30.0)
+    gpu_probe = mocker.patch.object(GPUInfo, "get_gpu_power_usage_or_none")
+
+    report = await MacEnergyConsumption().get_energy_usage()
+
+    assert report.host_energy_usage == 30.0
+    assert report.gpu_energy_usage == 2.0
+    assert report.cpu_energy_usage is None
+    gpu_probe.assert_not_called()
+
+
+@pytest.mark.parametrize("probe", ["powermetrics", "gpu"])
+@pytest.mark.asyncio
+async def test_mac_power_probes_leave_the_event_loop_responsive(mocker, probe):
+    released = Event()
+    loop_ran = []
+
+    def read_power():
+        loop_ran.append(released.wait(timeout=1))
+        return (5.0, 2.0, None) if probe == "powermetrics" else 2.0
+
+    mocker.patch.object(MacEnergyConsumption, "_read_power", return_value=20.0)
+    mocker.patch.object(AppleSiliconPowerMetrics, "get_power_breakdown", return_value=(None, None, None))
+    target = AppleSiliconPowerMetrics if probe == "powermetrics" else GPUInfo
+    method = "get_power_breakdown" if probe == "powermetrics" else "get_gpu_power_usage_or_none"
+    mocker.patch.object(target, method, side_effect=read_power)
+    callback = asyncio.get_running_loop().call_later(0.01, released.set)
+
+    try:
+        report = await MacEnergyConsumption().get_energy_usage()
+    finally:
+        released.set()
+        callback.cancel()
+
+    assert loop_ran == [True]
+    assert report.gpu_energy_usage == 2.0
