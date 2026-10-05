@@ -56,6 +56,9 @@ from tracarbon.locations import Country
 from tracarbon.locations import EmissionFactorType
 from tracarbon.locations import GCPLocation
 from tracarbon.locations import Location
+from tracarbon.processes import ProcessReport
+from tracarbon.processes import ProcessTracker
+from tracarbon.processes import ProcessUsage
 
 if DATADOG_INSTALLED:
     from tracarbon.exporters import DatadogExporter as DatadogExporter
@@ -114,6 +117,9 @@ __all__ = [
     "MetricGenerator",
     "MetricReport",
     "PROMETHEUS_INSTALLED",
+    "ProcessReport",
+    "ProcessTracker",
+    "ProcessUsage",
     "RAPL",
     "Sensor",
     "StdoutExporter",

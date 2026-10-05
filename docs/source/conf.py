@@ -45,6 +45,7 @@ extensions = ["sphinx.ext.autodoc", "edit_on_github"]
 autodoc_typehints = "description"
 nitpicky = True
 nitpick_ignore = [
+    ("py:class", "collections.abc.Iterable"),
     ("py:class", "datetime.datetime"),
     ("py:class", "datadog.threadstats.base.ThreadStats"),
     ("py:class", "threading.Event"),

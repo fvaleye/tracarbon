@@ -39,6 +39,57 @@ The block starts and stops tracking. ``total_co2g`` is the total CO2 in grams,
 or ``None`` if unavailable. For manual control, use ``tracker.start()`` and
 ``tracker.stop()``.
 
+Process attribution
+===================
+
+Sample selected processes and write one JSON record per interval:
+
+.. code-block:: console
+
+   tracarbon processes --pid 1234 --interval 1 --count 10 --country-code-alpha-iso-2 fr > processes.jsonl
+
+Replace ``1234`` with the PID to observe. Repeat ``--pid`` to select several
+processes, or omit it to sample all visible PIDs. Omit ``--count`` to run until
+``Ctrl+C``. The country option selects bundled carbon intensity; without it,
+``estimated_co2g`` is ``null``.
+
+In Python, call :meth:`.ProcessTracker.sample` once to establish a baseline,
+then again after the interval you want to observe:
+
+.. code-block:: python
+
+   import asyncio
+   import os
+
+   from tracarbon import Country, ProcessTracker
+
+   async def main():
+       tracker = ProcessTracker(pids=[os.getpid()], location=Country.from_file("fr"))
+       await tracker.sample()
+       await asyncio.sleep(1)  # Run your workload between samples.
+       report = await tracker.sample()
+       print(report.model_dump_json())
+
+   asyncio.run(main())
+
+Each report covers one interval. ``timestamp`` marks the end of CPU sampling
+in UTC; ``interval_seconds`` uses a monotonic clock. Reports are not lifetime
+totals. The first observation of a process has no allocation.
+
+``cpu_capacity_fraction`` is process user and system CPU time divided by total
+machine CPU time, including idle. For example, one busy logical CPU on a machine
+with four logical CPUs represents about ``0.25`` of its capacity. Readable Linux
+RAPL counters supply ``source_energy_wh`` for the CPU packages. Each process receives that
+energy multiplied by its capacity fraction; idle and unobserved work remain in
+``unattributed_energy_wh``. Unavailable energy is ``null``, distinct from zero.
+CPU activity remains available on other platforms.
+
+These are estimates, not direct process energy measurements. CPU package energy
+can include non-core components; separate GPU and memory energy are excluded.
+Children are separate PIDs. Processes missed between samples and work before
+their first observation are excluded. CPU and energy snapshots are sequential,
+so their measurement windows are approximate.
+
 Configuration
 =============
 

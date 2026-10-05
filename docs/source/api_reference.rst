@@ -20,6 +20,12 @@ Builder
 .. automodule:: tracarbon.builder
     :members:
 
+Processes
+=========
+
+.. automodule:: tracarbon.processes
+    :members:
+
 Hardware
 ========
 
