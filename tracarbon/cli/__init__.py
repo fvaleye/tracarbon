@@ -1,5 +1,7 @@
+import asyncio
 import signal
 import time
+from typing import Annotated
 from typing import List
 
 import typer
@@ -14,6 +16,7 @@ from tracarbon.exporters import MetricGenerator
 from tracarbon.general_metrics import CarbonEmissionGenerator
 from tracarbon.general_metrics import EnergyConsumptionGenerator
 from tracarbon.locations import Country
+from tracarbon.processes import ProcessTracker
 
 app = typer.Typer(pretty_exceptions_show_locals=False)
 
@@ -163,6 +166,42 @@ def run(
         country_code_alpha_iso_2=country_code_alpha_iso_2,
         containers=containers,
     )
+
+
+@app.command()
+def processes(
+    pid: Annotated[
+        list[int] | None, typer.Option(min=1, help="PID to sample. Repeat for several; omit for all visible PIDs.")
+    ] = None,
+    interval: Annotated[float, typer.Option(min=0.01, help="Seconds between process samples.")] = 1.0,
+    count: Annotated[int, typer.Option(min=0, help="Number of intervals. Zero runs until Ctrl+C.")] = 0,
+    country_code_alpha_iso_2: str | None = None,
+) -> None:
+    """Write process CPU activity and estimated CPU package energy as JSON Lines.
+
+    Energy needs readable Linux RAPL counters. Other platforms report CPU activity
+    with null energy. An optional country selects bundled carbon intensity data.
+    Allocation uses each PID's share of total CPU capacity, including idle;
+    unattributed energy is retained. Children are separate PIDs. Processes missed
+    between samples cannot be accounted for. CPU and energy snapshots are sequential.
+    """
+    location = Country.from_file(country_code_alpha_iso_2) if country_code_alpha_iso_2 else None
+    tracker = ProcessTracker(pids=pid, location=location)
+
+    async def collect() -> None:
+        await tracker.sample()
+        completed = 0
+        while count == 0 or completed < count:
+            await asyncio.sleep(interval)
+            report = await tracker.sample()
+            typer.echo(report.model_dump_json())
+            completed += 1
+
+    signal.signal(signal.SIGTERM, signal.default_int_handler)
+    try:
+        asyncio.run(collect())
+    except KeyboardInterrupt:
+        pass
 
 
 def main() -> None:
