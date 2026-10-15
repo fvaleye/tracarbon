@@ -72,7 +72,7 @@ class _ProcessSnapshot:
 class _CPUSnapshot:
     measured_at: float
     timestamp: datetime
-    cpu_times: dict[str, float]
+    cpu_count: int | None
     processes: dict[int, _ProcessSnapshot]
     unavailable: dict[int, str]
 
@@ -93,11 +93,7 @@ def _read_cpu_snapshot(pids: tuple[int, ...] | None) -> _CPUSnapshot:
             unavailable[pid] = "access_denied"
         except (psutil.NoSuchProcess, psutil.ZombieProcess):
             unavailable[pid] = "exited"
-    # Linux already includes guest and guest_nice in user and nice.
-    system_times = {
-        name: value for name, value in psutil.cpu_times()._asdict().items() if name not in ("guest", "guest_nice")
-    }
-    return _CPUSnapshot(time.monotonic(), datetime.now(timezone.utc), system_times, processes, unavailable)
+    return _CPUSnapshot(time.monotonic(), datetime.now(timezone.utc), psutil.cpu_count(), processes, unavailable)
 
 
 @dataclass(frozen=True)
@@ -163,13 +159,11 @@ class _PackageEnergyReader:
         return _PackageInterval(source, "available", joules / 3600, min(durations), max(durations))
 
 
-def _cpu_delta(previous: _CPUSnapshot | None, current: _CPUSnapshot) -> float | None:
-    if previous is None or previous.cpu_times.keys() != current.cpu_times.keys():
+def _total_cpu_seconds(previous: _CPUSnapshot | None, current: _CPUSnapshot) -> float | None:
+    # Host CPU counters lag behind process counters on loaded VMs and update in bursts on macOS.
+    if previous is None or not current.cpu_count:
         return None
-    deltas = [value - previous.cpu_times[name] for name, value in current.cpu_times.items()]
-    if any(not math.isfinite(delta) or delta < 0 for delta in deltas):
-        return None
-    total = sum(deltas)
+    total = current.cpu_count * (current.measured_at - previous.measured_at)
     return total if total > 0 else None
 
 
@@ -257,7 +251,7 @@ class ProcessTracker:
     def _report(
         previous: _CPUSnapshot | None, current: _CPUSnapshot, energy: _PackageInterval, collection_seconds: float
     ) -> ProcessReport:
-        total_cpu_seconds = _cpu_delta(previous, current)
+        total_cpu_seconds = _total_cpu_seconds(previous, current)
         old_processes = previous.processes if previous is not None else {}
         processes = [
             _process_usage(old_processes.get(pid), process, total_cpu_seconds)

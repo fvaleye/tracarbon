@@ -1,4 +1,5 @@
 import asyncio
+import itertools
 import json
 import os
 from datetime import datetime
@@ -18,7 +19,15 @@ from tracarbon.hardwares.rapl import RAPLResult
 
 
 @pytest.fixture
-def cpu_readings(mocker):
+def clock(mocker):
+    clock = mocker.patch("tracarbon.processes.time")
+    clock.monotonic.side_effect = itertools.count(step=0.5)
+    return clock
+
+
+@pytest.fixture
+def cpu_readings(mocker, clock):
+    mocker.patch("tracarbon.processes.psutil.cpu_count", return_value=4)
     process = Mock()
     process.create_time.return_value = 123.0
     process.name.return_value = "worker"
@@ -110,24 +119,23 @@ async def test_multiple_processes_share_one_pool_without_redistributing_idle_ene
     assert report.unattributed_energy_wh == pytest.approx(25 / 3600)
 
 
-@pytest.mark.parametrize("system_cpu_seconds,cpu_delta", [(100.0, 0.3), (10_000_000.0, 0.01)])
+@pytest.mark.parametrize("process_cpu_seconds", [1.0, 10_000_000.0])
 async def test_full_cpu_capacity_survives_roundoff_without_exceeding_package_energy(
-    mocker, cpu_readings, package_readings, system_cpu_seconds, cpu_delta
+    mocker, cpu_readings, package_readings, process_cpu_seconds
 ):
-    cpu_readings.cpu_times.side_effect = [Mock(user=1.0, system=0.0), Mock(user=1.0 + cpu_delta / 3, system=0.0)]
+    cpu_readings.cpu_times.side_effect = [
+        Mock(user=process_cpu_seconds, system=0.0),
+        Mock(user=process_cpu_seconds + 4 / 3, system=0.0),
+    ]
     other = Mock()
     other.create_time.return_value = 124.0
     other.name.return_value = "other"
-    other.cpu_times.side_effect = [Mock(user=1.0, system=0.0), Mock(user=1.0 + 2 * cpu_delta / 3, system=0.0)]
+    other.cpu_times.side_effect = [
+        Mock(user=process_cpu_seconds, system=0.0),
+        Mock(user=process_cpu_seconds + 8 / 3, system=0.0),
+    ]
     other.is_running.return_value = True
     mocker.patch("tracarbon.processes.psutil.Process", side_effect={10: cpu_readings, 20: other}.__getitem__)
-    mocker.patch(
-        "tracarbon.processes.psutil.cpu_times",
-        side_effect=[
-            Mock(_asdict=lambda: {"user": system_cpu_seconds, "system": 0.0, "idle": 70.0}),
-            Mock(_asdict=lambda: {"user": system_cpu_seconds + cpu_delta, "system": 0.0, "idle": 70.0}),
-        ],
-    )
     tracker = ProcessTracker(pids=[10, 20])
 
     await tracker.sample()
@@ -139,6 +147,22 @@ async def test_full_cpu_capacity_survives_roundoff_without_exceeding_package_ene
     assert allocated == pytest.approx(report.source_energy_wh)
     assert allocated <= report.source_energy_wh
     assert report.unattributed_energy_wh == pytest.approx(0.0)
+
+
+async def test_busy_processes_keep_their_share_when_host_cpu_counters_lag(mocker, cpu_readings, package_readings):
+    # A loaded VM can count fewer host CPU ticks than its processes used.
+    mocker.patch(
+        "tracarbon.processes.psutil.cpu_times",
+        side_effect=[Mock(_asdict=lambda: {"user": 100.0}), Mock(_asdict=lambda: {"user": 100.5})],
+    )
+    tracker = ProcessTracker()
+
+    await tracker.sample()
+    report = await tracker.sample()
+
+    assert report.cpu_status == "available"
+    assert report.processes[0].cpu_capacity_fraction == 0.25
+    assert report.processes[0].estimated_energy_wh == pytest.approx(10 / 3600)
 
 
 async def test_reused_pid_starts_a_new_baseline(cpu_readings, package_readings):
@@ -229,14 +253,12 @@ async def test_zero_package_energy_is_preserved(cpu_readings, package_readings):
     assert report.unattributed_energy_wh == 0.0
 
 
-@pytest.mark.parametrize("total", [100.0, 99.0, float("nan")])
-async def test_system_counter_stall_or_reset_keeps_all_energy_unattributed(
-    mocker, cpu_readings, package_readings, total
+@pytest.mark.parametrize("cpu_count,clock_step", [(None, 0.5), (0, 0.5), (4, 0.0)])
+async def test_unknown_cpu_capacity_keeps_all_energy_unattributed(
+    mocker, clock, cpu_readings, package_readings, cpu_count, clock_step
 ):
-    mocker.patch(
-        "tracarbon.processes.psutil.cpu_times",
-        side_effect=[Mock(_asdict=lambda: {"user": 100.0}), Mock(_asdict=lambda: {"user": total})],
-    )
+    mocker.patch("tracarbon.processes.psutil.cpu_count", return_value=cpu_count)
+    clock.monotonic.side_effect = itertools.count(step=clock_step)
     tracker = ProcessTracker()
 
     await tracker.sample()
@@ -313,12 +335,6 @@ async def test_package_disappearance_starts_a_new_baseline(cpu_readings, package
 async def test_failed_package_read_recovers_without_spanning_cpu_intervals(mocker, cpu_readings, package_readings):
     cpu_readings.cpu_times.side_effect = [Mock(user=value, system=0.0) for value in (1.0, 2.0, 3.0, 4.0)]
     mocker.patch(
-        "tracarbon.processes.psutil.cpu_times",
-        return_value=Mock(
-            _asdict=Mock(side_effect=[{"user": value, "system": 0.0, "idle": 70.0} for value in (100, 104, 108, 112)])
-        ),
-    )
-    mocker.patch(
         "tracarbon.processes.RAPL.get_rapl_power_usage",
         side_effect=[package_readings[0], HardwareRAPLException("read failed"), *package_readings[1:]],
     )
@@ -342,14 +358,7 @@ async def test_failed_package_read_recovers_without_spanning_cpu_intervals(mocke
 
 @pytest.mark.parametrize("error", [RuntimeError("CPU sample failed"), asyncio.CancelledError()])
 async def test_failed_cpu_read_discards_both_measurement_baselines(mocker, cpu_readings, package_readings, error):
-    mocker.patch(
-        "tracarbon.processes.psutil.cpu_times",
-        side_effect=[
-            Mock(_asdict=lambda: {"user": 100.0}),
-            error,
-            Mock(_asdict=lambda: {"user": 108.0}),
-        ],
-    )
+    mocker.patch("tracarbon.processes.psutil.pids", side_effect=[[10], error, [10]])
     tracker = ProcessTracker()
     await tracker.sample()
 
