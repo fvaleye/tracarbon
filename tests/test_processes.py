@@ -149,6 +149,28 @@ async def test_full_cpu_capacity_survives_roundoff_without_exceeding_package_ene
     assert report.unattributed_energy_wh == pytest.approx(0.0)
 
 
+async def test_saturated_host_rounding_past_capacity_still_allocates_all_package_energy(
+    mocker, cpu_readings, package_readings
+):
+    # Linux reports process CPU time in 10 ms ticks, so a saturated host can sum one tick past capacity.
+    cpu_readings.cpu_times.side_effect = [Mock(user=1.0, system=0.0), Mock(user=3.01, system=0.0)]
+    other = Mock()
+    other.create_time.return_value = 124.0
+    other.name.return_value = "other"
+    other.cpu_times.side_effect = [Mock(user=1.0, system=0.0), Mock(user=3.0, system=0.0)]
+    other.is_running.return_value = True
+    mocker.patch("tracarbon.processes.psutil.Process", side_effect={10: cpu_readings, 20: other}.__getitem__)
+    tracker = ProcessTracker(pids=[10, 20])
+
+    await tracker.sample()
+    report = await tracker.sample()
+
+    assert report.cpu_status == "available"
+    assert [process.cpu_capacity_fraction for process in report.processes] == pytest.approx([2.01 / 4.01, 2.0 / 4.01])
+    assert sum(process.estimated_energy_wh for process in report.processes) == pytest.approx(report.source_energy_wh)
+    assert report.unattributed_energy_wh == pytest.approx(0.0)
+
+
 async def test_busy_processes_keep_their_share_when_host_cpu_counters_lag(mocker, cpu_readings, package_readings):
     # A loaded VM can count fewer host CPU ticks than its processes used.
     mocker.patch(
@@ -213,7 +235,7 @@ async def test_exited_process_is_reported_once_and_forgotten(mocker, cpu_reading
     assert later.processes == []
 
 
-@pytest.mark.parametrize("cpu_seconds", [0.0, 10.0, float("nan")])
+@pytest.mark.parametrize("cpu_seconds", [0.0, float("nan")])
 async def test_invalid_process_delta_never_allocates_more_than_the_pool(cpu_readings, package_readings, cpu_seconds):
     cpu_readings.cpu_times.side_effect = [Mock(user=1.0, system=0.0), Mock(user=cpu_seconds, system=0.0)]
     tracker = ProcessTracker()

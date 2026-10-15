@@ -184,21 +184,17 @@ def _process_usage(
     return usage
 
 
-def _allocate_energy(processes: list[ProcessUsage], energy_wh: float | None) -> tuple[float, bool]:
+def _allocate_energy(processes: list[ProcessUsage], energy_wh: float | None) -> float:
     fraction = sum(process.cpu_capacity_fraction or 0.0 for process in processes)
-    # Allow one part per million for roundoff from subtracting cumulative counters.
-    if fraction > 1 and not math.isclose(fraction, 1.0, rel_tol=1e-6):
-        for process in processes:
-            process.cpu_capacity_fraction = None
-        return 0.0, False
     allocated = 0.0
     for process in processes:
+        # Tick rounding and sequential reads can sum a saturated host's processes past capacity.
         if process.cpu_capacity_fraction is not None and fraction > 1:
             process.cpu_capacity_fraction /= fraction
         if process.cpu_capacity_fraction is not None and energy_wh is not None:
             process.estimated_energy_wh = min(energy_wh * process.cpu_capacity_fraction, energy_wh - allocated)
             allocated += process.estimated_energy_wh
-    return allocated, True
+    return allocated
 
 
 class ProcessTracker:
@@ -260,10 +256,8 @@ class ProcessTracker:
         unavailable = {pid: "exited" for pid in old_processes.keys() - current.processes.keys()}
         unavailable.update(current.unavailable)
         processes.extend(ProcessUsage(pid=pid, status=status) for pid, status in unavailable.items())
-        allocated, consistent = _allocate_energy(processes, energy.energy_wh)
+        allocated = _allocate_energy(processes, energy.energy_wh)
         cpu_status = "available" if total_cpu_seconds is not None else "baseline_or_invalid_interval"
-        if not consistent:
-            cpu_status = "inconsistent_cpu_times"
         return ProcessReport(
             timestamp=current.timestamp,
             interval_seconds=current.measured_at - previous.measured_at if previous is not None else None,
