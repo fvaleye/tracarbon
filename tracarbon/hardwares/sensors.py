@@ -289,7 +289,7 @@ class LinuxEnergyConsumption(EnergyConsumption):
 
     Supports both Intel and AMD processors via RAPL:
     - Intel: Uses powercap interface at /sys/class/powercap/intel-rapl
-    - AMD (kernel 5.8+): Also uses powercap interface (same path as Intel)
+    - AMD (kernel 5.11+): Also uses powercap interface (same path as Intel)
     - AMD (older/alternative): Uses HWMON interface via amd_energy driver
 
     """
@@ -303,8 +303,8 @@ class LinuxEnergyConsumption(EnergyConsumption):
         Run the sensor and generate energy usage.
 
         Tries sensors in order of preference:
-        1. Intel RAPL (powercap) - works for Intel and AMD on kernel 5.8+
-        2. AMD RAPL (HWMON) - fallback for AMD with amd_energy driver
+        1. Intel RAPL (powercap), for Intel and AMD on kernel 5.11+
+        2. AMD RAPL (HWMON), the fallback for AMD with the amd_energy driver
 
         NVIDIA power is added to the RAPL host and GPU readings. AMD power remains
         a component fallback because its CLI aggregate can include an APU's CPU.
@@ -328,7 +328,7 @@ class LinuxEnergyConsumption(EnergyConsumption):
                 logger.warning(
                     "No readable RAPL interface found, so the host power is unknown and only the GPU is read. "
                     f"Intel RAPL requires a readable {self.rapl.path}/*/energy_uj, which only root "
-                    "can read by default. AMD RAPL requires kernel 5.8+ or amd_energy driver."
+                    "can read by default. AMD RAPL requires kernel 5.11+ or amd_energy driver."
                 )
                 self._active_sensor = _SensorBackend.GPU
             energy_usage = EnergyUsage(host_energy_usage=None)
@@ -356,7 +356,7 @@ class LinuxEnergyConsumption(EnergyConsumption):
             raise TracarbonException(
                 "No supported RAPL interface found, nor any GPU. "
                 f"Intel RAPL requires {self.rapl.path}. "
-                "AMD RAPL requires kernel 5.8+ or amd_energy driver."
+                "AMD RAPL requires kernel 5.11+ or amd_energy driver."
             )
         return energy_usage
 

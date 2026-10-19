@@ -82,7 +82,7 @@ When running in Kubernetes, deploy Tracarbon per node and set `NODE_NAME` from `
 | Devices | Description |
 | --- | --- |
 | Mac | ✅ Apple Silicon CPU, GPU, memory and Neural Engine energy via IOReport (no sudo). Excludes display and peripherals. Fallbacks: `powermetrics` (sudo), then `ioreg`. |
-| Linux | ✅ Intel and AMD power via [RAPL](https://web.eece.maine.edu/~vweaver/projects/rapl/). CPU power is the package without the integrated GPU. AMD requires kernel 5.8+ (powercap) or `amd_energy` (HWMON). Unreadable RAPL permits GPU-only readings. Host power and emissions remain unknown. |
+| Linux | ✅ Intel and AMD power via [RAPL](https://web.eece.maine.edu/~vweaver/projects/rapl/). CPU power is the package without the integrated GPU. AMD requires kernel 5.11+ (powercap) or `amd_energy` (HWMON). Unreadable RAPL permits GPU-only readings. Host power and emissions remain unknown. |
 | Windows | ✅ NVIDIA GPU power via `nvidia-smi`. CPU, memory and host totals are unavailable. |
 
 ### Cloud providers
