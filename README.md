@@ -75,6 +75,23 @@ See the [Prometheus metric reference](docs/source/usage.rst#export-metrics) for 
 
 When running in Kubernetes, deploy Tracarbon per node and set `NODE_NAME` from `spec.nodeName` with the Downward API so container metrics are scoped to the measured node.
 
+### Processes
+
+```sh
+tracarbon run --pid 1234
+```
+
+In Python, follow the current process:
+
+```python
+with TracarbonBuilder().with_processes().build() as tracker:
+    run_workload()
+
+print(tracker.report.process_co2g)
+```
+
+Each process and its descendants get their share of the host CPU energy and carbon emissions. See [process metrics](docs/source/usage.rst#processes).
+
 ## 🔌 Supported devices
 
 ### Hosts

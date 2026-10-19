@@ -11,10 +11,14 @@ from tracarbon import MacEnergyConsumption
 from tracarbon.exporters import Tag
 from tracarbon.general_metrics import CarbonEmissionGenerator
 from tracarbon.general_metrics import CarbonEmissionKubernetesGenerator
+from tracarbon.general_metrics import CarbonEmissionProcessGenerator
 from tracarbon.general_metrics import EnergyConsumptionGenerator
 from tracarbon.general_metrics import EnergyConsumptionKubernetesGenerator
+from tracarbon.general_metrics import EnergyConsumptionProcessGenerator
 from tracarbon.hardwares import Container
 from tracarbon.hardwares import Pod
+from tracarbon.hardwares import Processes
+from tracarbon.hardwares import ProcessUsage
 from tracarbon.locations.country import Country
 
 
@@ -277,3 +281,53 @@ def test_carbon_emission_generator_repr_hides_api_key(mocker, generator_type):
     generator = generator_type(location=location, co2signal_api_key="SECRET_API_KEY")
 
     assert "SECRET_API_KEY" not in f"{generator} {generator!r}"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("cpu_watts,process_watts", [(12.0, 3.0), (None, None)])
+async def test_energy_consumption_process_generator(mocker, cpu_watts, process_watts):
+    mocker.patch.object(MacEnergyConsumption, "get_energy_usage", return_value=EnergyUsage(cpu_energy_usage=cpu_watts))
+    mocker.patch.object(
+        Processes, "get_processes_usage", return_value=[ProcessUsage(pid=42, name="worker", cpu_usage=0.25)]
+    )
+    generator = EnergyConsumptionProcessGenerator(
+        location=Country(name="fr", co2g_kwh=51.1),
+        platform="Darwin",
+        energy_consumption=MacEnergyConsumption(),
+        processes=Processes(pids=[]),
+    )
+
+    metrics = [metric async for metric in generator.generate()]
+
+    assert [metric.name for metric in metrics] == ["energy_consumption_process_cpu"]
+    assert await metrics[0].value() == process_watts
+    assert metrics[0].format_tags() == [
+        "pid:42",
+        "process_name:worker",
+        "platform:Darwin",
+        "location:fr",
+        "units:watts",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_carbon_emission_process_generator(mocker):
+    mocker.patch.object(CarbonEmission, "get_co2_usage", return_value=CarbonUsage(cpu_carbon_usage=0.2))
+    mocker.patch.object(
+        Processes, "get_processes_usage", return_value=[ProcessUsage(pid=42, name="worker", cpu_usage=0.25)]
+    )
+    location = Country(name="fr", co2g_kwh=51.1)
+    generator = CarbonEmissionProcessGenerator(location=location, platform="Darwin", processes=Processes(pids=[]))
+
+    metrics = [metric async for metric in generator.generate()]
+
+    assert [metric.name for metric in metrics] == ["carbon_emission_process_cpu"]
+    assert await metrics[0].value() == pytest.approx(0.05)
+    assert metrics[0].format_tags() == [
+        "pid:42",
+        "process_name:worker",
+        "platform:Darwin",
+        "location:fr",
+        f"source:{location.co2g_kwh_source.value}",
+        "units:co2g",
+    ]

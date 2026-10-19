@@ -1,16 +1,22 @@
 import datetime
+import os
 from typing import Dict
+from typing import Iterable
+from typing import List
 
 from loguru import logger
 from pydantic import BaseModel
 from pydantic import ConfigDict
 from pydantic import Field
+from pydantic import PrivateAttr
 
 from tracarbon.conf import TracarbonConfiguration
 from tracarbon.exporters import Exporter
 from tracarbon.exporters import MetricReport
 from tracarbon.exporters import StdoutExporter
 from tracarbon.general_metrics import CarbonEmissionGenerator
+from tracarbon.general_metrics import CarbonEmissionProcessGenerator
+from tracarbon.general_metrics import EnergyConsumptionProcessGenerator
 from tracarbon.hardwares import UsageType
 from tracarbon.locations import Country
 from tracarbon.locations import Location
@@ -35,6 +41,12 @@ class TracarbonReport(BaseModel):
         """
         host_carbon_emission = self.metric_report.get(f"carbon_emission_{UsageType.HOST.value}")
         return host_carbon_emission.total if host_carbon_emission else None
+
+    @property
+    def process_co2g(self) -> float | None:
+        """Total CPU carbon in grams for the selected process trees, or None when unavailable."""
+        process_carbon_emission = self.metric_report.get("carbon_emission_process_cpu")
+        return process_carbon_emission.total if process_carbon_emission else None
 
 
 class Tracarbon:
@@ -101,6 +113,7 @@ class TracarbonBuilder(BaseModel):
     exporter: Exporter | None = None
     location: Location | None = None
     configuration: TracarbonConfiguration = Field(default_factory=TracarbonConfiguration)
+    _pending_pids: List[int] | None = PrivateAttr(default=None)
 
     def with_location(self, location: Location) -> "TracarbonBuilder":
         """
@@ -120,6 +133,15 @@ class TracarbonBuilder(BaseModel):
         self.exporter = exporter
         return self
 
+    def with_processes(self, pids: Iterable[int] | None = None) -> "TracarbonBuilder":
+        """
+        Track CPU energy and carbon for these processes and their descendants.
+
+        :param pids: process IDs, or None for the current process
+        """
+        self._pending_pids = [os.getpid()] if pids is None else list(pids)
+        return self
+
     def build(self) -> Tracarbon:
         """
         Build Tracarbon with its configuration.
@@ -135,6 +157,14 @@ class TracarbonBuilder(BaseModel):
                 metric_generators=[CarbonEmissionGenerator(location=self.location)],
                 metric_prefix_name=self.configuration.metric_prefix_name,
             )
+        if self._pending_pids:
+            self.exporter.metric_generators.extend(
+                [
+                    EnergyConsumptionProcessGenerator(location=self.location, pids=self._pending_pids),
+                    CarbonEmissionProcessGenerator(location=self.location, pids=self._pending_pids),
+                ]
+            )
+            self._pending_pids = None
 
         return Tracarbon(
             configuration=self.configuration,

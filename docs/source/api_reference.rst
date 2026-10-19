@@ -38,6 +38,9 @@ Hardware
 .. automodule:: tracarbon.hardwares.ioreport
     :members:
 
+.. automodule:: tracarbon.hardwares.processes
+    :members:
+
 .. automodule:: tracarbon.hardwares.rapl
     :members:
 

@@ -8,6 +8,8 @@ from tracarbon.hardwares.energy import EnergyUsageUnit
 from tracarbon.hardwares.energy import Power
 from tracarbon.hardwares.energy import UsageType
 from tracarbon.hardwares.ioreport import IOReportEnergy
+from tracarbon.hardwares.processes import Processes
+from tracarbon.hardwares.processes import ProcessUsage
 from tracarbon.hardwares.rapl import RAPLResult
 from tracarbon.hardwares.sensors import AMDRAPL
 from tracarbon.hardwares.sensors import RAPL
@@ -46,6 +48,8 @@ __all__ = [
     "LinuxEnergyConsumption",
     "MacEnergyConsumption",
     "Power",
+    "ProcessUsage",
+    "Processes",
     "RAPL",
     "RAPLResult",
     "Sensor",

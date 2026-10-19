@@ -1,8 +1,10 @@
+import os
 import subprocess
 
 import pytest
 from kubernetes import config
 from typer import Exit
+from typer.testing import CliRunner
 
 from tracarbon import CarbonEmission
 from tracarbon import CarbonUsage
@@ -11,12 +13,15 @@ from tracarbon import EnergyConsumption
 from tracarbon import EnergyUsage
 from tracarbon import Kubernetes
 from tracarbon import MacEnergyConsumption
+from tracarbon.cli import app
 from tracarbon.cli import get_exporter
 from tracarbon.cli import run_metrics
 from tracarbon.exporters import DatadogExporter
 from tracarbon.exporters import StdoutExporter
 from tracarbon.hardwares import Container
 from tracarbon.hardwares import Pod
+from tracarbon.hardwares import Processes
+from tracarbon.hardwares import ProcessUsage
 from tracarbon.hardwares import WindowsEnergyConsumption
 from tracarbon.hardwares.gpu import NvidiaGPU
 
@@ -141,6 +146,27 @@ def test_run_metrics_warns_when_containers_collect_no_kubernetes_metrics(mocker,
     run_metrics(exporter_name=exporter, running=False, containers=True)
 
     assert "No Kubernetes container metrics were collected." in caplog.text
+
+
+def test_run_attributes_cpu_energy_and_carbon_to_the_selected_processes(mocker, caplog):
+    pid = os.getpid()
+    mocker.patch.object(Country, "get_location", return_value=Country(name="fr", co2g_kwh=50.0))
+    mocker.patch.object(EnergyConsumption, "from_platform", return_value=WindowsEnergyConsumption())
+    mocker.patch.object(
+        WindowsEnergyConsumption, "get_energy_usage", side_effect=lambda: EnergyUsage(cpu_energy_usage=20.0)
+    )
+    mocker.patch.object(CarbonEmission, "get_co2_usage", side_effect=lambda: CarbonUsage(cpu_carbon_usage=0.01))
+    mocker.patch.object(
+        Processes, "get_processes_usage", return_value=[ProcessUsage(pid=pid, name="worker", cpu_usage=0.5)]
+    )
+    mocker.patch("tracarbon.cli.signal")
+    mocker.patch("tracarbon.cli.time", **{"sleep.side_effect": KeyboardInterrupt})
+
+    result = CliRunner().invoke(app, ["run", "--pid", str(pid)])
+
+    assert result.exit_code == 0
+    assert f"energy_consumption_process_cpu], value[10.0], tags['pid:{pid}'" in caplog.text
+    assert f"carbon_emission_process_cpu], value[0.005], tags['pid:{pid}'" in caplog.text
 
 
 def test_cli_respects_log_level(run_python):
