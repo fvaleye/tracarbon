@@ -47,7 +47,7 @@
     <link rel="search" title="Search" href="search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.13.0" />
+  <meta name="docsearch:version" content="0.14.0" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -441,6 +441,8 @@
 </li>
       <li><a href="api_reference.html#tracarbon.general_metrics.CarbonEmissionKubernetesGenerator">CarbonEmissionKubernetesGenerator (class in tracarbon.general_metrics)</a>
 </li>
+      <li><a href="api_reference.html#tracarbon.general_metrics.CarbonEmissionProcessGenerator">CarbonEmissionProcessGenerator (class in tracarbon.general_metrics)</a>
+</li>
       <li><a href="api_reference.html#tracarbon.locations.location.CarbonIntensityMetadata">CarbonIntensityMetadata (class in tracarbon.locations.location)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.locations.location.CarbonIntensitySource">CarbonIntensitySource (class in tracarbon.locations.location)</a>
@@ -451,10 +453,10 @@
 </li>
       <li><a href="api_reference.html#tracarbon.hardwares.sensors.CloudEnergyConsumption">CloudEnergyConsumption (class in tracarbon.hardwares.sensors)</a>
 </li>
-      <li><a href="api_reference.html#tracarbon.locations.country.CloudLocation">CloudLocation (class in tracarbon.locations.country)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#tracarbon.locations.country.CloudLocation">CloudLocation (class in tracarbon.locations.country)</a>
+</li>
       <li><a href="api_reference.html#tracarbon.exceptions.CloudProviderRegionIsMissing">CloudProviderRegionIsMissing</a>
 </li>
       <li><a href="api_reference.html#tracarbon.hardwares.energy.Power.co2g_from_watts_hour">co2g_from_watts_hour() (tracarbon.hardwares.energy.Power static method)</a>
@@ -499,6 +501,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#tracarbon.general_metrics.EnergyConsumptionProcessGenerator">EnergyConsumptionProcessGenerator (class in tracarbon.general_metrics)</a>
+</li>
       <li><a href="api_reference.html#tracarbon.hardwares.energy.EnergyUsage">EnergyUsage (class in tracarbon.hardwares.energy)</a>
 
       <ul>
@@ -550,9 +554,13 @@
 </li>
         <li><a href="api_reference.html#tracarbon.general_metrics.CarbonEmissionKubernetesGenerator.generate">(tracarbon.general_metrics.CarbonEmissionKubernetesGenerator method)</a>
 </li>
+        <li><a href="api_reference.html#tracarbon.general_metrics.CarbonEmissionProcessGenerator.generate">(tracarbon.general_metrics.CarbonEmissionProcessGenerator method)</a>
+</li>
         <li><a href="api_reference.html#tracarbon.general_metrics.EnergyConsumptionGenerator.generate">(tracarbon.general_metrics.EnergyConsumptionGenerator method)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.general_metrics.EnergyConsumptionKubernetesGenerator.generate">(tracarbon.general_metrics.EnergyConsumptionKubernetesGenerator method)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.general_metrics.EnergyConsumptionProcessGenerator.generate">(tracarbon.general_metrics.EnergyConsumptionProcessGenerator method)</a>
 </li>
       </ul></li>
       <li><a href="api_reference.html#tracarbon.hardwares.amd_rapl.AMDRAPL.get_amd_rapl_power_usage">get_amd_rapl_power_usage() (tracarbon.hardwares.amd_rapl.AMDRAPL method)</a>
@@ -715,6 +723,8 @@
         <li><a href="api_reference.html#tracarbon.hardwares.sensors.AppleSiliconPowerMetrics.get_power_breakdown">(tracarbon.hardwares.sensors.AppleSiliconPowerMetrics class method)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#tracarbon.hardwares.processes.Processes.get_processes_usage">get_processes_usage() (tracarbon.hardwares.processes.Processes method)</a>
+</li>
       <li><a href="api_reference.html#tracarbon.hardwares.rapl.RAPL.get_rapl_files_list">get_rapl_files_list() (tracarbon.hardwares.rapl.RAPL method)</a>
 
       <ul>
@@ -878,9 +888,13 @@
 </li>
         <li><a href="api_reference.html#tracarbon.general_metrics.CarbonEmissionKubernetesGenerator.model_config">(tracarbon.general_metrics.CarbonEmissionKubernetesGenerator attribute)</a>
 </li>
+        <li><a href="api_reference.html#tracarbon.general_metrics.CarbonEmissionProcessGenerator.model_config">(tracarbon.general_metrics.CarbonEmissionProcessGenerator attribute)</a>
+</li>
         <li><a href="api_reference.html#tracarbon.general_metrics.EnergyConsumptionGenerator.model_config">(tracarbon.general_metrics.EnergyConsumptionGenerator attribute)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.general_metrics.EnergyConsumptionKubernetesGenerator.model_config">(tracarbon.general_metrics.EnergyConsumptionKubernetesGenerator attribute)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.general_metrics.EnergyConsumptionProcessGenerator.model_config">(tracarbon.general_metrics.EnergyConsumptionProcessGenerator attribute)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.hardwares.amd_rapl.AMDRAPL.model_config">(tracarbon.hardwares.amd_rapl.AMDRAPL attribute)</a>
 </li>
@@ -907,6 +921,8 @@
         <li><a href="api_reference.html#tracarbon.hardwares.gpu.NvidiaGPU.model_config">(tracarbon.hardwares.gpu.NvidiaGPU attribute)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.hardwares.hardware.HardwareInfo.model_config">(tracarbon.hardwares.hardware.HardwareInfo attribute)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.hardwares.processes.Processes.model_config">(tracarbon.hardwares.processes.Processes attribute)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.hardwares.rapl.RAPL.model_config">(tracarbon.hardwares.rapl.RAPL attribute)</a>
 </li>
@@ -959,9 +975,11 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_reference.html#tracarbon.emissions.carbon_emissions.CarbonEmission.model_post_init">model_post_init() (tracarbon.emissions.carbon_emissions.CarbonEmission method)</a>
+      <li><a href="api_reference.html#tracarbon.builder.TracarbonBuilder.model_post_init">model_post_init() (tracarbon.builder.TracarbonBuilder method)</a>
 
       <ul>
+        <li><a href="api_reference.html#tracarbon.emissions.carbon_emissions.CarbonEmission.model_post_init">(tracarbon.emissions.carbon_emissions.CarbonEmission method)</a>
+</li>
         <li><a href="api_reference.html#tracarbon.exporters.datadog_exporter.DatadogExporter.model_post_init">(tracarbon.exporters.datadog_exporter.DatadogExporter method)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.exporters.exporter.Exporter.model_post_init">(tracarbon.exporters.exporter.Exporter method)</a>
@@ -975,6 +993,8 @@
         <li><a href="api_reference.html#tracarbon.exporters.stdout.StdoutExporter.model_post_init">(tracarbon.exporters.stdout.StdoutExporter method)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.hardwares.containers.Kubernetes.model_post_init">(tracarbon.hardwares.containers.Kubernetes method)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.hardwares.processes.Processes.model_post_init">(tracarbon.hardwares.processes.Processes method)</a>
 </li>
         <li><a href="api_reference.html#tracarbon.hardwares.sensors.AWSEC2EnergyConsumption.model_post_init">(tracarbon.hardwares.sensors.AWSEC2EnergyConsumption method)</a>
 </li>
@@ -1037,6 +1057,8 @@
 </li>
         <li><a href="api_reference.html#module-tracarbon.hardwares.ioreport">tracarbon.hardwares.ioreport</a>
 </li>
+        <li><a href="api_reference.html#module-tracarbon.hardwares.processes">tracarbon.hardwares.processes</a>
+</li>
         <li><a href="api_reference.html#module-tracarbon.hardwares.rapl">tracarbon.hardwares.rapl</a>
 </li>
         <li><a href="api_reference.html#module-tracarbon.hardwares.sensors">tracarbon.hardwares.sensors</a>
@@ -1062,9 +1084,15 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#tracarbon.hardwares.containers.Pod">Pod (class in tracarbon.hardwares.containers)</a>
 </li>
+      <li><a href="api_reference.html#tracarbon.hardwares.energy.Power">Power (class in tracarbon.hardwares.energy)</a>
+</li>
+      <li><a href="api_reference.html#tracarbon.builder.TracarbonReport.process_co2g">process_co2g (tracarbon.builder.TracarbonReport property)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_reference.html#tracarbon.hardwares.energy.Power">Power (class in tracarbon.hardwares.energy)</a>
+      <li><a href="api_reference.html#tracarbon.hardwares.processes.Processes">Processes (class in tracarbon.hardwares.processes)</a>
+</li>
+      <li><a href="api_reference.html#tracarbon.hardwares.processes.ProcessUsage">ProcessUsage (class in tracarbon.hardwares.processes)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.exporters.prometheus_exporter.PrometheusExporter">PrometheusExporter (class in tracarbon.exporters.prometheus_exporter)</a>
 </li>
@@ -1086,8 +1114,6 @@
 </li>
       <li><a href="api_reference.html#tracarbon.locations.location.Location.request">request() (tracarbon.locations.location.Location class method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#tracarbon.emissions.carbon_emissions.CarbonEmission.reset">reset() (tracarbon.emissions.carbon_emissions.CarbonEmission method)</a>
 
       <ul>
@@ -1097,7 +1123,15 @@
 </li>
         <li><a href="api_reference.html#tracarbon.general_metrics.CarbonEmissionKubernetesGenerator.reset">(tracarbon.general_metrics.CarbonEmissionKubernetesGenerator method)</a>
 </li>
+        <li><a href="api_reference.html#tracarbon.general_metrics.CarbonEmissionProcessGenerator.reset">(tracarbon.general_metrics.CarbonEmissionProcessGenerator method)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.general_metrics.EnergyConsumptionProcessGenerator.reset">(tracarbon.general_metrics.EnergyConsumptionProcessGenerator method)</a>
+</li>
+        <li><a href="api_reference.html#tracarbon.hardwares.processes.Processes.reset">(tracarbon.hardwares.processes.Processes method)</a>
+</li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#tracarbon.cli.run">run() (in module tracarbon.cli)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.cli.run_metrics">run_metrics() (in module tracarbon.cli)</a>
@@ -1260,6 +1294,13 @@
 </li>
       </ul></li>
       <li>
+    tracarbon.hardwares.processes
+
+      <ul>
+        <li><a href="api_reference.html#module-tracarbon.hardwares.processes">module</a>
+</li>
+      </ul></li>
+      <li>
     tracarbon.hardwares.rapl
 
       <ul>
@@ -1326,6 +1367,8 @@
       <li><a href="api_reference.html#tracarbon.builder.TracarbonBuilder.with_exporter">with_exporter() (tracarbon.builder.TracarbonBuilder method)</a>
 </li>
       <li><a href="api_reference.html#tracarbon.builder.TracarbonBuilder.with_location">with_location() (tracarbon.builder.TracarbonBuilder method)</a>
+</li>
+      <li><a href="api_reference.html#tracarbon.builder.TracarbonBuilder.with_processes">with_processes() (tracarbon.builder.TracarbonBuilder method)</a>
 </li>
   </ul></td>
 </tr></table>

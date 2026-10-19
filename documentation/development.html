@@ -49,7 +49,7 @@
     <link rel="prev" title="API Reference" href="api_reference.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.13.0" />
+  <meta name="docsearch:version" content="0.14.0" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -424,6 +424,9 @@ which collects the final interval and prints the report before exit.</p>
 <h2>With uv<a class="headerlink" href="#with-uv" title="Link to this heading">#</a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Setup Python</span>
 make<span class="w"> </span>init
+
+<span class="c1"># Check formatting and Conventional Commit messages on each commit</span>
+uv<span class="w"> </span>run<span class="w"> </span>pre-commit<span class="w"> </span>install
 
 <span class="c1"># List everything</span>
 make<span class="w"> </span><span class="nb">help</span>
