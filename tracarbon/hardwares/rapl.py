@@ -177,7 +177,7 @@ class RAPL(BaseModel):
         Classify the Intel RAPL energy domain from its sysfs name.
 
         :param name: The energy domain name (e.g., "package-0", "dram")
-        :return: Classification: "package", "memory", "cpu", "gpu", or "unknown"
+        :return: Classification: "package", "memory", "core", "gpu", or "unknown"
         """
         name_lower = name.lower()
 
@@ -188,7 +188,7 @@ class RAPL(BaseModel):
         if "uncore" in name_lower:
             return "gpu"
         if "core" in name_lower or "cpu" in name_lower:
-            return "cpu"
+            return "core"
         return "unknown"
 
     async def get_energy_report(self) -> EnergyUsage:
@@ -230,7 +230,9 @@ class RAPL(BaseModel):
         host_watts = [watts_by_domain[domain] for domain in ("package", "memory") if domain in watts_by_domain]
         energy_usage_report = EnergyUsage(
             host_energy_usage=sum(host_watts) if host_watts else None,
-            cpu_energy_usage=watts_by_domain.get("cpu"),
+            cpu_energy_usage=watts_by_domain["package"] - watts_by_domain.get("gpu", 0.0)
+            if "package" in watts_by_domain
+            else None,
             memory_energy_usage=watts_by_domain.get("memory"),
             gpu_energy_usage=watts_by_domain.get("gpu"),
         )

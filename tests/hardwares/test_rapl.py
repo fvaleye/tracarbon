@@ -107,7 +107,7 @@ async def test_get_total_uj_one_call(mocker):
     )
     rapl = RAPL(path=path, rapl_separator=rapl_separator_for_windows, rapl_results=rapl_results)
     host_energy_usage_expected = 0.33
-    cpu_energy_usage_expected = 0.5
+    cpu_energy_usage_expected = 0.33
 
     energy_report = await rapl.get_energy_report()
     energy_report.convert_unit(EnergyUsageUnit.MILLIWATT)
@@ -121,7 +121,7 @@ def test_classify_domain():
 
     assert rapl._classify_domain("T0-package-0") == "package"
     assert rapl._classify_domain("T0T1-dram") == "memory"
-    assert rapl._classify_domain("T0T0-core") == "cpu"
+    assert rapl._classify_domain("T0T0-core") == "core"
     assert rapl._classify_domain("T0T2-uncore") == "gpu"
     assert rapl._classify_domain("unknown") == "unknown"
 
@@ -416,6 +416,38 @@ async def test_a_wrap_without_a_published_ceiling_survives_a_load_increase(mocke
         energy_report = await rapl.get_energy_report()
 
     assert energy_report.host_energy_usage == pytest.approx(200.0)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("watts_by_zone", "cpu_watts", "host_watts"),
+    [
+        ({"package-0": 20.0, "core": 12.0, "uncore": 5.0, "dram": 3.0}, 15.0, 23.0),
+        ({"package-0": 150.0, "dram": 20.0}, 150.0, 170.0),
+    ],
+    ids=["client_with_an_integrated_gpu", "server_without_a_core_zone"],
+)
+async def test_cpu_power_is_the_package_without_the_integrated_gpu(
+    mocker, tmpdir, watts_by_zone, cpu_watts, host_watts
+):
+    seconds_between_reports = 60.0
+    first_energy_uj = 1_000_000_000
+    zones = [tmpdir.mkdir(f"intel-raplT{index}") for index in range(len(watts_by_zone))]
+    for zone, name in zip(zones, watts_by_zone, strict=True):
+        zone.join("name").write(f"{name}\n")
+        zone.join("max_energy_range_uj").write("65532610987\n")
+        zone.join("energy_uj").write(f"{first_energy_uj}\n")
+    clock = mocker.patch("tracarbon.hardwares.rapl.time")
+    clock.monotonic.side_effect = [0.0] * 2 * len(zones) + [seconds_between_reports] * len(zones)
+    rapl = RAPL(file_list=[str(zone) for zone in zones])
+    await rapl.get_energy_report()
+    for zone, watts in zip(zones, watts_by_zone.values(), strict=True):
+        zone.join("energy_uj").write(f"{int(first_energy_uj + watts * seconds_between_reports * 1e6)}\n")
+
+    energy_report = await rapl.get_energy_report()
+
+    assert energy_report.cpu_energy_usage == pytest.approx(cpu_watts)
+    assert energy_report.host_energy_usage == pytest.approx(host_watts)
 
 
 @pytest.mark.asyncio
