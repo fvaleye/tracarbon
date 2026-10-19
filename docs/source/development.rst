@@ -39,3 +39,9 @@ With uv
 
     # List everything
     make help
+
+Architecture decisions
+======================
+
+Significant decisions are recorded as ADRs in
+`docs/adr <https://github.com/fvaleye/tracarbon/tree/main/docs/adr>`_.

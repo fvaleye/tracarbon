@@ -168,6 +168,8 @@ make init
 make test-unit
 ```
 
+Architecture decisions are recorded in [docs/adr](docs/adr/README.md).
+
 ## 🛡️ Licence
 
 [Apache License 2.0](https://raw.githubusercontent.com/fvaleye/tracarbon/main/LICENSE.txt)
