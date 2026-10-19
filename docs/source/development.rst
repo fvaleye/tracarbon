@@ -34,5 +34,8 @@ With uv
     # Setup Python
     make init
 
+    # Check formatting and Conventional Commit messages on each commit
+    uv run pre-commit install
+
     # List everything
     make help
