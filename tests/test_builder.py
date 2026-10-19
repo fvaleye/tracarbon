@@ -1,5 +1,7 @@
 import asyncio
 import datetime
+import os
+import time
 from threading import Barrier
 from threading import Event
 from threading import Thread
@@ -11,8 +13,10 @@ from kubernetes import config
 
 from tracarbon import CarbonEmission
 from tracarbon import CarbonUsage
+from tracarbon import EnergyConsumption
 from tracarbon import EnergyUsage
 from tracarbon import MacEnergyConsumption
+from tracarbon import WindowsEnergyConsumption
 from tracarbon.builder import Tracarbon
 from tracarbon.builder import TracarbonBuilder
 from tracarbon.builder import TracarbonConfiguration
@@ -395,3 +399,33 @@ def test_stop_returns_the_total_co2g_emitted():
     total_co2g = tracarbon.stop()
 
     assert total_co2g == 4.2
+
+
+def test_with_processes_measures_the_current_process_from_the_start_of_the_run(mocker):
+    mocker.patch.object(EnergyConsumption, "from_platform", return_value=WindowsEnergyConsumption())
+    mocker.patch.object(
+        WindowsEnergyConsumption, "get_energy_usage", side_effect=lambda: EnergyUsage(cpu_energy_usage=10.0)
+    )
+    mocker.patch.object(
+        CarbonEmission, "get_co2_usage", side_effect=lambda: CarbonUsage(host_carbon_usage=1.0, cpu_carbon_usage=1.0)
+    )
+    builder = TracarbonBuilder(location=Country(name="fr", co2g_kwh=74.0)).with_processes()
+
+    with builder.build() as tracker:
+        busy_until = time.monotonic() + 0.2
+        while time.monotonic() < busy_until:
+            pass
+
+    assert [generator.processes.pids for generator in tracker.exporter.metric_generators[1:]] == [[os.getpid()]] * 2
+    assert 0.0 < tracker.report.process_co2g < tracker.report.total_co2g
+    assert tracker.report.metric_report["energy_consumption_process_cpu"].total > 0.0
+
+
+def test_building_twice_attaches_the_processes_once(mocker):
+    mocker.patch.object(EnergyConsumption, "from_platform", return_value=WindowsEnergyConsumption())
+    builder = TracarbonBuilder(location=Country(name="fr", co2g_kwh=74.0)).with_processes()
+
+    first, second = builder.build(), builder.build()
+
+    assert second.exporter is first.exporter
+    assert len(first.exporter.metric_generators) == 3

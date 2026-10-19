@@ -82,6 +82,7 @@ def run_metrics(
     country_code_alpha_iso_2: str | None = None,
     running: bool = True,
     containers: bool = False,
+    pids: List[int] | None = None,
 ) -> None:
     """
     Run the metrics with the selected exporter
@@ -90,6 +91,7 @@ def run_metrics(
     :param running: keep running the metrics
     :param exporter_name: the exporter name to run
     :param containers: activate the containers feature
+    :param pids: the processes to attribute CPU energy and carbon emissions to
     :return:
     """
     tracarbon_builder = TracarbonBuilder()
@@ -107,6 +109,8 @@ def run_metrics(
     ]
     if containers:
         metric_generators.extend(add_containers_generator(location=location))
+    if pids:
+        tracarbon_builder.with_processes(pids=pids)
 
     tracarbon = None
     collection_failed = False
@@ -148,11 +152,17 @@ def run_metrics(
         raise typer.Exit(code=1)
 
 
+_PROCESS_ID_OPTION = typer.Option(
+    None, min=1, help="Track CPU energy and carbon for this PID and its descendants. Repeat for several."
+)
+
+
 @app.command()
 def run(
     exporter_name: str = "Stdout",
     country_code_alpha_iso_2: str | None = None,
     containers: bool = False,
+    pid: List[int] | None = _PROCESS_ID_OPTION,
 ) -> None:
     """
     Run Tracarbon.
@@ -162,6 +172,7 @@ def run(
         exporter_name=exporter_name,
         country_code_alpha_iso_2=country_code_alpha_iso_2,
         containers=containers,
+        pids=pid,
     )
 
 

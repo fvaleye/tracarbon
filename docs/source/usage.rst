@@ -161,6 +161,33 @@ For custom metrics, pass your async measurement function as ``value``:
    with TracarbonBuilder(exporter=exporter).build() as tracker:
        time.sleep(2)
 
+Processes
+=========
+
+Measure the CPU energy and carbon emissions of a process and its descendants:
+
+.. code-block:: console
+
+   tracarbon run --pid 1234 --pid 5678
+
+In Python, track the current process with any exporter:
+
+.. code-block:: python
+
+   import time
+
+   from tracarbon import TracarbonBuilder
+
+   with TracarbonBuilder().with_processes().build() as tracker:
+       time.sleep(2)
+
+   print(tracker.report.process_co2g)
+
+Pass ``with_processes([1234, 5678])`` to select other processes. Attribution uses each process tree's
+share of total CPU capacity: one busy core of four gets a quarter of host CPU power.
+``energy_consumption_process_cpu`` reports watts and ``carbon_emission_process_cpu`` reports grams
+of CO2 eq, labelled with ``pid`` and ``process_name``.
+
 Export metrics
 ==============
 
@@ -257,8 +284,8 @@ tracarbon_carbon_emission_kubernetes_memory_grams_total  pod_name, pod_namespace
 =======================================================  ====================================================================
 
 Energy gauges report power; carbon gauges report emissions over the latest collection interval.
-Host and container carbon counters ending in ``_grams_total`` accumulate grams of CO2 eq without
-a ``units`` label.
+Host, container and process carbon counters ending in ``_grams_total`` accumulate grams of CO2 eq
+without a ``units`` label.
 
 Zero values are exported. If Kubernetes returns no pod metrics, the CLI logs
 ``No Kubernetes container metrics were collected.`` Host metrics are still exported.

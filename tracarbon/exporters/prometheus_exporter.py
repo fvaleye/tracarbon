@@ -18,6 +18,12 @@ from tracarbon.exporters.exporter import MetricGenerator
 from tracarbon.exporters.exporter import Tag
 
 _GRAMS_PER_CARBON_UNIT = {CarbonUsageUnit.CO2_G.value: 1.0, CarbonUsageUnit.CO2_MG.value: 0.001}
+_DYNAMIC_SERIES_TAG_KEYS = frozenset({"pod_name", "pid"})
+
+
+def _is_dynamic_series(tags: List[Tag]) -> bool:
+    return any(tag.key in _DYNAMIC_SERIES_TAG_KEYS for tag in tags)
+
 
 if PROMETHEUS_INSTALLED:
     from prometheus_client import Counter
@@ -38,7 +44,7 @@ if PROMETHEUS_INSTALLED:
         prometheus_metrics: Dict[str, Gauge] = Field(default_factory=dict)
         address: str | None = None
         port: int | None = None
-        _container_series: set[tuple[Gauge | Counter, tuple[str, ...]]] = PrivateAttr(default_factory=set)
+        _dynamic_series: set[tuple[Gauge | Counter, tuple[str, ...]]] = PrivateAttr(default_factory=set)
         _current_generator_series: set[tuple[Gauge | Counter, tuple[str, ...]]] = PrivateAttr(default_factory=set)
         _series_by_generator: Dict[int, tuple[MetricGenerator, set[tuple[Gauge | Counter, tuple[str, ...]]]]] = (
             PrivateAttr(default_factory=dict)
@@ -64,15 +70,15 @@ if PROMETHEUS_INSTALLED:
                     self._series_by_generator = {
                         key: value for key, value in self._series_by_generator.items() if key in active_generator_ids
                     }
-                    previous_series = self._container_series
-                    self._container_series = {
+                    previous_series = self._dynamic_series
+                    self._dynamic_series = {
                         series
                         for _, generator_series in self._series_by_generator.values()
                         for series in generator_series
                     }
-                    for metric, labels in previous_series - self._container_series:
+                    for metric, labels in previous_series - self._dynamic_series:
                         if not any(
-                            (metric, labels) in exporter._container_series
+                            (metric, labels) in exporter._dynamic_series
                             for exporter in _exporters.values()
                             if exporter is not self
                             and (
@@ -89,7 +95,7 @@ if PROMETHEUS_INSTALLED:
             """
             Update a gauge or add a finite, nonnegative counter increment.
 
-            A None value claims a pod series without updating its sample, keeping other exporters from
+            A None value claims a pod or process series without updating its sample, keeping other exporters from
             removing it while collection is in progress.
             """
             with _metrics_lock:
@@ -101,8 +107,8 @@ if PROMETHEUS_INSTALLED:
                 if metric_type is Gauge:
                     self.prometheus_metrics[name] = cast(Gauge, metric)
                 labels = tuple(tag.value for tag in tags)
-                if any(tag.key == "pod_name" for tag in tags):
-                    self._container_series.add((metric, labels))
+                if _is_dynamic_series(tags):
+                    self._dynamic_series.add((metric, labels))
                     self._current_generator_series.add((metric, labels))
                 if value is None:
                     return
@@ -131,7 +137,7 @@ if PROMETHEUS_INSTALLED:
                     grams_per_unit = _GRAMS_PER_CARBON_UNIT.get(metric.unit())
                     counter_name = f"{metric_name.removesuffix('_total')}_grams_total"
                     counter_tags = [tag for tag in metric.tags if tag.key != "units"]
-                    if any(tag.key == "pod_name" for tag in metric.tags):
+                    if _is_dynamic_series(metric.tags):
                         self._export(Gauge, metric_name, metric.tags, None)
                         if grams_per_unit is not None:
                             self._export(Counter, counter_name, counter_tags, None)

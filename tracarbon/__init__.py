@@ -28,9 +28,13 @@ from tracarbon.exporters import MetricReport
 from tracarbon.exporters import StdoutExporter
 from tracarbon.exporters import Tag
 from tracarbon.general_metrics import CarbonEmissionGenerator
+from tracarbon.general_metrics import CarbonEmissionProcessGenerator
 from tracarbon.general_metrics import EnergyConsumptionGenerator
+from tracarbon.general_metrics import EnergyConsumptionProcessGenerator
 from tracarbon.hardwares import EnergyUsageUnit
 from tracarbon.hardwares import IOReportEnergy
+from tracarbon.hardwares import Processes
+from tracarbon.hardwares import ProcessUsage
 from tracarbon.hardwares import UsageType
 from tracarbon.hardwares.sensors import AMDRAPL
 from tracarbon.hardwares.sensors import RAPL
@@ -80,6 +84,7 @@ __all__ = [
     "CO2SignalAPIKeyIsMissing",
     "CarbonEmission",
     "CarbonEmissionGenerator",
+    "CarbonEmissionProcessGenerator",
     "CarbonIntensityMetadata",
     "CarbonIntensitySource",
     "CarbonUsage",
@@ -93,6 +98,7 @@ __all__ = [
     "EmissionFactorType",
     "EnergyConsumption",
     "EnergyConsumptionGenerator",
+    "EnergyConsumptionProcessGenerator",
     "EnergyUsage",
     "EnergyUsageUnit",
     "Exporter",
@@ -114,6 +120,8 @@ __all__ = [
     "MetricGenerator",
     "MetricReport",
     "PROMETHEUS_INSTALLED",
+    "ProcessUsage",
+    "Processes",
     "RAPL",
     "Sensor",
     "StdoutExporter",

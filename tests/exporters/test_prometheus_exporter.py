@@ -154,6 +154,22 @@ async def test_prometheus_removes_vanished_pods_while_another_generator_fails(
 
 
 @pytest.mark.asyncio
+async def test_prometheus_removes_the_series_of_a_process_that_stopped_reporting(
+    prometheus_registry: CollectorRegistry,
+) -> None:
+    generator = MetricGenerator(
+        metrics=[Metric(name="power", value=AsyncMock(return_value=1.0), tags=[Tag(key="pid", value="10")])]
+    )
+    exporter = PrometheusExporter(metric_generators=[generator])
+    await exporter._launch_all()
+    generator.metrics = []
+
+    await exporter._launch_all()
+
+    assert prometheus_registry.get_sample_value("power", {"pid": "10"}) is None
+
+
+@pytest.mark.asyncio
 async def test_prometheus_reuses_a_supplied_gauge(prometheus_registry: CollectorRegistry) -> None:
     gauge = Gauge("custom", "A supplied gauge", ["location"], registry=prometheus_registry)
     metric = Metric(name="custom", value=AsyncMock(return_value=7.0), tags=[Tag(key="location", value="fr")])
