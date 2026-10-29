@@ -150,7 +150,7 @@ Set the variables below in your environment or a `.env` file. See [configuration
 | `TRACARBON_CO2SIGNAL_URL` | The carbon intensity endpoint. Defaults to the Electricity Maps `https://api.electricitymaps.com/v4/carbon-intensity/latest`. |
 | `TRACARBON_EMISSION_FACTOR_TYPE` | The Electricity Maps emission factor: `lifecycle` (default) or `direct`. |
 | `TRACARBON_METRIC_PREFIX_NAME` | Metric name prefix. Defaults to `tracarbon`. |
-| `TRACARBON_INTERVAL_IN_SECONDS` | Measurement interval in seconds. Defaults to `60`. |
+| `TRACARBON_INTERVAL_IN_SECONDS` | Positive measurement interval in seconds. Defaults to `60`. |
 | `TRACARBON_LOG_LEVEL` | Minimum log level for the CLI. Defaults to `INFO`. |
 | `TRACARBON_IPINFO_TOKEN` | An optional [ipinfo.io](https://ipinfo.io) API token used for country detection from the IP address, lifting the anonymous rate limit. |
 | `TRACARBON_KUBERNETES_NODE_NAME` | The Kubernetes node name used to scope container metrics to the node being measured. Falls back to `NODE_NAME` when unset. |

@@ -212,7 +212,7 @@ def test_concurrent_stops_share_one_final_sample():
     assert tracarbon.report.metric_report["sample"].call_count == 2
 
 
-def test_stop_includes_the_interval_after_an_active_sample_read_the_hardware(mocker):
+def test_stop_includes_the_interval_after_an_active_sample_read_the_hardware(mocker, instant_timer):
     collecting = Event()
     release_sample = Event()
     stop_requested = Event()
@@ -235,7 +235,7 @@ def test_stop_includes_the_interval_after_an_active_sample_read_the_hardware(moc
     carbon = CarbonEmission(location=location, energy_consumption=MacEnergyConsumption())
     exporter = StdoutExporter(metric_generators=[CarbonEmissionGenerator(location=location, carbon_emission=carbon)])
     configuration = TracarbonConfiguration()
-    configuration.interval_in_seconds = 0
+    configuration.interval_in_seconds = 1
     tracarbon = Tracarbon(configuration=configuration, exporter=exporter, location=location)
     stopper = Thread(target=tracarbon.stop, daemon=True)
     try:

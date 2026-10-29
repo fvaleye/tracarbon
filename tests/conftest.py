@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+from threading import Timer
 
 import pytest
 from _pytest.logging import LogCaptureFixture
@@ -37,6 +38,11 @@ def caplog(caplog: LogCaptureFixture):
     handler_id = logger.add(caplog.handler, format="{message}")
     yield caplog
     logger.remove(handler_id)
+
+
+@pytest.fixture
+def instant_timer(mocker):
+    mocker.patch("tracarbon.exporters.exporter.Timer", side_effect=lambda _interval, *args: Timer(0, *args))
 
 
 def pytest_runtest_setup(item):
