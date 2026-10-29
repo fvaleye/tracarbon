@@ -287,5 +287,6 @@ Energy gauges report power; carbon gauges report emissions over the latest colle
 Host, container and process carbon counters ending in ``_grams_total`` accumulate grams of CO2 eq
 without a ``units`` label.
 
-Zero values are exported. If Kubernetes returns no pod metrics, the CLI logs
+A gauge reads ``0`` for a measured zero and ``NaN`` when no reading is available; its carbon counter
+then pauses. If Kubernetes returns no pod metrics, the CLI logs
 ``No Kubernetes container metrics were collected.`` Host metrics are still exported.
