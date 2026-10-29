@@ -33,6 +33,12 @@ pip install 'tracarbon[datadog,prometheus,kubernetes]'
 tracarbon run
 ```
 
+Measure your machine's energy and carbon while a command runs:
+
+```sh
+tracarbon exec -- python generate.py
+```
+
 ### Python API
 
 ```python

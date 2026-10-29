@@ -16,6 +16,15 @@ Start tracking:
 
 Press ``Ctrl+C`` to stop. No API key is required.
 
+Measure your machine's energy and carbon while a command runs:
+
+.. code-block:: console
+
+   tracarbon exec -- python generate.py
+
+When the command exits, Tracarbon prints the totals per component to stderr and exits with the
+command's status. Add ``--output report.json`` to save the report.
+
 Keep Tracarbon running while you use your local LLM. See the
 `local LLM example <https://github.com/fvaleye/tracarbon/tree/main/examples>`_.
 
