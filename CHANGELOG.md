@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.15.0](https://github.com/fvaleye/tracarbon/compare/v0.14.0...v0.15.0) (2026-10-29)
+
+
+### Features
+
+* **cli:** measure a command with tracarbon exec ([#557](https://github.com/fvaleye/tracarbon/issues/557)) ([c59caef](https://github.com/fvaleye/tracarbon/commit/c59caef7f52f9e9fbec2069df449af83aaddaebe))
+
+
+### Bug Fixes
+
+* fix stale macos energy readings ([#556](https://github.com/fvaleye/tracarbon/issues/556)) ([d7536ae](https://github.com/fvaleye/tracarbon/commit/d7536ae6bd15cad0760ae87341e68c9fa8bf98a4))
+
+
+### Dependencies
+
+* **deps:** Bump astral-sh/setup-uv from 10.3.0 to 10.3.2 ([#554](https://github.com/fvaleye/tracarbon/issues/554)) ([9e232b8](https://github.com/fvaleye/tracarbon/commit/9e232b803b12843cc69b7cb403ac818bd39dbf5d))
+
 ## [0.14.0](https://github.com/fvaleye/tracarbon/compare/v0.13.0...v0.14.0) (2026-10-19)
 
 
