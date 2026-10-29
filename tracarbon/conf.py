@@ -46,7 +46,7 @@ class TracarbonConfiguration(BaseModel):
 
     metric_prefix_name: str
     log_level: str
-    interval_in_seconds: int
+    interval_in_seconds: int = Field(gt=0)
     co2signal_api_key: str = Field(repr=False)
     co2signal_url: str
     emission_factor_type: str

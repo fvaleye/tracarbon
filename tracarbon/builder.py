@@ -86,7 +86,7 @@ class Tracarbon:
         """
         Start Tracarbon.
         """
-        self.exporter._check_start_thread()
+        self.exporter._check_start(self.configuration.interval_in_seconds)
         self.exporter.stop()
         self.report = TracarbonReport(start_time=datetime.datetime.now())
         self.exporter.start(interval_in_seconds=self.configuration.interval_in_seconds)

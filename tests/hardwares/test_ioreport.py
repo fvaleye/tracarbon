@@ -15,6 +15,7 @@ from tracarbon.hardwares.sensors import MacEnergyConsumption
 
 @pytest.fixture
 def native_reader(mocker):
+    mocker.patch.object(platform, "mac_ver", return_value=("26.0", ("", "", ""), ""))
     reader = object.__new__(IOReportReader)
     reader._core_foundation = mocker.Mock()
     reader._ioreport = mocker.Mock()
@@ -81,6 +82,24 @@ async def test_report_converts_native_units_and_measures_each_interval(mocker, n
     assert core_foundation.CFRelease.call_args_list == [
         mocker.call(reference) for reference in (30, 10, 31, 20, 21, 4, 1, 2, 3)
     ]
+
+
+@pytest.mark.parametrize("release", ["27.0.1", "28.0"])
+@pytest.mark.asyncio
+async def test_macos_27_and_later_report_only_the_gpu_counter(mocker, native_reader, release):
+    mocker.patch.object(platform, "mac_ver", return_value=(release, ("", "", ""), ""))
+    mocker.patch.object(
+        IOReportReader,
+        "_read_channels",
+        return_value={
+            UsageType.HOST: 9101000.0,
+            UsageType.CPU: 9000000.0,
+            UsageType.MEMORY: 100000.0,
+            UsageType.GPU: 1000.0,
+        },
+    )
+
+    assert await IOReportEnergy().get_energy_report() == EnergyUsage(host_energy_usage=None, gpu_energy_usage=0.5)
 
 
 @pytest.mark.asyncio
@@ -201,6 +220,12 @@ async def test_independent_readers_can_measure_repeatedly_on_this_machine():
         reports.append(await other.get_energy_report())
 
     for report in reports:
+        if energy._gpu_only:
+            assert report.host_energy_usage is None
+            assert report.cpu_energy_usage is None
+            assert report.memory_energy_usage is None
+            assert report.gpu_energy_usage is not None and report.gpu_energy_usage >= 0
+            continue
         component_watts = sum(
             value
             for value in (report.cpu_energy_usage, report.gpu_energy_usage, report.memory_energy_usage)

@@ -228,7 +228,9 @@ class Exporter(BaseModel, metaclass=ABCMeta):
         """
         pass
 
-    def _check_start_thread(self) -> None:
+    def _check_start(self, interval_in_seconds: int) -> None:
+        if interval_in_seconds <= 0:
+            raise ValueError("interval_in_seconds must be greater than zero")
         if self._collection_thread is current_thread():
             raise RuntimeError("Cannot start an exporter from its collection callback")
 
@@ -238,7 +240,7 @@ class Exporter(BaseModel, metaclass=ABCMeta):
 
         :param: interval_in_seconds: the interval for the timer
         """
-        self._check_start_thread()
+        self._check_start(interval_in_seconds)
         try:
             if _called_off_the_running_event_loop(partial(self.start, interval_in_seconds)):
                 return

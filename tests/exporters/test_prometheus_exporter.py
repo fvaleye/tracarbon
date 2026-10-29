@@ -1,4 +1,5 @@
 import asyncio
+import math
 import sys
 from functools import partial
 from typing import Iterator
@@ -12,6 +13,8 @@ from prometheus_client import Counter
 from prometheus_client import Gauge
 from pytest_mock import MockerFixture
 
+from tracarbon import CarbonEmission
+from tracarbon import CarbonUsage
 from tracarbon import Country
 from tracarbon import EnergyUsage
 from tracarbon import Kubernetes
@@ -20,6 +23,7 @@ from tracarbon import MetricGenerator
 from tracarbon.exporters import Metric
 from tracarbon.exporters import PrometheusExporter
 from tracarbon.exporters import Tag
+from tracarbon.general_metrics import CarbonEmissionGenerator
 from tracarbon.general_metrics import EnergyConsumptionKubernetesGenerator
 from tracarbon.hardwares import Container
 from tracarbon.hardwares import Pod
@@ -111,7 +115,90 @@ async def test_prometheus_reports_healthy_metrics_after_a_read_fails(prometheus_
         await exporter._launch_all()
 
     assert prometheus_registry.get_sample_value("power", {"pod_name": "new"}) == 0.0
-    assert prometheus_registry.get_sample_value("power", {"pod_name": "old"}) == 42.0
+    assert math.isnan(prometheus_registry.get_sample_value("power", {"pod_name": "old"}))
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("unavailable", [None, OSError("sensor unavailable")], ids=["missing", "failed"])
+@pytest.mark.parametrize(
+    "tags",
+    [[], [Tag(key="units", value="co2g")], [Tag(key="units", value="co2g"), Tag(key="pod_name", value="app")]],
+    ids=["unlabelled", "host", "pod"],
+)
+async def test_prometheus_marks_unavailable_readings_and_recovers(prometheus_registry, unavailable, tags):
+    metric = Metric(name="carbon", value=AsyncMock(side_effect=[42.0, unavailable, unavailable, 0.0, 15.0]), tags=tags)
+    exporter = PrometheusExporter(metric_generators=[MetricGenerator(metrics=[metric])])
+    labels = {tag.key: tag.value for tag in tags}
+    counter_labels = {key: value for key, value in labels.items() if key != "units"}
+
+    for expected, total in [(42.0, 42.0), (None, 42.0), (None, 42.0), (0.0, 42.0), (15.0, 57.0)]:
+        if expected is None and isinstance(unavailable, Exception):
+            with pytest.raises(OSError, match="sensor unavailable"):
+                await exporter._launch_all()
+        else:
+            await exporter._launch_all()
+        actual = prometheus_registry.get_sample_value("carbon", labels)
+        if expected is None:
+            assert math.isnan(actual)
+        else:
+            assert actual == expected
+        if tags:
+            assert prometheus_registry.get_sample_value("carbon_grams_total", counter_labels) == total
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("unavailable", [None, OSError("no GPU")], ids=["missing", "failed"])
+@pytest.mark.parametrize("reported_gpus", [[], ["0"]], ids=["new_metric", "new_series"])
+async def test_prometheus_omits_series_that_never_reported(prometheus_registry, unavailable, reported_gpus):
+    gpus = [
+        Metric(name="energy_consumption_gpu", value=AsyncMock(return_value=1.0), tags=[Tag(key="gpu", value=gpu)])
+        for gpu in reported_gpus
+    ]
+    gpus.append(
+        Metric(
+            name="energy_consumption_gpu", value=AsyncMock(side_effect=[unavailable]), tags=[Tag(key="gpu", value="1")]
+        )
+    )
+    exporter = PrometheusExporter(metric_generators=[MetricGenerator(metrics=gpus)])
+
+    if isinstance(unavailable, Exception):
+        with pytest.raises(OSError, match="no GPU"):
+            await exporter._launch_all()
+    else:
+        await exporter._launch_all()
+
+    assert prometheus_registry.get_sample_value("energy_consumption_gpu", {"gpu": "1"}) is None
+
+
+@pytest.mark.asyncio
+async def test_prometheus_marks_readings_unavailable_when_their_generator_fails(mocker, prometheus_registry):
+    mocker.patch.object(
+        CarbonEmission,
+        "get_co2_usage",
+        side_effect=[
+            CarbonUsage(host_carbon_usage=42.0),
+            OSError("sensor unavailable"),
+            CarbonUsage(host_carbon_usage=0.0),
+        ],
+    )
+    healthy = MetricGenerator(metrics=[Metric(name="healthy", value=AsyncMock(return_value=7.0))])
+    generator = CarbonEmissionGenerator(location=Country(name="fr", co2g_kwh=50.0))
+    exporter = PrometheusExporter(metric_generators=[generator, healthy])
+    await exporter._launch_all()
+    name = "carbon_emission_host"
+    labels = next(
+        sample.labels for metric in prometheus_registry.collect() for sample in metric.samples if sample.name == name
+    )
+    counter_labels = {key: value for key, value in labels.items() if key != "units"}
+
+    with pytest.raises(OSError, match="sensor unavailable"):
+        await exporter._launch_all()
+
+    assert math.isnan(prometheus_registry.get_sample_value(name, labels))
+    assert prometheus_registry.get_sample_value(f"{name}_grams_total", counter_labels) == 42.0
+    assert prometheus_registry.get_sample_value("healthy") == 7.0
+    await exporter._launch_all()
+    assert prometheus_registry.get_sample_value(name, labels) == 0.0
 
 
 @pytest.mark.asyncio
@@ -144,8 +231,9 @@ async def test_prometheus_removes_vanished_pods_while_another_generator_fails(
             pod_name,
             "unavailable",
         }
+        assert prometheus_registry.get_sample_value("carbon", {"pod_name": pod_name, "units": "co2g"}) == 1.0
+        assert math.isnan(prometheus_registry.get_sample_value("carbon", {"pod_name": "unavailable", "units": "co2g"}))
         for expected_pod in (pod_name, "unavailable"):
-            assert prometheus_registry.get_sample_value("carbon", {"pod_name": expected_pod, "units": "co2g"}) == 1.0
             assert prometheus_registry.get_sample_value("carbon_grams_total", {"pod_name": expected_pod}) == 1.0
 
     exporter.metric_generators = []
@@ -403,7 +491,7 @@ async def test_prometheus_removes_missing_pods_after_all_generators(prometheus_r
 
     assert prometheus_registry.get_sample_value("tracarbon_container_watts", {"pod_name": "gone"}) is None
     assert prometheus_registry.get_sample_value("tracarbon_container_watts", {"pod_name": "live"}) == 0.0
-    assert prometheus_registry.get_sample_value("tracarbon_container_watts", {"pod_name": "shared"}) == 42.0
+    assert math.isnan(prometheus_registry.get_sample_value("tracarbon_container_watts", {"pod_name": "shared"}))
     assert prometheus_registry.get_sample_value("tracarbon_custom", {"source": "custom"}) == 7.0
 
     second.metrics = []

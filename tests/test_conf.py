@@ -3,10 +3,18 @@ import sys
 
 import pytest
 from loguru import logger
+from pydantic import ValidationError
 
 from tracarbon.conf import TracarbonConfiguration
 from tracarbon.conf import check_optional_dependency
 from tracarbon.conf import logger_configuration
+
+
+def test_configuration_rejects_a_nonpositive_interval(mocker, tmp_path):
+    mocker.patch.dict(os.environ, {"TRACARBON_INTERVAL_IN_SECONDS": "0"})
+
+    with pytest.raises(ValidationError, match="interval_in_seconds"):
+        TracarbonConfiguration(env_file_path=str(tmp_path / ".env"))
 
 
 def test_missing_optional_dependency_does_not_log(caplog):

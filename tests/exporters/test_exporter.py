@@ -22,7 +22,27 @@ from tracarbon.exporters import Tag
 from tracarbon.hardwares import EnergyUsageUnit
 
 
-def test_exporter_restarts_periodic_collection_and_can_stop_from_a_callback():
+def test_exporter_rejects_a_nonpositive_interval_without_disturbing_collection():
+    async def sample() -> float:
+        return 1.0
+
+    exporter = StdoutExporter(metric_generators=[MetricGenerator(metrics=[Metric(name="sample", value=sample)])])
+    try:
+        exporter.start(interval_in_seconds=3600)
+        event, report = exporter.event, exporter.metric_report
+
+        with pytest.raises(ValueError, match="interval_in_seconds"):
+            exporter.start(interval_in_seconds=0)
+
+        assert exporter.event is event
+        assert not event.is_set()
+        assert exporter.metric_report is report
+        assert report["sample"].call_count == 1
+    finally:
+        exporter.stop()
+
+
+def test_exporter_restarts_periodic_collection_and_can_stop_from_a_callback(instant_timer):
     collected = Event()
     readings = []
     sampling_threads = []
@@ -40,7 +60,7 @@ def test_exporter_restarts_periodic_collection_and_can_stop_from_a_callback():
         readings.clear()
         collected.clear()
         try:
-            exporter.start(interval_in_seconds=0)
+            exporter.start(interval_in_seconds=1)
             assert collected.wait(timeout=2)
         finally:
             exporter.stop()
@@ -64,7 +84,7 @@ def test_exporter_settles_an_active_sample_before_stopping_or_restarting(mocker,
         return 1.0
 
     exporter = StdoutExporter(metric_generators=[MetricGenerator(metrics=[Metric(name="sample", value=sample)])])
-    exporter.start(interval_in_seconds=0)
+    exporter.start(interval_in_seconds=1)
     assert sampling.wait(timeout=2)
     previous_report = exporter.metric_report
     timer = exporter._timer
@@ -111,13 +131,13 @@ def test_exporter_start_raises_when_its_first_collection_fails(tmp_path, exporte
     )
     try:
         with pytest.raises(OSError, match="sensor unavailable"):
-            exporter.start(interval_in_seconds=0)
+            exporter.start(interval_in_seconds=1)
         assert exporter._timer is None
     finally:
         exporter.stop()
 
 
-def test_exporter_keeps_collecting_after_a_failed_periodic_cycle(tmp_path, caplog):
+def test_exporter_keeps_collecting_after_a_failed_periodic_cycle(tmp_path, caplog, instant_timer):
     collected_after_the_failure = Event()
     readings = []
 
@@ -134,7 +154,7 @@ def test_exporter_keeps_collecting_after_a_failed_periodic_cycle(tmp_path, caplo
         metric_generators=[MetricGenerator(metrics=[Metric(name="sample", value=sample)])],
     )
     try:
-        exporter.start(interval_in_seconds=0)
+        exporter.start(interval_in_seconds=1)
         assert collected_after_the_failure.wait(timeout=2)
     finally:
         exporter.stop()
@@ -142,7 +162,7 @@ def test_exporter_keeps_collecting_after_a_failed_periodic_cycle(tmp_path, caplo
     assert "transient sensor read failure" in caplog.text
 
 
-def test_exporter_keeps_collecting_the_other_generators_while_one_keeps_failing(tmp_path):
+def test_exporter_keeps_collecting_the_other_generators_while_one_keeps_failing(tmp_path, instant_timer):
     healthy_collected_while_the_other_failed = Event()
     failing_readings = []
     healthy_readings = []
@@ -167,7 +187,7 @@ def test_exporter_keeps_collecting_the_other_generators_while_one_keeps_failing(
         ],
     )
     try:
-        exporter.start(interval_in_seconds=0)
+        exporter.start(interval_in_seconds=1)
         assert healthy_collected_while_the_other_failed.wait(timeout=2)
     finally:
         exporter.stop()
@@ -493,7 +513,7 @@ async def test_metric_report_totals_a_metric_that_is_not_power_as_itself():
     assert report.average == 2.0
 
 
-def test_stdout_keeps_reporting_the_metrics_that_work_while_another_metric_fails():
+def test_stdout_keeps_reporting_the_metrics_that_work_while_another_metric_fails(instant_timer):
     reported_after_the_failures = Event()
     energy_readings = []
 
@@ -514,7 +534,7 @@ def test_stdout_keeps_reporting_the_metrics_that_work_while_another_metric_fails
         ]
     )
     try:
-        exporter.start(interval_in_seconds=0)
+        exporter.start(interval_in_seconds=1)
         assert reported_after_the_failures.wait(timeout=2)
     finally:
         exporter.stop()
@@ -522,7 +542,9 @@ def test_stdout_keeps_reporting_the_metrics_that_work_while_another_metric_fails
     assert exporter.metric_report["energy"].call_count >= 3
 
 
-def test_exporter_forgets_series_that_stopped_reporting_while_another_generator_keeps_failing(tmp_path, monkeypatch):
+def test_exporter_forgets_series_that_stopped_reporting_while_another_generator_keeps_failing(
+    tmp_path, monkeypatch, instant_timer
+):
     pod_names = iter(range(1000))
     carbon_calls = []
     cycles_after_the_outage = Event()
@@ -550,7 +572,7 @@ def test_exporter_forgets_series_that_stopped_reporting_while_another_generator_
         metric_generators=[RestartingPods(metrics=[]), MetricGenerator(metrics=[Metric(name="carbon", value=carbon)])],
     )
     try:
-        exporter.start(interval_in_seconds=0)
+        exporter.start(interval_in_seconds=1)
         assert cycles_after_the_outage.wait(timeout=2)
     finally:
         exporter.stop()

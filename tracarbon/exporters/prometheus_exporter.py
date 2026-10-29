@@ -34,6 +34,10 @@ if PROMETHEUS_INSTALLED:
     _exporters: WeakValueDictionary[int, "PrometheusExporter"] = WeakValueDictionary()
     _metrics_lock = Lock()
 
+    def _existing_series(metric: Gauge | Counter, labels: tuple[str, ...]) -> Gauge | Counter | None:
+        # prometheus_client's public labels() creates the child it looks up.
+        return cast("Gauge | Counter | None", metric._metrics.get(labels)) if labels else metric
+
     class PrometheusExporter(Exporter):
         """
         Expose metrics through an HTTP server for Prometheus to scrape.
@@ -75,6 +79,7 @@ if PROMETHEUS_INSTALLED:
                         series
                         for _, generator_series in self._series_by_generator.values()
                         for series in generator_series
+                        if series in previous_series
                     }
                     for metric, labels in previous_series - self._dynamic_series:
                         if not any(
@@ -96,12 +101,16 @@ if PROMETHEUS_INSTALLED:
             Update a gauge or add a finite, nonnegative counter increment.
 
             A None value claims a pod or process series without updating its sample, keeping other exporters from
-            removing it while collection is in progress.
+            removing it while collection is in progress. NaN only marks an existing series, so a metric that never
+            reported stays absent.
             """
+            marks_unavailable = metric_type is Gauge and value is not None and math.isnan(value)
             with _metrics_lock:
                 metric: Gauge | Counter | None = self.prometheus_metrics.get(name) if metric_type is Gauge else None
                 if metric is None:
                     if name not in _shared_metrics:
+                        if marks_unavailable:
+                            return
                         _shared_metrics[name] = metric_type(name, f"Tracarbon metric {name}", [tag.key for tag in tags])
                     metric = _shared_metrics[name]
                 if metric_type is Gauge:
@@ -109,8 +118,8 @@ if PROMETHEUS_INSTALLED:
                 labels = tuple(tag.value for tag in tags)
                 if _is_dynamic_series(tags):
                     self._dynamic_series.add((metric, labels))
-                    self._current_generator_series.add((metric, labels))
-                if value is None:
+                self._current_generator_series.add((metric, labels))
+                if value is None or (marks_unavailable and _existing_series(metric, labels) is None):
                     return
                 series = metric.labels(*labels) if labels else metric
                 if metric_type is Gauge:
@@ -120,11 +129,19 @@ if PROMETHEUS_INSTALLED:
                 else:
                     logger.warning(f"Skipping metric[{name}]: a counter cannot add [{value}].")
 
+        def _mark_unavailable(self, series: set[tuple[Gauge | Counter, tuple[str, ...]]]) -> None:
+            with _metrics_lock:
+                for metric, labels in series:
+                    existing_series = _existing_series(metric, labels)
+                    if metric in self.prometheus_metrics.values() and existing_series is not None:
+                        cast(Gauge, existing_series).set(math.nan)
+
         async def launch(self, metric_generator: MetricGenerator) -> None:
             """
             Launch the Prometheus exporter with the metrics.
             Each metric is a gauge holding its latest value. Carbon also accumulates in a counter of grams
             named with ``_grams_total`` and labelled without ``units``.
+            An unavailable reading sets its gauge to NaN and leaves the counter unchanged.
 
             :param metric_generator: the metric generator
             """
@@ -144,6 +161,7 @@ if PROMETHEUS_INSTALLED:
                     try:
                         metric_value = await metric.value()
                     except Exception as failure:
+                        self._export(Gauge, metric_name, metric.tags, math.nan)
                         logger.error(f"Error reading metric '{metric.name}': {failure}")
                         if first_failure is None:
                             first_failure = failure
@@ -154,7 +172,7 @@ if PROMETHEUS_INSTALLED:
                             f"Sending metric[{metric_name}] with value [{metric_value}] "
                             f"and labels{metric.format_tags()} to Prometheus."
                         )
-                    self._export(Gauge, metric_name, metric.tags, metric_value)
+                    self._export(Gauge, metric_name, metric.tags, math.nan if metric_value is None else metric_value)
                     if grams_per_unit is not None:
                         self._export(
                             Counter,
@@ -165,6 +183,9 @@ if PROMETHEUS_INSTALLED:
                 if first_failure is not None:
                     raise first_failure
                 retained_series.clear()
+            except Exception:
+                self._mark_unavailable(retained_series - self._current_generator_series)
+                raise
             finally:
                 retained_series.update(self._current_generator_series)
 
