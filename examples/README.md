@@ -1,35 +1,44 @@
 # Measure a local LLM
 
-Start Tracarbon in a terminal:
+Load the model, then measure at least 5 seconds of requests in one session. To compare sessions,
+follow [measure a local LLM](../docs/source/usage.rst#measure-a-local-llm).
+
+## Ollama
 
 ```sh
 pip install tracarbon
-tracarbon run
+ollama pull qwen2.5:0.5b
+ollama run qwen2.5:0.5b "Say hello."
+tracarbon exec --output ollama-session.json -- sh -ec \
+  'for request in 1 2 3 4 5; do ollama run --verbose qwen2.5:0.5b "Explain how a database executes a join."; done'
 ```
 
-Use your local LLM as usual. For example, with
-[Ollama](https://docs.ollama.com/quickstart) installed, run this in another terminal:
+Ollama prints each request's token counts, then Tracarbon prints the session totals. The end of a
+run on an Apple M4 Pro, after `sudo -v` so that macOS 27 reports CPU:
+
+```text
+prompt eval rate:     220.60 tokens/s
+eval count:           437 token(s)
+eval duration:        1.56133s
+eval rate:            279.89 tokens/s
+Tracarbon measured 9.9 s:
+  host: 0.086175 Wh, 0.003475 g CO2e
+  cpu: 0.055301 Wh, 0.002431 g CO2e
+  memory: unavailable
+  gpu: 0.030875 Wh, 0.001044 g CO2e
+```
+
+For token counts as JSON, measure API requests and keep each
+[response](https://docs.ollama.com/api/generate):
 
 ```sh
-ollama run qwen3.8:27b --think=false "Explain how to use Tracarbon."
+echo '{"model": "qwen2.5:0.5b", "prompt": "Explain how a database executes a join.", "stream": false}' > ollama-request.json
+tracarbon exec --output ollama-api-session.json -- sh -ec \
+  'set -C; for request in 1 2 3 4 5; do curl --fail-with-body -sS http://localhost:11434/api/generate -d @ollama-request.json > "ollama-response-$request.json"; done'
 ```
 
-[Qwen3.8-27B](https://ollama.com/library/qwen3.8:27b) needs an 18 GB download.
-Download it before tracking to exclude setup. Any local model or runtime works.
+## Read the report
 
-Tracarbon displays power and estimated CO2. Press `Ctrl+C` in its terminal when
-finished to print the report. Readings include all activity on the measured hardware;
-run on a quiet machine. Token counts and per-model attribution are unavailable.
-
-| Platform | Measured hardware |
-| --- | --- |
-| macOS | Apple Silicon chip counters, with system power fallbacks. |
-| Linux | Readable Intel or AMD RAPL counters, plus supported GPU readings. |
-| Windows | NVIDIA GPU via `nvidia-smi`. CPU, memory and host totals are unavailable. |
-
-Country is detected by IP; `--country-code-alpha-iso-2 fr` overrides it. Without an API key,
-Tracarbon uses bundled factors for 200+ supported countries. Set
-`TRACARBON_CO2SIGNAL_API_KEY` for live factors.
-
-Set `TRACARBON_INTERVAL_IN_SECONDS=1` for more frequent readings.
-Remote API calls only measure the client computer.
+`metric_report.energy_consumption_gpu.total` is GPU energy in Wh and `carbon_emission_gpu.total` is
+grams of CO2e. Other components use the same names. A missing component is unavailable on this
+platform ([supported devices](../README.md#-supported-devices)).
