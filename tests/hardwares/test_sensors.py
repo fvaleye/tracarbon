@@ -1,6 +1,7 @@
 import asyncio
 import contextlib
 import os
+import plistlib
 import shlex
 import signal
 import subprocess
@@ -115,7 +116,7 @@ async def test_mac_energy_consumption_fallback_to_ioreg(mocker, reported_power, 
     )
     mocker.patch.object(GPUInfo, "get_gpu_power_usage_or_none", return_value=3.5)
 
-    mac_sensor = MacEnergyConsumption()
+    mac_sensor = MacEnergyConsumption(shell_command="read-custom-power")
     energy_usage = await mac_sensor.get_energy_usage()
 
     assert energy_usage.host_energy_usage == pytest.approx(expected_watts)
@@ -636,14 +637,15 @@ async def test_mac_energy_consumption_reads_the_adapter_when_no_system_power_is_
         side_effect=HardwareNoGPUDetectedException("powermetrics failed to run."),
     )
     mocker.patch.object(GPUInfo, "get_gpu_power_usage_or_none", return_value=None)
-    read_power = mocker.patch.object(MacEnergyConsumption, "_read_power", side_effect=[None, 30.0])
+    read_battery = mocker.patch.object(
+        MacEnergyConsumption, "_read_command", return_value=plistlib.dumps([{"BatteryData": {"AdapterPower": 30000}}])
+    )
 
     mac_sensor = MacEnergyConsumption()
     energy_usage = await mac_sensor.get_energy_usage()
 
     assert energy_usage.host_energy_usage == 30.0
-    assert read_power.call_count == 2
-    assert "AdapterPower" in read_power.call_args.args[0]
+    assert read_battery.call_count == 1
 
 
 async def test_mac_energy_consumption_reports_unknown_power_when_ioreg_reports_no_key(mocker):
@@ -653,7 +655,7 @@ async def test_mac_energy_consumption_reports_unknown_power_when_ioreg_reports_n
         side_effect=HardwareNoGPUDetectedException("powermetrics failed to run."),
     )
     mocker.patch.object(GPUInfo, "get_gpu_power_usage_or_none", return_value=None)
-    mocker.patch.object(MacEnergyConsumption, "_read_power", return_value=None)
+    mocker.patch.object(MacEnergyConsumption, "_read_command", return_value=plistlib.dumps([{}]))
 
     mac_sensor = MacEnergyConsumption()
     energy_usage = await mac_sensor.get_energy_usage()
@@ -668,7 +670,10 @@ async def test_mac_energy_consumption_reports_unknown_power_when_ioreg_reports_n
     [(False, False), (True, False), (True, True)],
     ids=["timeout", "cancellation", "creation-cancellation"],
 )
-async def test_stopping_ioreg_stops_pipeline_children(mocker, monkeypatch, tmp_path, cancel_reading, during_creation):
+@pytest.mark.parametrize("default_commands", [False, True], ids=["custom-pipeline", "default-ioreg"])
+async def test_stopping_ioreg_stops_pipeline_children(
+    mocker, monkeypatch, tmp_path, cancel_reading, during_creation, default_commands
+):
     launched_commands = mocker.spy(asyncio, "create_subprocess_shell")
     mocker.patch.object(
         AppleSiliconPowerMetrics,
@@ -682,7 +687,15 @@ async def test_stopping_ioreg_stops_pipeline_children(mocker, monkeypatch, tmp_p
     for pid_file in pid_files:
         command = f"echo $$ > {shlex.quote(str(pid_file))}; exec sleep 30"
         commands.append(f"sh -c {shlex.quote(command)}")
-    sensor = MacEnergyConsumption(shell_command=" | ".join(commands), adapter_shell_command="printf ''")
+    if default_commands:
+        pid_files = pid_files[:1]
+        ioreg = tmp_path / "ioreg"
+        ioreg.write_text("#!/bin/sh\n" + commands[0] + "\n")
+        ioreg.chmod(0o755)
+        monkeypatch.setenv("PATH", str(tmp_path) + os.pathsep + os.environ["PATH"])
+        sensor = MacEnergyConsumption()
+    else:
+        sensor = MacEnergyConsumption(shell_command=" | ".join(commands), adapter_shell_command="printf ''")
     creation_can_finish = asyncio.Event()
     if during_creation:
         loop = asyncio.get_running_loop()
@@ -751,7 +764,9 @@ async def test_mac_energy_consumption_falls_back_when_the_counters_cannot_be_rea
     mocker.patch.object(
         IOReportEnergy, "get_energy_report", side_effect=HardwareIOReportException("no energy between the samples")
     )
-    mocker.patch.object(MacEnergyConsumption, "_read_power", return_value=30.0)
+    mocker.patch.object(
+        MacEnergyConsumption, "_read_command", return_value=plistlib.dumps([{"BatteryData": {"SystemPower": 30000}}])
+    )
     mocker.patch(
         "tracarbon.hardwares.sensors.AppleSiliconPowerMetrics.get_power_breakdown",
         side_effect=HardwareIOReportException("powermetrics failed to run."),
@@ -793,9 +808,77 @@ async def test_mac_energy_consumption_falls_back_when_only_the_gpu_counter_is_re
         ),
     )
     mocker.patch.object(AppleSiliconPowerMetrics, "get_power_breakdown", return_value=powermetrics)
-    read_power = mocker.patch.object(MacEnergyConsumption, "_read_power", side_effect=[None, None, 45.964])
+    read_battery = mocker.patch.object(
+        MacEnergyConsumption,
+        "_read_command",
+        return_value=plistlib.dumps([{"PowerTelemetryData": {"SystemLoad": 45964}}]),
+    )
     gpu_probe = mocker.patch.object(GPUInfo, "get_gpu_power_usage_or_none")
 
     assert await MacEnergyConsumption().get_energy_usage() == expected
     gpu_probe.assert_not_called()
-    assert read_power.call_count == (0 if powermetrics[0] is not None else 3)
+    assert read_battery.call_count == (0 if powermetrics[0] is not None else 1)
+
+
+@pytest.mark.parametrize(
+    ("battery", "expected_watts"),
+    [
+        (
+            {"BatteryData": {"SystemPower": 25500, "AdapterPower": 30000}, "PowerTelemetryData": {"SystemLoad": 45000}},
+            25.5,
+        ),
+        ({"BatteryData": {"SystemPower": 1101610469}}, 21.155221939086914),
+        ({"BatteryData": {"SystemPower": 25.5}}, 25.5),
+        ({"BatteryData": {"SystemPower": -1, "AdapterPower": 30000}}, 30.0),
+        ({"PowerTelemetryData": {"SystemLoad": 45964}}, 45.964),
+        ({"BatteryData": {"SystemPower": 0}, "PowerTelemetryData": {"SystemLoad": 45964}}, 0.0),
+        ({"BatteryData": "invalid", "PowerTelemetryData": {"SystemLoad": 45964}}, 45.964),
+    ],
+)
+async def test_mac_reads_the_battery_once_and_keeps_power_key_priority(mocker, battery, expected_watts):
+    command = mocker.patch(
+        "tracarbon.hardwares.sensors.asyncio.create_subprocess_shell",
+        return_value=mocker.AsyncMock(communicate=mocker.AsyncMock(return_value=(plistlib.dumps([battery]), b""))),
+    )
+
+    watts = await MacEnergyConsumption()._read_system_power()
+
+    assert watts == pytest.approx(expected_watts)
+    assert command.call_count == 1
+    assert "plutil" not in command.call_args.args[0]
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        b"",
+        b"not a plist",
+        b'<?xml version="1.0"?><plist><array>',
+        plistlib.dumps([]),
+        plistlib.dumps({}),
+        plistlib.dumps(["invalid"]),
+    ],
+)
+async def test_mac_reports_unknown_power_for_an_unreadable_battery_plist(mocker, payload):
+    command = mocker.patch(
+        "tracarbon.hardwares.sensors.asyncio.create_subprocess_shell",
+        return_value=mocker.AsyncMock(communicate=mocker.AsyncMock(return_value=(payload, b""))),
+    )
+
+    assert await MacEnergyConsumption()._read_system_power() is None
+    assert command.call_count == 1
+
+
+@pytest.mark.parametrize("overridden_command", ["shell_command", "adapter_shell_command", "system_load_shell_command"])
+async def test_mac_preserves_each_custom_power_command(mocker, overridden_command):
+    commands = []
+
+    async def run(command):
+        commands.append(command)
+        return 12.5 if command == "custom-power-command" else None
+
+    mocker.patch.object(MacEnergyConsumption, "_read_power", side_effect=run)
+    sensor = MacEnergyConsumption(**{overridden_command: "custom-power-command"})
+
+    assert await sensor._read_system_power() == 12.5
+    assert commands[-1] == "custom-power-command"

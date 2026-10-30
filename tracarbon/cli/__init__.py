@@ -14,14 +14,15 @@ from loguru import logger
 from tracarbon.builder import Tracarbon
 from tracarbon.builder import TracarbonBuilder
 from tracarbon.builder import TracarbonReport
-from tracarbon.conf import KUBERNETES_INSTALLED
 from tracarbon.conf import TracarbonConfiguration
 from tracarbon.conf import logger_configuration
+from tracarbon.emissions import CarbonEmission
 from tracarbon.exporters import Exporter
 from tracarbon.exporters import MetricGenerator
 from tracarbon.exporters import StdoutExporter
 from tracarbon.general_metrics import CarbonEmissionGenerator
 from tracarbon.general_metrics import EnergyConsumptionGenerator
+from tracarbon.general_metrics import _process_generators
 from tracarbon.hardwares import UsageType
 from tracarbon.locations import Country
 
@@ -75,6 +76,8 @@ def add_containers_generator(location: Country) -> List[MetricGenerator]:
     :param: country for the metric generators of containers
     :return: the list of metric generators for containers
     """
+    from tracarbon.conf import KUBERNETES_INSTALLED
+
     if KUBERNETES_INSTALLED:
         from tracarbon.general_metrics import CarbonEmissionKubernetesGenerator
         from tracarbon.general_metrics import EnergyConsumptionKubernetesGenerator
@@ -111,16 +114,18 @@ def build_tracarbon(
         country_code_alpha_iso_2=country_code_alpha_iso_2,
         emission_factor_type=configuration.emission_factor_type,
     )
+    energy = EnergyConsumptionGenerator(location=location)
     metric_generators: List[MetricGenerator] = [
-        EnergyConsumptionGenerator(location=location),
+        energy,
         CarbonEmissionGenerator(
             location=location,
+            carbon_emission=CarbonEmission(location=location, energy_consumption=energy.energy_consumption),
         ),
     ]
     if containers:
         metric_generators.extend(add_containers_generator(location=location))
     if pids:
-        tracarbon_builder.with_processes(pids=pids)
+        metric_generators.extend(_process_generators(location, pids, energy.energy_consumption))
     exporter = get_exporter(
         exporter_name=exporter_name,
         metric_generators=metric_generators,
@@ -325,5 +330,19 @@ def main() -> None:
     app()
 
 
+def __getattr__(name: str) -> bool | list[str]:
+    if name == "__all__":
+        return sorted({key for key in globals() if not key.startswith("_")} | {"KUBERNETES_INSTALLED"})
+    if name == "KUBERNETES_INSTALLED":
+        from tracarbon.conf import KUBERNETES_INSTALLED
+
+        return KUBERNETES_INSTALLED
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
 if __name__ == "__main__":
     main()
+
+
+def __dir__() -> list[str]:
+    return sorted(set(globals()) | {"KUBERNETES_INSTALLED"})

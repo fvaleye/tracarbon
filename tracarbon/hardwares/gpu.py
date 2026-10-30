@@ -22,6 +22,7 @@ _ANE_SAMPLER = "ane_power"
 PROBE_TIMEOUT_SECONDS = 10
 KILLED_PROBE_WAIT_SECONDS = 1
 STUCK_PROBE_COOL_DOWN_SECONDS = 300
+_PERMISSION_DENIED_COOL_DOWN_SECONDS = 60
 _stuck_probe_retry_times: dict[str, float] = {}
 
 
@@ -44,7 +45,7 @@ def _run_probe(command: List[str]) -> subprocess.CompletedProcess:
     """
     probe = command[0]
     if time.monotonic() < _stuck_probe_retry_times.get(probe, 0.0):
-        raise HardwareNoGPUDetectedException(f"{probe} is cooling down after a timeout.")
+        raise HardwareNoGPUDetectedException(f"{probe} is cooling down after a failed probe.")
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     try:
         stdout, stderr = process.communicate(timeout=PROBE_TIMEOUT_SECONDS)
@@ -193,6 +194,17 @@ class AppleSiliconPowerMetrics(BaseModel):
             sudo_path = shutil.which("sudo")
             if sudo_path:
                 result = _run_probe([sudo_path, "-n", powermetrics_path, "--samplers", samplers, "-i", "1", "-n", "1"])
+
+        if result.returncode != 0 and any(
+            message in result.stderr.lower()
+            for message in (
+                b"must be invoked as the superuser",
+                b"a password is required",
+                b"not in the sudoers file",
+                b"not allowed to execute",
+            )
+        ):
+            _stuck_probe_retry_times[powermetrics_path] = time.monotonic() + _PERMISSION_DENIED_COOL_DOWN_SECONDS
 
         return result.stdout, result.returncode, result.stderr
 

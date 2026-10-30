@@ -23,6 +23,7 @@ from pydantic import ConfigDict
 from pydantic import Field
 from pydantic import PrivateAttr
 
+from tracarbon._sampling import collection_samples
 from tracarbon.hardwares.energy import EnergyUsageUnit
 from tracarbon.hardwares.energy import Power
 from tracarbon.hardwares.hardware import HardwareInfo
@@ -322,24 +323,25 @@ class Exporter(BaseModel, metaclass=ABCMeta):
         Launch the exporter with all the metric generators, then raise the first failure, so a failing generator
         does not keep the others from reporting.
         """
-        cycle_started_at = time.monotonic()
-        first_failure: Exception | None = None
-        for metric_generator in self.metric_generators:
-            logger.debug(f"Running MetricGenerator[{metric_generator}].")
-            try:
-                await self.launch(metric_generator=metric_generator)
-            except Exception as failure:
-                if first_failure is None:
-                    first_failure = failure
-                else:
-                    logger.exception(
-                        f"The {self.get_name()} exporter failed to collect the {type(metric_generator).__name__} "
-                        "metrics."
-                    )
-        for metric_report in self.metric_report.values():
-            metric_report._forget_the_series_that_stopped_reporting(measured_at=cycle_started_at)
-        if first_failure is not None:
-            raise first_failure
+        with collection_samples():
+            cycle_started_at = time.monotonic()
+            first_failure: Exception | None = None
+            for metric_generator in self.metric_generators:
+                logger.debug(f"Running MetricGenerator[{metric_generator}].")
+                try:
+                    await self.launch(metric_generator=metric_generator)
+                except Exception as failure:
+                    if first_failure is None:
+                        first_failure = failure
+                    else:
+                        logger.exception(
+                            f"The {self.get_name()} exporter failed to collect the {type(metric_generator).__name__} "
+                            "metrics."
+                        )
+            for metric_report in self.metric_report.values():
+                metric_report._forget_the_series_that_stopped_reporting(measured_at=cycle_started_at)
+            if first_failure is not None:
+                raise first_failure
 
     async def add_metric_to_report(self, metric: "Metric", value: float) -> "MetricReport":
         """
