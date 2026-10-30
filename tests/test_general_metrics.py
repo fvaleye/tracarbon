@@ -33,96 +33,57 @@ from tracarbon.hardwares.gpu import NvidiaGPU
 from tracarbon.locations.country import Country
 
 
-@pytest.mark.asyncio
-async def test_carbon_emission_metric(mocker):
-    location_name = "fr"
+async def test_carbon_emission_metrics_preserve_names_and_tags(mocker):
+    location = Country(name="fr", co2g_kwh=51.1)
     energy_usage = EnergyUsage(cpu_energy_usage=12.0, memory_energy_usage=4.0)
-    mocker.patch.object(Country, "get_current_country", return_value=location_name)
     mocker.patch.object(CarbonEmission, "get_energy_usage", return_value=energy_usage)
-    location = Country(name=location_name, co2g_kwh=51.1)
-    carbon_emission_generator = CarbonEmissionGenerator(location=location)
-    generator = carbon_emission_generator.generate()
-    carbon_emission_metric = await generator.__anext__()
+    generator = CarbonEmissionGenerator(location=location)
 
-    assert carbon_emission_metric.name == "carbon_emission_host"
-    assert carbon_emission_metric.tags[1] == Tag(key="location", value=location_name)
-    assert carbon_emission_metric.tags[2] == Tag(key="source", value=location.co2g_kwh_source.value)
-    assert carbon_emission_metric.tags[3] == Tag(key="units", value="co2g")
+    metrics = [metric async for metric in generator.generate()]
 
-    carbon_emission_metric = await generator.__anext__()
-    assert carbon_emission_metric.name == "carbon_emission_cpu"
-    assert carbon_emission_metric.tags[1] == Tag(key="location", value=location_name)
-    assert carbon_emission_metric.tags[2] == Tag(key="source", value=location.co2g_kwh_source.value)
-    assert carbon_emission_metric.tags[3] == Tag(key="units", value="co2g")
-
-    carbon_emission_metric = await generator.__anext__()
-    assert carbon_emission_metric.name == "carbon_emission_memory"
-    assert carbon_emission_metric.tags[1] == Tag(key="location", value=location_name)
-    assert carbon_emission_metric.tags[2] == Tag(key="source", value=location.co2g_kwh_source.value)
-    assert carbon_emission_metric.tags[3] == Tag(key="units", value="co2g")
-
-    carbon_emission_metric = await generator.__anext__()
-    assert carbon_emission_metric.name == "carbon_emission_gpu"
-    assert carbon_emission_metric.tags[1] == Tag(key="location", value=location_name)
-    assert carbon_emission_metric.tags[2] == Tag(key="source", value=location.co2g_kwh_source.value)
-    assert carbon_emission_metric.tags[3] == Tag(key="units", value="co2g")
+    assert [metric.name for metric in metrics] == [
+        "carbon_emission_host",
+        "carbon_emission_cpu",
+        "carbon_emission_memory",
+        "carbon_emission_gpu",
+    ]
+    for metric in metrics:
+        assert metric.tags[1:] == [
+            Tag(key="location", value=location.name),
+            Tag(key="source", value=location.co2g_kwh_source.value),
+            Tag(key="units", value="co2g"),
+        ]
 
 
-@pytest.mark.asyncio
-async def test_energy_consumption_metric(mocker):
-    location_name = "fr"
-    energy_usage = EnergyUsage(cpu_energy_usage=12.0, memory_energy_usage=4.0)
-    mocker.patch.object(EnergyConsumption, "from_platform", return_value=MacEnergyConsumption())
-    mocker.patch.object(Country, "get_current_country", return_value=location_name)
-    mocker.patch.object(MacEnergyConsumption, "get_energy_usage", return_value=energy_usage)
-    location = Country(name=location_name, co2g_kwh=51.1)
-    energy_consumption_generator = EnergyConsumptionGenerator(location=location)
-    generator = energy_consumption_generator.generate()
-    energy_consumption_metric = await generator.__anext__()
-
-    assert energy_consumption_metric.name == "energy_consumption_host"
-    assert energy_consumption_metric.tags[1] == Tag(key="location", value=location_name)
-    assert energy_consumption_metric.tags[2] == Tag(key="units", value="watts")
-
-    energy_consumption_metric = await generator.__anext__()
-    assert energy_consumption_metric.name == "energy_consumption_cpu"
-    assert energy_consumption_metric.tags[1] == Tag(key="location", value=location_name)
-    assert energy_consumption_metric.tags[2] == Tag(key="units", value="watts")
-
-    energy_consumption_metric = await generator.__anext__()
-    assert energy_consumption_metric.name == "energy_consumption_memory"
-    assert energy_consumption_metric.tags[1] == Tag(key="location", value=location_name)
-    assert energy_consumption_metric.tags[2] == Tag(key="units", value="watts")
-
-    energy_consumption_metric = await generator.__anext__()
-    assert energy_consumption_metric.name == "energy_consumption_gpu"
-    assert energy_consumption_metric.tags[1] == Tag(key="location", value=location_name)
-    assert energy_consumption_metric.tags[2] == Tag(key="units", value="watts")
-
-
-@pytest.mark.asyncio
-async def test_energy_consumption_metric_names_are_unique(mocker):
-    location_name = "fr"
+async def test_energy_consumption_metrics_preserve_names_values_and_tags(mocker):
+    location = Country(name="fr", co2g_kwh=51.1)
     energy_usage = EnergyUsage(
         host_energy_usage=16.0, cpu_energy_usage=12.0, memory_energy_usage=4.0, gpu_energy_usage=0.5
     )
-    mocker.patch.object(EnergyConsumption, "from_platform", return_value=MacEnergyConsumption())
-    mocker.patch.object(Country, "get_current_country", return_value=location_name)
     mocker.patch.object(MacEnergyConsumption, "get_energy_usage", return_value=energy_usage)
-    location = Country(name=location_name, co2g_kwh=51.1)
-    energy_consumption_generator = EnergyConsumptionGenerator(location=location)
+    generator = EnergyConsumptionGenerator(location=location, energy_consumption=MacEnergyConsumption())
 
-    metrics = [metric async for metric in energy_consumption_generator.generate()]
+    metrics = [metric async for metric in generator.generate()]
 
-    values_by_name = {m.name: await m.value() for m in metrics}
-    assert values_by_name["energy_consumption_host"] != values_by_name["energy_consumption_cpu"]
-    assert values_by_name["energy_consumption_host"] == 16.0
-    assert values_by_name["energy_consumption_cpu"] == 12.0
-    assert values_by_name["energy_consumption_memory"] == 4.0
-    assert values_by_name["energy_consumption_gpu"] == 0.5
+    assert [metric.name for metric in metrics] == [
+        "energy_consumption_host",
+        "energy_consumption_cpu",
+        "energy_consumption_memory",
+        "energy_consumption_gpu",
+    ]
+    assert {metric.name: await metric.value() for metric in metrics} == {
+        "energy_consumption_host": 16.0,
+        "energy_consumption_cpu": 12.0,
+        "energy_consumption_memory": 4.0,
+        "energy_consumption_gpu": 0.5,
+    }
+    for metric in metrics:
+        assert metric.tags[1:] == [
+            Tag(key="location", value=location.name),
+            Tag(key="units", value="watts"),
+        ]
 
 
-@pytest.mark.asyncio
 async def test_energy_consumption_kubernetes_generator(mocker):
     location_name = "fr"
     memory_total = 101200121856
@@ -208,7 +169,6 @@ async def test_energy_consumption_kubernetes_generator(mocker):
     ] == metric.format_tags()
 
 
-@pytest.mark.asyncio
 async def test_carbon_emission_kubernetes_generator(mocker):
     location_name = "fr"
     memory_total = 1000000000
@@ -301,7 +261,6 @@ def test_carbon_emission_generator_repr_hides_api_key(mocker, generator_type):
     assert "SECRET_API_KEY" not in f"{generator} {generator!r}"
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize("cpu_watts,process_watts", [(12.0, 3.0), (None, None)])
 async def test_energy_consumption_process_generator(mocker, cpu_watts, process_watts):
     mocker.patch.object(
@@ -336,7 +295,6 @@ async def test_energy_consumption_process_generator(mocker, cpu_watts, process_w
     ]
 
 
-@pytest.mark.asyncio
 async def test_carbon_emission_process_generator(mocker):
     mocker.patch.object(CarbonEmission, "get_co2_usage", return_value=CarbonUsage(cpu_carbon_usage=0.2))
     mocker.patch.object(
@@ -359,7 +317,6 @@ async def test_carbon_emission_process_generator(mocker):
     ]
 
 
-@pytest.mark.asyncio
 async def test_counter_readings_count_each_window_once_in_energy_and_carbon(mocker):
     late_starting_cpu_watts = [None, 4.2, 0.0, 4.1]
 
@@ -398,7 +355,6 @@ async def test_counter_readings_count_each_window_once_in_energy_and_carbon(mock
     assert exporter.metric_report["carbon_emission_cpu"].total == pytest.approx(energy_wh / 1000 * 41.44)
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "gpu_joules,expected_joules",
     [

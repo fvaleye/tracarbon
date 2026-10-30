@@ -1,13 +1,13 @@
 import os
+import platform
 import subprocess
 import sys
 from threading import Timer
 
 import pytest
-from _pytest.logging import LogCaptureFixture
 from loguru import logger
 
-ALL = set("darwin linux windows".split())
+PLATFORMS = {"darwin", "linux", "windows"}
 
 
 @pytest.fixture(autouse=True)
@@ -34,7 +34,7 @@ def run_python(tmp_path):
 
 
 @pytest.fixture
-def caplog(caplog: LogCaptureFixture):
+def caplog(caplog: pytest.LogCaptureFixture):
     handler_id = logger.add(caplog.handler, format="{message}")
     yield caplog
     logger.remove(handler_id)
@@ -46,7 +46,7 @@ def instant_timer(mocker):
 
 
 def pytest_runtest_setup(item):
-    supported_platforms = ALL.intersection(mark.name for mark in item.iter_markers())
-    plat = sys.platform
-    if supported_platforms and plat not in supported_platforms:
-        pytest.skip(f"cannot run on platform {plat}")
+    supported_platforms = PLATFORMS.intersection(mark.name for mark in item.iter_markers())
+    platform_name = platform.system().lower()
+    if supported_platforms and platform_name not in supported_platforms:
+        pytest.skip(f"cannot run on platform {platform_name}")

@@ -29,8 +29,7 @@ from tracarbon.hardwares import Container
 from tracarbon.hardwares import Pod
 
 
-def test_prometheus_exporter(mocker):
-    mocker.patch("tracarbon.exporters.prometheus_exporter.start_http_server")
+def test_prometheus_exporter(mocker, prometheus_registry):
     interval_in_seconds = 1
     memory_value = 70
     mock_memory_value = ["0", "0", memory_value]
@@ -99,7 +98,6 @@ def prometheus_registry(mocker: MockerFixture) -> CollectorRegistry:
     return registry
 
 
-@pytest.mark.asyncio
 async def test_prometheus_reports_healthy_metrics_after_a_read_fails(prometheus_registry: CollectorRegistry) -> None:
     generator = MetricGenerator(
         metrics=[Metric(name="power", value=AsyncMock(return_value=42.0), tags=[Tag(key="pod_name", value="old")])]
@@ -118,7 +116,6 @@ async def test_prometheus_reports_healthy_metrics_after_a_read_fails(prometheus_
     assert math.isnan(prometheus_registry.get_sample_value("power", {"pod_name": "old"}))
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize("unavailable", [None, OSError("sensor unavailable")], ids=["missing", "failed"])
 @pytest.mark.parametrize(
     "tags",
@@ -146,7 +143,6 @@ async def test_prometheus_marks_unavailable_readings_and_recovers(prometheus_reg
             assert prometheus_registry.get_sample_value("carbon_grams_total", counter_labels) == total
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize("unavailable", [None, OSError("no GPU")], ids=["missing", "failed"])
 @pytest.mark.parametrize("reported_gpus", [[], ["0"]], ids=["new_metric", "new_series"])
 async def test_prometheus_omits_series_that_never_reported(prometheus_registry, unavailable, reported_gpus):
@@ -170,7 +166,6 @@ async def test_prometheus_omits_series_that_never_reported(prometheus_registry, 
     assert prometheus_registry.get_sample_value("energy_consumption_gpu", {"gpu": "1"}) is None
 
 
-@pytest.mark.asyncio
 async def test_prometheus_marks_readings_unavailable_when_their_generator_fails(mocker, prometheus_registry):
     mocker.patch.object(
         CarbonEmission,
@@ -201,7 +196,6 @@ async def test_prometheus_marks_readings_unavailable_when_their_generator_fails(
     assert prometheus_registry.get_sample_value(name, labels) == 0.0
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize("failing_first", [False, True], ids=["failure_last", "failure_first"])
 async def test_prometheus_removes_vanished_pods_while_another_generator_fails(
     prometheus_registry: CollectorRegistry, failing_first: bool
@@ -241,7 +235,6 @@ async def test_prometheus_removes_vanished_pods_while_another_generator_fails(
     assert [sample for metric in prometheus_registry.collect() for sample in metric.samples] == []
 
 
-@pytest.mark.asyncio
 async def test_prometheus_removes_the_series_of_a_process_that_stopped_reporting(
     prometheus_registry: CollectorRegistry,
 ) -> None:
@@ -257,7 +250,6 @@ async def test_prometheus_removes_the_series_of_a_process_that_stopped_reporting
     assert prometheus_registry.get_sample_value("power", {"pid": "10"}) is None
 
 
-@pytest.mark.asyncio
 async def test_prometheus_reuses_a_supplied_gauge(prometheus_registry: CollectorRegistry) -> None:
     gauge = Gauge("custom", "A supplied gauge", ["location"], registry=prometheus_registry)
     metric = Metric(name="custom", value=AsyncMock(return_value=7.0), tags=[Tag(key="location", value="fr")])
@@ -271,7 +263,6 @@ async def test_prometheus_reuses_a_supplied_gauge(prometheus_registry: Collector
     assert exporter.prometheus_metrics["custom"] is gauge
 
 
-@pytest.mark.asyncio
 async def test_supplied_gauges_stay_in_their_own_registry(prometheus_registry: CollectorRegistry) -> None:
     supplied_registry = CollectorRegistry()
     gauge = Gauge("custom", "A supplied gauge", ["location"], registry=supplied_registry)
@@ -287,7 +278,6 @@ async def test_supplied_gauges_stay_in_their_own_registry(prometheus_registry: C
     assert prometheus_registry.get_sample_value("custom", {"location": "fr"}) == 2.0
 
 
-@pytest.mark.asyncio
 async def test_prometheus_reuses_registered_metrics(
     prometheus_registry: CollectorRegistry,
 ) -> None:
@@ -302,7 +292,6 @@ async def test_prometheus_reuses_registered_metrics(
     assert prometheus_registry.get_sample_value("energy_consumption_host", {"units": "watts"}) == 12.0
 
 
-@pytest.mark.asyncio
 async def test_prometheus_accumulates_grams_and_updates_gauges(
     prometheus_registry: CollectorRegistry,
 ) -> None:
@@ -350,7 +339,6 @@ async def test_prometheus_accumulates_grams_and_updates_gauges(
     )
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("second_has_collected", "initial_total", "final_total"), [(False, 1.0, 2.0), (True, 2.0, 3.0)]
 )
@@ -431,7 +419,6 @@ def test_prometheus_preserves_shared_counters_during_final_collection(
         second.stop()
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize("invalid_increment", [-1.0, float("nan"), float("inf")])
 async def test_prometheus_skips_invalid_counter_increments(
     prometheus_registry: CollectorRegistry, invalid_increment: float
@@ -456,7 +443,6 @@ async def test_prometheus_skips_invalid_counter_increments(
     assert prometheus_registry.get_sample_value("carbon_emission_host_grams_total", {"location": "fr"}) == 2.0
 
 
-@pytest.mark.asyncio
 async def test_prometheus_exports_unlabelled_metrics(prometheus_registry: CollectorRegistry) -> None:
     carbon_with_only_its_unit = Metric(
         name="carbon_emission_host", value=AsyncMock(return_value=0.5), tags=[Tag(key="units", value="co2g")]
@@ -470,7 +456,6 @@ async def test_prometheus_exports_unlabelled_metrics(prometheus_registry: Collec
     assert prometheus_registry.get_sample_value("custom") == 7.0
 
 
-@pytest.mark.asyncio
 async def test_prometheus_removes_missing_pods_after_all_generators(prometheus_registry: CollectorRegistry) -> None:
     gone, live, shared = [
         Metric(name="container_watts", value=AsyncMock(return_value=42.0), tags=[Tag(key="pod_name", value=name)])
@@ -500,7 +485,6 @@ async def test_prometheus_removes_missing_pods_after_all_generators(prometheus_r
     assert prometheus_registry.get_sample_value("tracarbon_container_watts", {"pod_name": "shared"}) is None
 
 
-@pytest.mark.asyncio
 async def test_prometheus_keeps_pods_until_kubernetes_collection_succeeds(
     mocker: MockerFixture, prometheus_registry: CollectorRegistry
 ) -> None:

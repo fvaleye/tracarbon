@@ -47,7 +47,6 @@ def test_the_library_exports_the_energy_counters():
     assert "IOReportEnergy" in tracarbon.__all__
 
 
-@pytest.mark.asyncio
 async def test_report_converts_native_units_and_measures_each_interval(mocker, native_reader):
     channels = [
         ("Energy Model", "CPU Energy", "mJ", 1000),
@@ -93,7 +92,6 @@ async def test_report_converts_native_units_and_measures_each_interval(mocker, n
 
 
 @pytest.mark.parametrize("release", ["27.0.1", "28.0"])
-@pytest.mark.asyncio
 async def test_macos_27_and_later_report_only_the_gpu_counter(mocker, native_reader, release):
     mocker.patch.object(platform, "mac_ver", return_value=(release, ("", "", ""), ""))
     mocker.patch.object(
@@ -112,7 +110,6 @@ async def test_macos_27_and_later_report_only_the_gpu_counter(mocker, native_rea
     )
 
 
-@pytest.mark.asyncio
 async def test_the_first_report_measures_a_short_interval(mocker, native_reader):
     native_reader._previous_sample = None
     mocker.patch.object(IOReportReader, "_read_channels", return_value={UsageType.HOST: 1000.0})
@@ -125,7 +122,6 @@ async def test_the_first_report_measures_a_short_interval(mocker, native_reader)
     sleep.assert_awaited_once_with(0.1)
 
 
-@pytest.mark.asyncio
 async def test_a_failed_snapshot_discards_the_previous_window(native_reader):
     native_reader._ioreport.IOReportCreateSamples.side_effect = [None]
 
@@ -136,7 +132,6 @@ async def test_a_failed_snapshot_discards_the_previous_window(native_reader):
     native_reader._core_foundation.CFRelease.assert_called_once_with(10)
 
 
-@pytest.mark.asyncio
 async def test_a_failed_delta_does_not_extend_the_next_interval(mocker, native_reader):
     native_reader._ioreport.IOReportCreateSamplesDelta.side_effect = [None, 31]
     mocker.patch.object(IOReportReader, "_read_channels", return_value={UsageType.HOST: 1000.0})
@@ -154,7 +149,6 @@ async def test_a_failed_delta_does_not_extend_the_next_interval(mocker, native_r
 
 
 @pytest.mark.parametrize(("millijoules", "expected_watts"), [({}, 7.0), ({UsageType.HOST: 0.0}, 0.0)])
-@pytest.mark.asyncio
 async def test_missing_channels_fall_back_but_zero_energy_does_not(mocker, native_reader, millijoules, expected_watts):
     mocker.patch.object(IOReportReader, "_read_channels", return_value=millijoules)
     mocker.patch(
@@ -166,7 +160,6 @@ async def test_missing_channels_fall_back_but_zero_energy_does_not(mocker, nativ
     assert (await sensor.get_energy_usage()).host_energy_usage == expected_watts
 
 
-@pytest.mark.asyncio
 async def test_a_zero_length_interval_is_rejected(mocker, native_reader):
     mocker.patch("tracarbon.hardwares._ioreport.time").monotonic.return_value = 100.0
     mocker.patch.object(IOReportReader, "_read_channels", return_value={UsageType.HOST: 1000.0})
@@ -214,7 +207,6 @@ def test_a_failed_subscription_releases_allocated_resources(mocker):
 
 
 @pytest.mark.darwin
-@pytest.mark.asyncio
 async def test_independent_readers_can_measure_repeatedly_on_this_machine():
     if not IOReportEnergy.is_available():
         pytest.skip("IOReport requires Apple Silicon.")

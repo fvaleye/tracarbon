@@ -107,11 +107,12 @@ force-single-line = true
 max-complexity = 13
 
 [tool.pytest.ini_options]
-addopts = "--cov=tracarbon -v --asyncio-mode=auto"
+addopts = "--cov=tracarbon -v --strict-config --strict-markers"
+asyncio_mode = "auto"
 markers = [
-    "darwin",
-    "windows",
-    "linux"
+    "darwin: supports macOS",
+    "windows: supports Windows",
+    "linux: supports Linux"
 ]
 testpaths = [
     "tests",

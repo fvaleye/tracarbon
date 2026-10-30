@@ -38,7 +38,6 @@ def test_a_counter_only_root_can_read_is_not_compatible(tmpdir):
     assert RAPL(path=str(path)).is_rapl_compatible() is False
 
 
-@pytest.mark.asyncio
 async def test_get_rapl_power_usage():
     path = f"{pathlib.Path(__file__).parent.resolve()}/data/intel-rapl"
     rapl_separator_for_windows = "T"
@@ -63,7 +62,6 @@ async def test_get_rapl_power_usage():
     assert rapl_results[5].energy_uj == 43725162336.0
 
 
-@pytest.mark.asyncio
 @pytest.mark.linux
 @pytest.mark.darwin
 async def test_get_rapl_power_wrap_around_when_0(mocker):
@@ -91,7 +89,6 @@ async def test_get_rapl_power_wrap_around_when_0(mocker):
     assert energy_report.interval_joules[UsageType.HOST] == pytest.approx(0.069998)
 
 
-@pytest.mark.asyncio
 @pytest.mark.linux
 @pytest.mark.darwin
 async def test_get_total_uj_one_call(mocker):
@@ -128,7 +125,6 @@ def test_classify_domain():
     assert rapl._classify_domain("unknown") == "unknown"
 
 
-@pytest.mark.asyncio
 @pytest.mark.linux
 @pytest.mark.darwin
 async def test_results_with_two_packages_are_correctly_computed(mocker):
@@ -175,7 +171,6 @@ async def test_results_with_two_packages_are_correctly_computed(mocker):
     assert energy_report.gpu_energy_usage is None
 
 
-@pytest.mark.asyncio
 @pytest.mark.linux
 @pytest.mark.darwin
 async def test_a_zone_that_was_restarted_is_not_credited_a_whole_range():
@@ -199,7 +194,6 @@ async def test_a_zone_that_was_restarted_is_not_credited_a_whole_range():
     assert rapl.rapl_results["T0-package-0"].energy_uj < a_reading_the_zone_restarted_from
 
 
-@pytest.mark.asyncio
 async def test_a_wrap_above_long_term_power_is_still_corrected(mocker, tmpdir):
     zone = tmpdir.mkdir("zone")
     zone.join("constraint_0_name").write("long_term")
@@ -233,7 +227,6 @@ async def test_a_wrap_above_long_term_power_is_still_corrected(mocker, tmpdir):
     assert energy_report.host_energy_usage == pytest.approx(40.0)
 
 
-@pytest.mark.asyncio
 async def test_a_wrap_uses_the_full_elapsed_time_to_check_its_power(mocker):
     now = datetime.datetime.now()
     elapsed_seconds = 2.49
@@ -264,7 +257,6 @@ async def test_a_wrap_uses_the_full_elapsed_time_to_check_its_power(mocker):
     assert energy_report.host_energy_usage == pytest.approx(wrapped_energy_joules / elapsed_seconds)
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize("wall_clock_seconds", [-3600, 0, 3600])
 @pytest.mark.parametrize("elapsed_seconds", [0.0, 0.25])
 async def test_sample_intervals_ignore_wall_clock_changes(mocker, tmpdir, wall_clock_seconds, elapsed_seconds):
@@ -291,14 +283,12 @@ async def test_sample_intervals_ignore_wall_clock_changes(mocker, tmpdir, wall_c
     assert next_report.host_energy_usage == pytest.approx(40.0)
 
 
-@pytest.mark.asyncio
 async def test_a_zone_publishing_no_ceiling_reads_as_none_at_all(tmpdir):
     zone = tmpdir.mkdir("zone")
 
     assert await RAPL._read_max_power_watts(file_path=str(zone)) == 0.0
 
 
-@pytest.mark.asyncio
 async def test_the_peak_power_limit_is_read_when_the_zone_publishes_one(tmpdir):
     zone = tmpdir.mkdir("zone")
     zone.join("constraint_0_name").write("long_term")
@@ -311,7 +301,6 @@ async def test_the_peak_power_limit_is_read_when_the_zone_publishes_one(tmpdir):
     assert await RAPL._read_max_power_watts(file_path=str(zone)) == 70.0
 
 
-@pytest.mark.asyncio
 @pytest.mark.linux
 @pytest.mark.darwin
 async def test_the_ceiling_a_zone_publishes_is_read_once(mocker):
@@ -330,7 +319,6 @@ async def test_the_ceiling_a_zone_publishes_is_read_once(mocker):
     assert rapl.max_power_watts["T0-package-0"] == 0.0
 
 
-@pytest.mark.asyncio
 @pytest.mark.linux
 @pytest.mark.darwin
 async def test_dram_without_a_published_max_does_not_borrow_the_package_max(mocker):
@@ -357,7 +345,6 @@ async def test_dram_without_a_published_max_does_not_borrow_the_package_max(mock
     assert energy_report.memory_energy_usage == pytest.approx(40.0)
 
 
-@pytest.mark.asyncio
 @pytest.mark.linux
 @pytest.mark.darwin
 async def test_the_largest_published_max_bounds_the_zone():
@@ -373,7 +360,6 @@ async def test_the_largest_published_max_bounds_the_zone():
     assert rapl.max_power_watts["T0-package-0"] != thermal_spec_power
 
 
-@pytest.mark.asyncio
 @pytest.mark.linux
 @pytest.mark.darwin
 async def test_a_restart_of_a_whole_package_leaves_no_zone_of_it_reporting():
@@ -404,7 +390,6 @@ async def test_a_restart_of_a_whole_package_leaves_no_zone_of_it_reporting():
     assert energy_report.cpu_energy_usage is None
 
 
-@pytest.mark.asyncio
 async def test_a_wrap_without_a_published_ceiling_survives_a_load_increase(mocker, tmpdir):
     zone = tmpdir.mkdir("intel-raplT0")
     zone.join("name").write("package-0\n")
@@ -420,7 +405,6 @@ async def test_a_wrap_without_a_published_ceiling_survives_a_load_increase(mocke
     assert energy_report.host_energy_usage == pytest.approx(200.0)
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("watts_by_zone", "cpu_watts", "host_watts"),
     [
@@ -452,7 +436,6 @@ async def test_cpu_power_is_the_package_without_the_integrated_gpu(
     assert energy_report.host_energy_usage == pytest.approx(host_watts)
 
 
-@pytest.mark.asyncio
 async def test_a_component_that_drew_nothing_is_reported_as_zero_rather_than_missing(mocker):
     path = f"{pathlib.Path(__file__).parent.resolve()}/data/intel-rapl2"
     clock = mocker.patch("tracarbon.hardwares.rapl.time")
@@ -466,7 +449,6 @@ async def test_a_component_that_drew_nothing_is_reported_as_zero_rather_than_mis
     assert energy_report.memory_energy_usage is None
 
 
-@pytest.mark.asyncio
 async def test_the_first_report_measures_a_short_interval_rather_than_none(mocker, tmpdir):
     zone = tmpdir.mkdir("intel-raplT0")
     zone.join("name").write("package-0\n")
