@@ -14,14 +14,14 @@ those choices. The project already publishes reStructuredText through Sphinx.
 Decision
 --------
 
-Record significant architectural choices in ``docs/source/decisions/`` using
-short, numbered reStructuredText files. Follow the :doc:`index` template, based
-on `Michael Nygard's ADR format
+Record only major, lasting design choices in ``docs/source/decisions/`` using
+short, numbered reStructuredText files. Use the scope and template in :doc:`index`,
+based on `Michael Nygard's ADR format
 <https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions>`_.
 
 Review each record with the change it explains. Keep the original rationale when
-a later decision supersedes it. Routine fixes and refactors that preserve an
-existing design do not need a new record.
+a later decision supersedes it. Keep routine implementation and maintenance
+decisions in pull requests.
 
 Use the existing strict Sphinx build in GitHub Actions and pre-commit to check
 markup and internal references.

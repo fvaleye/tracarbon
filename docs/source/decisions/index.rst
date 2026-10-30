@@ -1,8 +1,13 @@
 Architecture decisions
 ======================
 
-Architecture decision records (ADRs) explain significant choices and their
-tradeoffs. Read the relevant accepted records before changing a design.
+Architecture decision records (ADRs) explain major, lasting choices in Tracarbon's
+design. Use one when a decision sets constraints across the project or would be
+costly to reverse, such as choosing an energy accounting model or boundaries
+between major components. Explain realistic alternatives and their tradeoffs.
+
+Routine fixes, refactors, small API changes, and dependency or tooling updates
+belong in pull requests. Read relevant accepted ADRs before changing the design.
 
 .. toctree::
    :maxdepth: 1
