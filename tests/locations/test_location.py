@@ -178,8 +178,8 @@ def test_aws_location_should_return_an_error_if_region_not_exists():
     assert exception.value.args[0] == f"The region [{region_name}] is not in the AWS grid emissions factors file."
 
 
-@pytest.mark.parametrize("region_name", ["eu-west-1", "EU-WEST-1", " eu-west-1 "])
-def test_aws_location_should_return_ok_if_region_exists(region_name):
+@pytest.mark.parametrize("region_name", ["eu-west-1", " EU-WEST-1 "])
+def test_aws_location_loads_normalized_regions(region_name):
     location = AWSLocation(region_name=region_name)
 
     assert location.name == f"AWS({region_name})"
