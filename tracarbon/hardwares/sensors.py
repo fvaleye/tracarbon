@@ -5,6 +5,7 @@ import csv
 import importlib.resources
 import math
 import os
+import plistlib
 import signal
 import struct
 import time
@@ -12,6 +13,8 @@ from abc import ABC
 from abc import abstractmethod
 from enum import Enum
 from typing import Any
+from typing import AsyncGenerator
+from xml.parsers.expat import ExpatError
 
 from loguru import logger
 from pydantic import BaseModel
@@ -222,6 +225,11 @@ class MacEnergyConsumption(EnergyConsumption):
         :return: the power in watts, or None if the hardware reports no such key
         :raises asyncio.TimeoutError: if ioreg does not answer within PROBE_TIMEOUT_SECONDS
         """
+        return MacEnergyConsumption._ioreg_power_in_watts(await MacEnergyConsumption._read_command(shell_command))
+
+    @staticmethod
+    async def _read_command(shell_command: str) -> bytes:
+        """Read command output, stopping its process group on timeout or cancellation."""
         creation = asyncio.create_task(
             asyncio.create_subprocess_shell(
                 shell_command,
@@ -246,7 +254,30 @@ class MacEnergyConsumption(EnergyConsumption):
             except asyncio.TimeoutError:
                 logger.debug("ioreg did not exit once killed.")
             raise
-        return MacEnergyConsumption._ioreg_power_in_watts(result)
+        return result
+
+    async def _system_power_readings(self) -> AsyncGenerator[tuple[_SensorBackend, float | None], None]:
+        fields = (
+            ("shell_command", _SensorBackend.IOREG_SYSTEM, "BatteryData", "SystemPower"),
+            ("adapter_shell_command", _SensorBackend.IOREG_ADAPTER, "BatteryData", "AdapterPower"),
+            ("system_load_shell_command", _SensorBackend.IOREG_SYSTEM_LOAD, "PowerTelemetryData", "SystemLoad"),
+        )
+        if any(getattr(self, name) != MacEnergyConsumption.model_fields[name].default for name, *_ in fields):
+            for name, sensor, _, _ in fields:
+                yield sensor, await self._read_power(getattr(self, name))
+            return
+
+        output = await self._read_command("ioreg -rw0 -a -c AppleSmartBattery")
+        try:
+            devices = plistlib.loads(output)
+        except (ValueError, ExpatError):
+            return
+        if not isinstance(devices, list) or not devices or not isinstance(devices[0], dict):
+            return
+        for _, sensor, group, key in fields:
+            values = devices[0].get(group, {})
+            value = values.get(key) if isinstance(values, dict) else None
+            yield sensor, self._ioreg_power_in_watts(str(value).encode())
 
     async def get_energy_usage(self) -> EnergyUsage:
         """
@@ -296,12 +327,7 @@ class MacEnergyConsumption(EnergyConsumption):
         sensor = _SensorBackend.IOREG
         failure_level = "DEBUG" if self._active_sensor is sensor else "WARNING"
         try:
-            for candidate, shell_command in (
-                (_SensorBackend.IOREG_SYSTEM, self.shell_command),
-                (_SensorBackend.IOREG_ADAPTER, self.adapter_shell_command),
-                (_SensorBackend.IOREG_SYSTEM_LOAD, self.system_load_shell_command),
-            ):
-                power = await self._read_power(shell_command)
+            async for candidate, power in self._system_power_readings():
                 if power is not None:
                     sensor = candidate
                     break
