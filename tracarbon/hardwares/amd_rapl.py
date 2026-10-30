@@ -17,8 +17,7 @@ from tracarbon.hardwares.energy import EnergyUsage
 from tracarbon.hardwares.energy import UsageType
 from tracarbon.hardwares.rapl import FIRST_INTERVAL_SECONDS
 from tracarbon.hardwares.rapl import RAPLResult
-from tracarbon.hardwares.rapl import seconds_between
-from tracarbon.hardwares.rapl import watts_between
+from tracarbon.hardwares.rapl import energy_between
 
 __all__ = [
     "AMDRAPLResult",
@@ -199,10 +198,11 @@ class AMDRAPL(BaseModel):
         for rapl_result in rapl_results:
             previous_rapl_result = self.rapl_results.get(rapl_result.name, rapl_result)
             self.rapl_results[rapl_result.name] = rapl_result
-            watts = watts_between(previous=previous_rapl_result, current=rapl_result, max_power_watts=0.0)
-            if watts is not None and self._classify_domain(rapl_result.label) == "package":
-                total_package_watts = (total_package_watts or 0.0) + watts
-                total_package_joules += watts * seconds_between(previous=previous_rapl_result, current=rapl_result)
+            interval = energy_between(previous=previous_rapl_result, current=rapl_result, max_power_watts=0.0)
+            if interval is not None and self._classify_domain(rapl_result.label) == "package":
+                joules, seconds = interval
+                total_package_watts = (total_package_watts or 0.0) + joules / seconds
+                total_package_joules += joules
 
         energy_usage_report = EnergyUsage(
             host_energy_usage=total_package_watts,

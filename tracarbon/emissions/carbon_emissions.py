@@ -92,7 +92,7 @@ class CarbonEmission(Sensor):
     previous_energy_consumption_time: datetime | None = None
 
     _measured_at: float | None = PrivateAttr(default=None)
-    _previous_components: set[UsageType] = PrivateAttr(default_factory=set)
+    _components_missing_before: set[UsageType] = PrivateAttr(default_factory=set)
 
     def reset(self) -> None:
         """Open a new measurement window without including time from an earlier run."""
@@ -102,7 +102,7 @@ class CarbonEmission(Sensor):
     def _reset_measurement_window(self) -> None:
         self._measured_at = None
         self.previous_energy_consumption_time = None
-        self._previous_components.clear()
+        self._components_missing_before.clear()
 
     def _seconds_since_the_previous_measurement(self, measured_at: float) -> float:
         """
@@ -150,11 +150,9 @@ class CarbonEmission(Sensor):
         logger.debug(f"Energy consumption run: {energy_usage}W")
 
         seconds = self._seconds_since_the_previous_measurement(measured_at=measured_at)
-        previous_components = self._previous_components
-        if self._measured_at is None and self.previous_energy_consumption_time is not None:
-            previous_components = set(UsageType)
-        self._previous_components = {
-            usage for usage in UsageType if energy_usage.get_energy_usage_on_type(usage) is not None
+        missing_before = self._components_missing_before
+        self._components_missing_before = {
+            usage for usage in UsageType if energy_usage.get_energy_usage_on_type(usage) is None
         }
         self.previous_energy_consumption_time = datetime.now()
         self._measured_at = measured_at
@@ -168,7 +166,7 @@ class CarbonEmission(Sensor):
             joules = energy_usage.interval_joules.get(usage_type)
             if joules is not None:
                 watt_hours = joules / Power.SECONDS_TO_HOURS_FACTOR
-            elif seconds > 0 and usage_type in previous_components:
+            elif seconds > 0 and usage_type not in missing_before:
                 watt_hours = Power.watt_hours_from_watts_over(watts=watts, seconds=seconds)
             else:
                 return None

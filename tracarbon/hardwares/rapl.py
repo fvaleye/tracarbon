@@ -14,7 +14,6 @@ from pydantic import Field
 
 from tracarbon.exceptions import HardwareRAPLException
 from tracarbon.hardwares.energy import EnergyUsage
-from tracarbon.hardwares.energy import Power
 from tracarbon.hardwares.energy import UsageType
 
 __all__ = [
@@ -39,22 +38,9 @@ class RAPLResult(BaseModel):
     monotonic_time: float | None = None
 
 
-def seconds_between(previous: RAPLResult, current: RAPLResult) -> float:
+def energy_between(previous: RAPLResult, current: RAPLResult, max_power_watts: float) -> tuple[float, float] | None:
     """
-    Return the seconds between two energy counter readings, on the monotonic clock when both have it.
-
-    :param previous: the previous reading of the zone
-    :param current: the current reading of the zone
-    :return: the elapsed seconds
-    """
-    if current.monotonic_time is not None and previous.monotonic_time is not None:
-        return current.monotonic_time - previous.monotonic_time
-    return (current.timestamp - previous.timestamp).total_seconds()
-
-
-def watts_between(previous: RAPLResult, current: RAPLResult, max_power_watts: float) -> float | None:
-    """
-    Return average watts between two energy counter readings.
+    Return the joules consumed between two energy counter readings, and the seconds between them.
 
     Correct a wrap using max_energy_uj. Treat a decrease as a reset when no wrap range is
     available or the corrected power exceeds the published limit.
@@ -62,9 +48,12 @@ def watts_between(previous: RAPLResult, current: RAPLResult, max_power_watts: fl
     :param previous: the previous reading of the zone
     :param current: the current reading of the zone
     :param max_power_watts: published maximum watts, or zero for no limit
-    :return: average watts, or None for a reset or a nonpositive interval
+    :return: joules and seconds, or None for a reset or a nonpositive interval
     """
-    elapsed_seconds = seconds_between(previous=previous, current=current)
+    if current.monotonic_time is not None and previous.monotonic_time is not None:
+        elapsed_seconds = current.monotonic_time - previous.monotonic_time
+    else:
+        elapsed_seconds = (current.timestamp - previous.timestamp).total_seconds()
     if elapsed_seconds <= 0:
         return None
     consumed_uj = current.energy_uj - previous.energy_uj
@@ -78,7 +67,7 @@ def watts_between(previous: RAPLResult, current: RAPLResult, max_power_watts: fl
         ):
             logger.warning(f"The RAPL counter {current.name} restarted, so the zone is left out of this measurement.")
             return None
-    return Power.watts_from_microjoules(consumed_uj / elapsed_seconds)
+    return consumed_uj / _MICROJOULES_PER_JOULE, elapsed_seconds
 
 
 class RAPL(BaseModel):
@@ -248,18 +237,18 @@ class RAPL(BaseModel):
                 for package_prefix in restarted_package_prefixes
             ):
                 continue
-            watts = watts_between(
+            interval = energy_between(
                 previous=previous_rapl_result,
                 current=rapl_result,
                 max_power_watts=self.max_power_watts.get(rapl_result.name, 0.0),
             )
-            if watts is None:
+            if interval is None:
                 if domain == "package":
                     restarted_package_prefixes.add(zone_prefix)
                 continue
-            watts_by_domain[domain] = watts_by_domain.get(domain, 0.0) + watts
-            seconds = seconds_between(previous=previous_rapl_result, current=rapl_result)
-            joules_by_domain[domain] = joules_by_domain.get(domain, 0.0) + watts * seconds
+            joules, seconds = interval
+            watts_by_domain[domain] = watts_by_domain.get(domain, 0.0) + joules / seconds
+            joules_by_domain[domain] = joules_by_domain.get(domain, 0.0) + joules
         watts_by_usage_type = self._by_usage_type(watts_by_domain)
         energy_usage_report = EnergyUsage(
             host_energy_usage=watts_by_usage_type.get(UsageType.HOST),
