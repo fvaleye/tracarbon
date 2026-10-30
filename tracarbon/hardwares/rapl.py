@@ -194,7 +194,7 @@ class RAPL(BaseModel):
     @staticmethod
     def _by_usage_type(by_domain: Dict[str, float]) -> Dict[UsageType, float]:
         """
-        Combine domain values into host, CPU without the integrated GPU, memory and GPU.
+        Combine measured and derived domain values into host, CPU, memory and GPU.
 
         :param by_domain: watts or joules by domain
         :return: the values by usage type, leaving out unmeasured ones
@@ -203,9 +203,7 @@ class RAPL(BaseModel):
         host_domains = [domain for domain in ("package", "memory") if domain in by_domain]
         if host_domains:
             by_usage_type[UsageType.HOST] = sum(by_domain[domain] for domain in host_domains)
-        if "package" in by_domain:
-            by_usage_type[UsageType.CPU] = by_domain["package"] - by_domain.get("gpu", 0.0)
-        for domain, usage_type in (("memory", UsageType.MEMORY), ("gpu", UsageType.GPU)):
+        for domain, usage_type in (("cpu", UsageType.CPU), ("memory", UsageType.MEMORY), ("gpu", UsageType.GPU)):
             if domain in by_domain:
                 by_usage_type[usage_type] = by_domain[domain]
         return by_usage_type
@@ -215,6 +213,7 @@ class RAPL(BaseModel):
         Return average watts and energy by domain.
 
         Without a previous sample, read twice over a short interval.
+        CPU energy uses average GPU power over each package's interval; negative estimates are unavailable.
 
         :return: a power report with None for unmeasured domains
         """
@@ -227,11 +226,13 @@ class RAPL(BaseModel):
         restarted_package_prefixes: set[str] = set()
         watts_by_domain: Dict[str, float] = {}
         joules_by_domain: Dict[str, float] = {}
+        cpu_intervals: Dict[str, tuple[float, float]] = {}
         for rapl_result in rapl_results:
             previous_rapl_result = self.rapl_results.get(rapl_result.name)
             self.rapl_results[rapl_result.name] = rapl_result
             domain = self._classify_domain(rapl_result.name)
-            zone_prefix = rapl_result.name.partition("-")[0]
+            parent_prefix, separator, zone = rapl_result.name.rpartition(self.rapl_separator)
+            zone_prefix = parent_prefix + separator + zone.partition("-")[0]
             if previous_rapl_result is None or any(
                 zone_prefix.startswith(f"{package_prefix}{self.rapl_separator}")
                 for package_prefix in restarted_package_prefixes
@@ -247,8 +248,19 @@ class RAPL(BaseModel):
                     restarted_package_prefixes.add(zone_prefix)
                 continue
             joules, seconds = interval
-            watts_by_domain[domain] = watts_by_domain.get(domain, 0.0) + joules / seconds
+            watts = joules / seconds
+            watts_by_domain[domain] = watts_by_domain.get(domain, 0.0) + watts
             joules_by_domain[domain] = joules_by_domain.get(domain, 0.0) + joules
+            if domain == "package":
+                cpu_intervals[zone_prefix] = interval
+            elif domain == "gpu":
+                package_prefix = zone_prefix.rpartition(self.rapl_separator)[0]
+                if package_prefix in cpu_intervals:
+                    cpu_joules, cpu_seconds = cpu_intervals[package_prefix]
+                    cpu_intervals[package_prefix] = (cpu_joules - watts * cpu_seconds, cpu_seconds)
+        if cpu_intervals and all(joules >= 0 for joules, _ in cpu_intervals.values()):
+            watts_by_domain["cpu"] = sum(joules / seconds for joules, seconds in cpu_intervals.values())
+            joules_by_domain["cpu"] = sum(joules for joules, _ in cpu_intervals.values())
         watts_by_usage_type = self._by_usage_type(watts_by_domain)
         energy_usage_report = EnergyUsage(
             host_energy_usage=watts_by_usage_type.get(UsageType.HOST),

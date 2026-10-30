@@ -418,14 +418,16 @@ async def test_cpu_power_is_the_package_without_the_integrated_gpu(
 ):
     seconds_between_reports = 60.0
     first_energy_uj = 1_000_000_000
-    zones = [tmpdir.mkdir(f"intel-raplT{index}") for index in range(len(watts_by_zone))]
+    zones = [tmpdir.mkdir("intel-raplT0")] + [
+        tmpdir.mkdir(f"intel-raplT0T{index}") for index in range(len(watts_by_zone) - 1)
+    ]
     for zone, name in zip(zones, watts_by_zone, strict=True):
         zone.join("name").write(f"{name}\n")
         zone.join("max_energy_range_uj").write("65532610987\n")
         zone.join("energy_uj").write(f"{first_energy_uj}\n")
     clock = mocker.patch("tracarbon.hardwares.rapl.time")
     clock.monotonic.side_effect = [0.0] * 2 * len(zones) + [seconds_between_reports] * len(zones)
-    rapl = RAPL(file_list=[str(zone) for zone in zones])
+    rapl = RAPL(file_list=[str(zone) for zone in zones], rapl_separator="T")
     await rapl.get_energy_report()
     for zone, watts in zip(zones, watts_by_zone.values(), strict=True):
         zone.join("energy_uj").write(f"{int(first_energy_uj + watts * seconds_between_reports * 1e6)}\n")
@@ -434,6 +436,42 @@ async def test_cpu_power_is_the_package_without_the_integrated_gpu(
 
     assert energy_report.cpu_energy_usage == pytest.approx(cpu_watts)
     assert energy_report.host_energy_usage == pytest.approx(host_watts)
+
+
+@pytest.mark.parametrize(
+    "prefix,other_package_joules,gpu_seconds,cpu_watts,cpu_joules",
+    [("", 20, 0.4, 120, 27), ("-mmio", 20, 0.4, 120, 27), ("", 80, 0.05, None, None)],
+)
+async def test_cpu_energy_uses_each_packages_interval(
+    mocker, prefix, other_package_joules, gpu_seconds, cpu_watts, cpu_joules
+):
+    previous = [
+        RAPLResult(
+            name=f"{prefix}{name}", energy_uj=0, max_energy_uj=100_000_000, timestamp=datetime.datetime(2026, 1, 1)
+        )
+        for name in (":0-package-0", ":1-package-1", ":0:0-uncore")
+    ]
+    current = [
+        reading.model_copy(
+            update={
+                "energy_uj": joules * 1_000_000,
+                "timestamp": reading.timestamp + datetime.timedelta(seconds=seconds),
+            }
+        )
+        for reading, joules, seconds in zip(
+            previous, (10, other_package_joules, 12), (0.1, 0.4, gpu_seconds), strict=True
+        )
+    ]
+    mocker.patch.object(RAPL, "get_rapl_power_usage", return_value=current)
+    rapl = RAPL(rapl_results={reading.name: reading for reading in previous})
+
+    report = await rapl.get_energy_report()
+
+    expected_joules = {UsageType.HOST: 10 + other_package_joules, UsageType.GPU: 12}
+    if cpu_joules is not None:
+        expected_joules[UsageType.CPU] = cpu_joules
+    assert report.cpu_energy_usage == cpu_watts
+    assert report.interval_joules == pytest.approx(expected_joules)
 
 
 async def test_a_component_that_drew_nothing_is_reported_as_zero_rather_than_missing(mocker):

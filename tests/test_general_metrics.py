@@ -356,13 +356,17 @@ async def test_counter_readings_count_each_window_once_in_energy_and_carbon(mock
 
 
 @pytest.mark.parametrize(
-    "gpu_joules,expected_joules",
+    "gpu_joules,gpu_seconds,expected_joules",
     [
-        (None, {"host": 12, "cpu": 10, "memory": 2}),
-        (3, {"host": 12, "cpu": 7, "memory": 2, "gpu": 3}),
+        (None, 0.1, {"host": 12, "cpu": 10, "memory": 2}),
+        (3, 0.1, {"host": 12, "cpu": 7, "memory": 2, "gpu": 3}),
+        (12, 0.05, {"host": 12, "memory": 2, "gpu": 12}),
+        (10, 0.1, {"host": 12, "cpu": 0, "memory": 2, "gpu": 10}),
     ],
 )
-async def test_rapl_domains_keep_their_own_intervals_through_the_report(mocker, gpu_joules, expected_joules):
+async def test_rapl_domains_keep_their_own_intervals_through_the_report(
+    mocker, gpu_joules, gpu_seconds, expected_joules
+):
     def reading(name, joules, seconds):
         return RAPLResult(
             name=name,
@@ -376,7 +380,7 @@ async def test_rapl_domains_keep_their_own_intervals_through_the_report(mocker, 
     current = [reading(":0-package-0", 10, 0.1), reading(":0:0-dram", 2, 0.4)]
     if gpu_joules is not None:
         previous.append(reading(":0:1-uncore", 0, 0))
-        current.append(reading(":0:1-uncore", gpu_joules, 0.4))
+        current.append(reading(":0:1-uncore", gpu_joules, gpu_seconds))
     mocker.patch.object(RAPL, "get_rapl_power_usage", return_value=current)
     mocker.patch.object(RAPL, "is_rapl_compatible", return_value=True)
     for gpu_type in (NvidiaGPU, AMDGPU):
