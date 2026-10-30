@@ -14,7 +14,7 @@ from pydantic import Field
 
 from tracarbon.exceptions import HardwareRAPLException
 from tracarbon.hardwares.energy import EnergyUsage
-from tracarbon.hardwares.energy import Power
+from tracarbon.hardwares.energy import UsageType
 
 __all__ = [
     "RAPLResult",
@@ -38,9 +38,9 @@ class RAPLResult(BaseModel):
     monotonic_time: float | None = None
 
 
-def watts_between(previous: RAPLResult, current: RAPLResult, max_power_watts: float) -> float | None:
+def energy_between(previous: RAPLResult, current: RAPLResult, max_power_watts: float) -> tuple[float, float] | None:
     """
-    Return average watts between two energy counter readings.
+    Return the joules consumed between two energy counter readings, and the seconds between them.
 
     Correct a wrap using max_energy_uj. Treat a decrease as a reset when no wrap range is
     available or the corrected power exceeds the published limit.
@@ -48,7 +48,7 @@ def watts_between(previous: RAPLResult, current: RAPLResult, max_power_watts: fl
     :param previous: the previous reading of the zone
     :param current: the current reading of the zone
     :param max_power_watts: published maximum watts, or zero for no limit
-    :return: average watts, or None for a reset or a nonpositive interval
+    :return: joules and seconds, or None for a reset or a nonpositive interval
     """
     if current.monotonic_time is not None and previous.monotonic_time is not None:
         elapsed_seconds = current.monotonic_time - previous.monotonic_time
@@ -67,7 +67,7 @@ def watts_between(previous: RAPLResult, current: RAPLResult, max_power_watts: fl
         ):
             logger.warning(f"The RAPL counter {current.name} restarted, so the zone is left out of this measurement.")
             return None
-    return Power.watts_from_microjoules(consumed_uj / elapsed_seconds)
+    return consumed_uj / _MICROJOULES_PER_JOULE, elapsed_seconds
 
 
 class RAPL(BaseModel):
@@ -191,9 +191,28 @@ class RAPL(BaseModel):
             return "core"
         return "unknown"
 
+    @staticmethod
+    def _by_usage_type(by_domain: Dict[str, float]) -> Dict[UsageType, float]:
+        """
+        Combine domain values into host, CPU without the integrated GPU, memory and GPU.
+
+        :param by_domain: watts or joules by domain
+        :return: the values by usage type, leaving out unmeasured ones
+        """
+        by_usage_type = {}
+        host_domains = [domain for domain in ("package", "memory") if domain in by_domain]
+        if host_domains:
+            by_usage_type[UsageType.HOST] = sum(by_domain[domain] for domain in host_domains)
+        if "package" in by_domain:
+            by_usage_type[UsageType.CPU] = by_domain["package"] - by_domain.get("gpu", 0.0)
+        for domain, usage_type in (("memory", UsageType.MEMORY), ("gpu", UsageType.GPU)):
+            if domain in by_domain:
+                by_usage_type[usage_type] = by_domain[domain]
+        return by_usage_type
+
     async def get_energy_report(self) -> EnergyUsage:
         """
-        Return average watts by domain.
+        Return average watts and energy by domain.
 
         Without a previous sample, read twice over a short interval.
 
@@ -207,6 +226,7 @@ class RAPL(BaseModel):
         rapl_results.sort(key=lambda result: self._classify_domain(result.name) != "package")
         restarted_package_prefixes: set[str] = set()
         watts_by_domain: Dict[str, float] = {}
+        joules_by_domain: Dict[str, float] = {}
         for rapl_result in rapl_results:
             previous_rapl_result = self.rapl_results.get(rapl_result.name)
             self.rapl_results[rapl_result.name] = rapl_result
@@ -217,24 +237,25 @@ class RAPL(BaseModel):
                 for package_prefix in restarted_package_prefixes
             ):
                 continue
-            watts = watts_between(
+            interval = energy_between(
                 previous=previous_rapl_result,
                 current=rapl_result,
                 max_power_watts=self.max_power_watts.get(rapl_result.name, 0.0),
             )
-            if watts is None:
+            if interval is None:
                 if domain == "package":
                     restarted_package_prefixes.add(zone_prefix)
                 continue
-            watts_by_domain[domain] = watts_by_domain.get(domain, 0.0) + watts
-        host_watts = [watts_by_domain[domain] for domain in ("package", "memory") if domain in watts_by_domain]
+            joules, seconds = interval
+            watts_by_domain[domain] = watts_by_domain.get(domain, 0.0) + joules / seconds
+            joules_by_domain[domain] = joules_by_domain.get(domain, 0.0) + joules
+        watts_by_usage_type = self._by_usage_type(watts_by_domain)
         energy_usage_report = EnergyUsage(
-            host_energy_usage=sum(host_watts) if host_watts else None,
-            cpu_energy_usage=watts_by_domain["package"] - watts_by_domain.get("gpu", 0.0)
-            if "package" in watts_by_domain
-            else None,
-            memory_energy_usage=watts_by_domain.get("memory"),
-            gpu_energy_usage=watts_by_domain.get("gpu"),
+            host_energy_usage=watts_by_usage_type.get(UsageType.HOST),
+            cpu_energy_usage=watts_by_usage_type.get(UsageType.CPU),
+            memory_energy_usage=watts_by_usage_type.get(UsageType.MEMORY),
+            gpu_energy_usage=watts_by_usage_type.get(UsageType.GPU),
+            interval_joules=self._by_usage_type(joules_by_domain),
         )
         logger.debug(f"The usage energy report measured with RAPL is {energy_usage_report}.")
         return energy_usage_report

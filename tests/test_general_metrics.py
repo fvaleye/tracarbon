@@ -1,13 +1,21 @@
+from datetime import datetime
+
 import pytest
 from kubernetes import config
 
+import tracarbon.exporters.exporter as exporter_module
+from tracarbon import RAPL
 from tracarbon import CarbonEmission
 from tracarbon import CarbonUsage
 from tracarbon import EnergyConsumption
 from tracarbon import EnergyUsage
 from tracarbon import HardwareInfo
 from tracarbon import Kubernetes
+from tracarbon import LinuxEnergyConsumption
 from tracarbon import MacEnergyConsumption
+from tracarbon import UsageType
+from tracarbon.exceptions import HardwareNoGPUDetectedException
+from tracarbon.exporters import StdoutExporter
 from tracarbon.exporters import Tag
 from tracarbon.general_metrics import CarbonEmissionGenerator
 from tracarbon.general_metrics import CarbonEmissionKubernetesGenerator
@@ -19,6 +27,9 @@ from tracarbon.hardwares import Container
 from tracarbon.hardwares import Pod
 from tracarbon.hardwares import Processes
 from tracarbon.hardwares import ProcessUsage
+from tracarbon.hardwares import RAPLResult
+from tracarbon.hardwares.gpu import AMDGPU
+from tracarbon.hardwares.gpu import NvidiaGPU
 from tracarbon.locations.country import Country
 
 
@@ -115,7 +126,11 @@ async def test_energy_consumption_metric_names_are_unique(mocker):
 async def test_energy_consumption_kubernetes_generator(mocker):
     location_name = "fr"
     memory_total = 101200121856
-    energy_usage = EnergyUsage(cpu_energy_usage=12.0, memory_energy_usage=4.0)
+    energy_usage = EnergyUsage(
+        cpu_energy_usage=12.0,
+        memory_energy_usage=4.0,
+        interval_joules={UsageType.CPU: 24.0, UsageType.MEMORY: 4.0},
+    )
     mocker.patch.object(EnergyConsumption, "from_platform", return_value=MacEnergyConsumption())
     mocker.patch.object(config, "load_kube_config", return_value=None)
     mocker.patch.object(Country, "get_current_country", return_value=location_name)
@@ -151,6 +166,7 @@ async def test_energy_consumption_kubernetes_generator(mocker):
     metric = await async_generator.__anext__()
     assert round(await metric.value(), 4) == milliwatts_expected
     assert "energy_consumption_kubernetes_total" == metric.name
+    assert metric.interval_joules == pytest.approx(0.0099096 + 46472 * 1024 / memory_total * 4)
     assert [
         f"pod_name:{pod_name}",
         f"pod_namespace:{namespace}",
@@ -165,6 +181,7 @@ async def test_energy_consumption_kubernetes_generator(mocker):
     metric = await async_generator.__anext__()
     assert round(await metric.value(), 4) == milliwatts_expected
     assert "energy_consumption_kubernetes_cpu" == metric.name
+    assert metric.interval_joules == pytest.approx(0.0099096)
     assert [
         f"pod_name:{pod_name}",
         f"pod_namespace:{namespace}",
@@ -179,6 +196,7 @@ async def test_energy_consumption_kubernetes_generator(mocker):
     metric = await async_generator.__anext__()
     assert round(await metric.value(), 4) == milliwatts_expected
     assert "energy_consumption_kubernetes_memory" == metric.name
+    assert metric.interval_joules == pytest.approx(46472 * 1024 / memory_total * 4)
     assert [
         f"pod_name:{pod_name}",
         f"pod_namespace:{namespace}",
@@ -286,7 +304,14 @@ def test_carbon_emission_generator_repr_hides_api_key(mocker, generator_type):
 @pytest.mark.asyncio
 @pytest.mark.parametrize("cpu_watts,process_watts", [(12.0, 3.0), (None, None)])
 async def test_energy_consumption_process_generator(mocker, cpu_watts, process_watts):
-    mocker.patch.object(MacEnergyConsumption, "get_energy_usage", return_value=EnergyUsage(cpu_energy_usage=cpu_watts))
+    mocker.patch.object(
+        MacEnergyConsumption,
+        "get_energy_usage",
+        return_value=EnergyUsage(
+            cpu_energy_usage=cpu_watts,
+            interval_joules={UsageType.CPU: cpu_watts * 2} if cpu_watts is not None else {},
+        ),
+    )
     mocker.patch.object(
         Processes, "get_processes_usage", return_value=[ProcessUsage(pid=42, name="worker", cpu_usage=0.25)]
     )
@@ -301,6 +326,7 @@ async def test_energy_consumption_process_generator(mocker, cpu_watts, process_w
 
     assert [metric.name for metric in metrics] == ["energy_consumption_process_cpu"]
     assert await metrics[0].value() == process_watts
+    assert metrics[0].interval_joules == (process_watts * 2 if process_watts is not None else None)
     assert metrics[0].format_tags() == [
         "pid:42",
         "process_name:worker",
@@ -331,3 +357,95 @@ async def test_carbon_emission_process_generator(mocker):
         f"source:{location.co2g_kwh_source.value}",
         "units:co2g",
     ]
+
+
+@pytest.mark.asyncio
+async def test_counter_readings_count_each_window_once_in_energy_and_carbon(mocker):
+    late_starting_cpu_watts = [None, 4.2, 0.0, 4.1]
+
+    class TwoSecondCounter(EnergyConsumption):
+        watts: list
+
+        async def get_energy_usage(self) -> EnergyUsage:
+            watts = self.watts.pop(0)
+            return EnergyUsage(
+                host_energy_usage=None,
+                cpu_energy_usage=watts,
+                interval_joules={UsageType.CPU: watts * 2} if watts is not None else {},
+            )
+
+    location = Country(name="fr", co2g_kwh=41.44)
+    mocker.patch.object(Country, "get_latest_co2g_kwh", return_value=41.44)
+    carbon_emission = CarbonEmission(
+        location=location, energy_consumption=TwoSecondCounter(watts=list(late_starting_cpu_watts))
+    )
+    exporter = StdoutExporter(
+        metric_generators=[
+            EnergyConsumptionGenerator(
+                location=location, energy_consumption=TwoSecondCounter(watts=list(late_starting_cpu_watts))
+            ),
+            CarbonEmissionGenerator(location=location, carbon_emission=carbon_emission),
+        ]
+    )
+    clock = mocker.patch.object(exporter_module, "time")
+
+    for collected_at in (0.0, 3.7, 9.1, 20.0):
+        clock.monotonic.return_value = collected_at
+        await exporter._launch_all()
+
+    energy_wh = exporter.metric_report["energy_consumption_cpu"].total
+    assert energy_wh == pytest.approx(16.6 / 3600)
+    assert exporter.metric_report["carbon_emission_cpu"].total == pytest.approx(energy_wh / 1000 * 41.44)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "gpu_joules,expected_joules",
+    [
+        (None, {"host": 12, "cpu": 10, "memory": 2}),
+        (3, {"host": 12, "cpu": 7, "memory": 2, "gpu": 3}),
+    ],
+)
+async def test_rapl_domains_keep_their_own_intervals_through_the_report(mocker, gpu_joules, expected_joules):
+    def reading(name, joules, seconds):
+        return RAPLResult(
+            name=name,
+            energy_uj=joules * 1_000_000,
+            max_energy_uj=100_000_000,
+            timestamp=datetime(2026, 1, 1),
+            monotonic_time=seconds,
+        )
+
+    previous = [reading(":0-package-0", 0, 0), reading(":0:0-dram", 0, 0)]
+    current = [reading(":0-package-0", 10, 0.1), reading(":0:0-dram", 2, 0.4)]
+    if gpu_joules is not None:
+        previous.append(reading(":0:1-uncore", 0, 0))
+        current.append(reading(":0:1-uncore", gpu_joules, 0.4))
+    mocker.patch.object(RAPL, "get_rapl_power_usage", return_value=current)
+    mocker.patch.object(RAPL, "is_rapl_compatible", return_value=True)
+    for gpu_type in (NvidiaGPU, AMDGPU):
+        mocker.patch.object(gpu_type, "get_gpu_power_usage", side_effect=HardwareNoGPUDetectedException("no GPU"))
+    location = Country(name="fr", co2g_kwh=100)
+    mocker.patch.object(Country, "get_latest_co2g_kwh", return_value=100)
+
+    def sensor():
+        return LinuxEnergyConsumption(rapl=RAPL(rapl_results={r.name: r for r in previous}))
+
+    exporter = StdoutExporter(
+        metric_generators=[
+            EnergyConsumptionGenerator(location=location, energy_consumption=sensor()),
+            CarbonEmissionGenerator(
+                location=location,
+                carbon_emission=CarbonEmission(
+                    location=location,
+                    energy_consumption=sensor(),
+                ),
+            ),
+        ]
+    )
+    await exporter._launch_all()
+
+    assert {name: report.total * 3600 for name, report in exporter.metric_report.items()} == pytest.approx(
+        {f"energy_consumption_{component}": joules for component, joules in expected_joules.items()}
+        | {f"carbon_emission_{component}": joules / 1000 * 100 for component, joules in expected_joules.items()}
+    )

@@ -30,9 +30,6 @@ from tracarbon.locations import Location
 
 _UNITS_OF_POWER = frozenset({EnergyUsageUnit.WATT.value, EnergyUsageUnit.MILLIWATT.value})
 _WATT_HOURS = "watt-hours"
-# How long a series that stopped reporting is remembered, so that the series of a container which
-# has gone do not accumulate for the life of the process.
-_SERIES_ARE_FORGOTTEN_AFTER_SECONDS = 3600
 
 
 class Tag(BaseModel):
@@ -52,6 +49,7 @@ class Metric(BaseModel):
     name: str
     value: Callable[[], Awaitable[float | None]]
     tags: List[Tag] = Field(default_factory=list)
+    interval_joules: float | None = None
 
     def format_name(self, metric_prefix_name: str | None = None, separator: str = ".") -> str:
         """
@@ -85,9 +83,10 @@ class MetricReport(BaseModel):
     """
     MetricReport is a report of the generated metrics.
 
-    A metric reported in watts is power, so it is integrated over the interval it was measured on
-    and totalled as the watt-hours total_unit carries. Every series sharing a metric name is
-    integrated on its own interval.
+    A metric reported in watts is power, totalled as the watt-hours total_unit carries. A reading
+    with a sensor's energy increment contributes that increment. A sampled reading is held over the time
+    since the previous collection reported its series, so a gap is never bridged. Every series
+    sharing a metric name is integrated on its own interval.
     """
 
     exporter_name: str
@@ -124,15 +123,13 @@ class MetricReport(BaseModel):
 
     def _forget_the_series_that_stopped_reporting(self, measured_at: float) -> None:
         """
-        Drop the series that have not reported for long enough to be gone, since a container that
-        restarts comes back under a new key and keeping every key ever seen has no ceiling. One
-        that comes back opens a new window rather than measuring the whole absence.
+        Drop the series this collection did not report, so one that comes back opens a new window
+        rather than measuring its absence, and the keys of containers that have gone do not pile up.
 
-        :param measured_at: the time of the reading being recorded
+        :param measured_at: when this collection started
         """
-        forgotten_before = measured_at - _SERIES_ARE_FORGOTTEN_AFTER_SECONDS
         for series, last_measured_at in list(self._measured_at_by_series.items()):
-            if last_measured_at < forgotten_before:
+            if last_measured_at < measured_at:
                 del self._measured_at_by_series[series]
 
     def accumulate(self, metric: "Metric", value: float, measured_at: float) -> None:
@@ -146,9 +143,11 @@ class MetricReport(BaseModel):
         series = tuple(sorted((tag.key, tag.value) for tag in metric.tags))
         unit = metric.unit()
         if unit in _UNITS_OF_POWER:
-            watts = value / Power.MILLIWATTS_TO_WATT_FACTOR if unit == EnergyUsageUnit.MILLIWATT.value else value
             measured_before = self._measured_at_by_series.get(series)
-            if measured_before is not None:
+            if metric.interval_joules is not None:
+                self.total += metric.interval_joules / Power.SECONDS_TO_HOURS_FACTOR
+            elif measured_before is not None:
+                watts = value / Power.MILLIWATTS_TO_WATT_FACTOR if unit == EnergyUsageUnit.MILLIWATT.value else value
                 self.total += Power.watt_hours_from_watts_over(watts=watts, seconds=measured_at - measured_before)
             self.total_unit = _WATT_HOURS
         else:

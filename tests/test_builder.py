@@ -11,10 +11,12 @@ import orjson
 import pytest
 from kubernetes import config
 
+from tracarbon import RAPL
 from tracarbon import CarbonEmission
 from tracarbon import CarbonUsage
 from tracarbon import EnergyConsumption
 from tracarbon import EnergyUsage
+from tracarbon import LinuxEnergyConsumption
 from tracarbon import MacEnergyConsumption
 from tracarbon import WindowsEnergyConsumption
 from tracarbon.builder import Tracarbon
@@ -22,6 +24,7 @@ from tracarbon.builder import TracarbonBuilder
 from tracarbon.builder import TracarbonConfiguration
 from tracarbon.builder import TracarbonReport
 from tracarbon.emissions import carbon_emissions
+from tracarbon.exceptions import HardwareNoGPUDetectedException
 from tracarbon.exporters import JSONExporter
 from tracarbon.exporters import Metric
 from tracarbon.exporters import MetricGenerator
@@ -29,7 +32,11 @@ from tracarbon.exporters import MetricReport
 from tracarbon.exporters import StdoutExporter
 from tracarbon.general_metrics import CarbonEmissionGenerator
 from tracarbon.general_metrics import CarbonEmissionKubernetesGenerator
+from tracarbon.general_metrics import EnergyConsumptionGenerator
+from tracarbon.hardwares import RAPLResult
 from tracarbon.hardwares.containers import Kubernetes
+from tracarbon.hardwares.gpu import AMDGPU
+from tracarbon.hardwares.gpu import NvidiaGPU
 from tracarbon.locations import Country
 
 
@@ -41,6 +48,52 @@ async def test_default_exporter_uses_the_configured_metric_prefix(monkeypatch, m
     await tracker.exporter._launch_all()
 
     assert "Metric name[configured_prefix.carbon_emission_host]" in caplog.text
+
+
+def test_restart_measures_counters_from_the_new_start(mocker):
+    elapsed_seconds = 0.0
+
+    async def a_ten_watt_package(self) -> list[RAPLResult]:
+        return [
+            RAPLResult(
+                name="0-package-0",
+                energy_uj=elapsed_seconds * 10_000_000,
+                max_energy_uj=1e18,
+                timestamp=datetime.datetime.now(),
+                monotonic_time=elapsed_seconds,
+            )
+        ]
+
+    async def advance(seconds: float) -> None:
+        nonlocal elapsed_seconds
+        elapsed_seconds += seconds
+
+    mocker.patch.object(RAPL, "is_rapl_compatible", return_value=True)
+    mocker.patch.object(RAPL, "get_rapl_power_usage", a_ten_watt_package)
+    mocker.patch("tracarbon.hardwares.rapl.asyncio.sleep", advance)
+    for gpu in (NvidiaGPU, AMDGPU):
+        mocker.patch.object(gpu, "get_gpu_power_usage", side_effect=HardwareNoGPUDetectedException("no GPU"))
+    location = Country(name="fr", co2g_kwh=74.0)
+    exporter = StdoutExporter(
+        metric_generators=[EnergyConsumptionGenerator(location=location, energy_consumption=LinuxEnergyConsumption())]
+    )
+    tracarbon = Tracarbon(
+        configuration=TracarbonConfiguration(interval_in_seconds=3600), exporter=exporter, location=location
+    )
+    joules_of_each_ten_second_run = []
+
+    for started_at in (0.0, 3600.0):
+        elapsed_seconds = started_at
+        tracarbon.start()
+        elapsed_seconds = started_at + 10.0
+        tracarbon.stop()
+        ended_at = tracarbon.report.end_time
+        elapsed_seconds += 100.0
+        tracarbon.stop()
+        assert tracarbon.report.end_time == ended_at
+        joules_of_each_ten_second_run.append(tracarbon.report.metric_report["energy_consumption_host"].total * 3600)
+
+    assert joules_of_each_ten_second_run == pytest.approx([100.0, 100.0])
 
 
 def test_restart_opens_a_new_report_without_attributing_stopped_time(mocker):

@@ -14,9 +14,10 @@ from pydantic import Field
 
 from tracarbon.exceptions import HardwareRAPLException
 from tracarbon.hardwares.energy import EnergyUsage
+from tracarbon.hardwares.energy import UsageType
 from tracarbon.hardwares.rapl import FIRST_INTERVAL_SECONDS
 from tracarbon.hardwares.rapl import RAPLResult
-from tracarbon.hardwares.rapl import watts_between
+from tracarbon.hardwares.rapl import energy_between
 
 __all__ = [
     "AMDRAPLResult",
@@ -192,19 +193,25 @@ class AMDRAPL(BaseModel):
             await asyncio.sleep(FIRST_INTERVAL_SECONDS)
             rapl_results = await self.get_amd_rapl_power_usage()
         total_package_watts: float | None = None
+        total_package_joules = 0.0
 
         for rapl_result in rapl_results:
             previous_rapl_result = self.rapl_results.get(rapl_result.name, rapl_result)
             self.rapl_results[rapl_result.name] = rapl_result
-            watts = watts_between(previous=previous_rapl_result, current=rapl_result, max_power_watts=0.0)
-            if watts is not None and self._classify_domain(rapl_result.label) == "package":
-                total_package_watts = (total_package_watts or 0.0) + watts
+            interval = energy_between(previous=previous_rapl_result, current=rapl_result, max_power_watts=0.0)
+            if interval is not None and self._classify_domain(rapl_result.label) == "package":
+                joules, seconds = interval
+                total_package_watts = (total_package_watts or 0.0) + joules / seconds
+                total_package_joules += joules
 
         energy_usage_report = EnergyUsage(
             host_energy_usage=total_package_watts,
             cpu_energy_usage=total_package_watts,
             memory_energy_usage=None,
             gpu_energy_usage=None,
+            interval_joules={UsageType.HOST: total_package_joules, UsageType.CPU: total_package_joules}
+            if total_package_watts is not None
+            else {},
         )
 
         logger.debug(f"AMD RAPL energy report: {energy_usage_report}")

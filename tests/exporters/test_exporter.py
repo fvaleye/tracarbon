@@ -578,3 +578,21 @@ def test_exporter_forgets_series_that_stopped_reporting_while_another_generator_
         exporter.stop()
 
     assert len(exporter.metric_report["pod_energy"]._measured_at_by_series) == 1
+
+
+@pytest.mark.asyncio
+async def test_exporter_never_holds_a_sampled_reading_across_a_missed_collection(mocker):
+    sampled_watts = iter([10.0, 10.0, None, 20.0, 20.0])
+
+    async def a_sample() -> float | None:
+        return next(sampled_watts)
+
+    power = Metric(name="power", value=a_sample, tags=[Tag(key="units", value=EnergyUsageUnit.WATT.value)])
+    exporter = StdoutExporter(metric_generators=[MetricGenerator(metrics=[power])])
+    clock = mocker.patch.object(exporter_module, "time")
+
+    for collected_at in range(5):
+        clock.monotonic.return_value = float(collected_at)
+        await exporter._launch_all()
+
+    assert exporter.metric_report["power"].total == pytest.approx(30 / 3600)

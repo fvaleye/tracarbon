@@ -73,10 +73,18 @@ async def test_report_converts_native_units_and_measures_each_interval(mocker, n
 
     with IOReportEnergy() as energy:
         assert await energy.get_energy_report() == EnergyUsage(
-            host_energy_usage=1.55, cpu_energy_usage=0.5, gpu_energy_usage=0.25, memory_energy_usage=0.25
+            host_energy_usage=1.55,
+            cpu_energy_usage=0.5,
+            gpu_energy_usage=0.25,
+            memory_energy_usage=0.25,
+            interval_joules={UsageType.HOST: 3.1, UsageType.CPU: 1.0, UsageType.GPU: 0.5, UsageType.MEMORY: 0.5},
         )
         assert await energy.get_energy_report() == EnergyUsage(
-            host_energy_usage=12.4, cpu_energy_usage=4.0, gpu_energy_usage=2.0, memory_energy_usage=2.0
+            host_energy_usage=12.4,
+            cpu_energy_usage=4.0,
+            gpu_energy_usage=2.0,
+            memory_energy_usage=2.0,
+            interval_joules={UsageType.HOST: 3.1, UsageType.CPU: 1.0, UsageType.GPU: 0.5, UsageType.MEMORY: 0.5},
         )
 
     assert core_foundation.CFRelease.call_args_list == [
@@ -99,7 +107,9 @@ async def test_macos_27_and_later_report_only_the_gpu_counter(mocker, native_rea
         },
     )
 
-    assert await IOReportEnergy().get_energy_report() == EnergyUsage(host_energy_usage=None, gpu_energy_usage=0.5)
+    assert await IOReportEnergy().get_energy_report() == EnergyUsage(
+        host_energy_usage=None, gpu_energy_usage=0.5, interval_joules={UsageType.GPU: 1.0}
+    )
 
 
 @pytest.mark.asyncio

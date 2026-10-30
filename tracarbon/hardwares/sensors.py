@@ -7,6 +7,7 @@ import math
 import os
 import signal
 import struct
+import time
 from abc import ABC
 from abc import abstractmethod
 from enum import Enum
@@ -15,6 +16,7 @@ from typing import Any
 from loguru import logger
 from pydantic import BaseModel
 from pydantic import ConfigDict
+from pydantic import PrivateAttr
 
 from tracarbon.exceptions import AWSSensorException
 from tracarbon.exceptions import AzureSensorException
@@ -27,6 +29,7 @@ from tracarbon.hardwares.cloud_providers import GCP
 from tracarbon.hardwares.cloud_providers import Azure
 from tracarbon.hardwares.cloud_providers import CloudProviders
 from tracarbon.hardwares.energy import EnergyUsage
+from tracarbon.hardwares.energy import UsageType
 from tracarbon.hardwares.gpu import AMDGPU
 from tracarbon.hardwares.gpu import KILLED_PROBE_WAIT_SECONDS
 from tracarbon.hardwares.gpu import PROBE_TIMEOUT_SECONDS
@@ -90,6 +93,8 @@ class Sensor(ABC, BaseModel):
 class EnergyConsumption(Sensor):
     """
     A sensor to calculate the energy consumption.
+
+    A counter reading covers the time since the sensor's previous reading, so give each reader its own sensor.
     """
 
     init: bool = False
@@ -121,6 +126,9 @@ class EnergyConsumption(Sensor):
         if platform == "Windows":
             return WindowsEnergyConsumption()
         raise TracarbonException(f"This {platform} hardware is not yet implemented.")
+
+    def reset(self) -> None:
+        """Start the next reading's interval at that reading, leaving out the time before it."""
 
     @abstractmethod
     async def get_energy_usage(self) -> EnergyUsage:
@@ -155,6 +163,11 @@ class MacEnergyConsumption(EnergyConsumption):
     )
     _active_sensor: _SensorBackend | None = None
     _ioreport: IOReportEnergy | None = None
+
+    def reset(self) -> None:
+        if self._ioreport is not None:
+            self._ioreport.close()
+            self._ioreport = None
 
     @staticmethod
     def _ioreg_power_in_watts(result: bytes) -> float | None:
@@ -249,6 +262,7 @@ class MacEnergyConsumption(EnergyConsumption):
             return energy_usage
 
         gpu_power = energy_usage.gpu_energy_usage if energy_usage is not None else None
+        interval_joules = energy_usage.interval_joules if energy_usage is not None else {}
         try:
             cpu_power, powermetrics_gpu_power, ane_power = AppleSiliconPowerMetrics.get_power_breakdown()
             if cpu_power is not None:
@@ -269,6 +283,7 @@ class MacEnergyConsumption(EnergyConsumption):
         return EnergyUsage(
             host_energy_usage=await self._read_system_power(),
             gpu_energy_usage=gpu_power if gpu_power is not None else GPUInfo.get_gpu_power_usage_or_none(),
+            interval_joules=interval_joules,
         )
 
     async def _read_system_power(self) -> float | None:
@@ -316,6 +331,32 @@ class LinuxEnergyConsumption(EnergyConsumption):
     rapl: RAPL = RAPL()
     amd_rapl: AMDRAPL = AMDRAPL()
     _active_sensor: _SensorBackend | None = None
+    _gpu_read_at: dict[type, float] = PrivateAttr(default_factory=dict)
+
+    def reset(self) -> None:
+        self.rapl.rapl_results = {}
+        self.amd_rapl.rapl_results = {}
+        self._gpu_read_at.clear()
+
+    async def _read_energy_counters(self) -> EnergyUsage:
+        if self.rapl.is_rapl_compatible():
+            if self._active_sensor is not _SensorBackend.INTEL_RAPL:
+                logger.info("Using Intel RAPL (powercap) for energy measurement")
+                self._active_sensor = _SensorBackend.INTEL_RAPL
+            return await self.rapl.get_energy_report()
+        if await self.amd_rapl.is_amd_rapl_compatible():
+            if self._active_sensor is not _SensorBackend.AMD_RAPL:
+                logger.info("Using AMD RAPL (HWMON) for energy measurement")
+                self._active_sensor = _SensorBackend.AMD_RAPL
+            return await self.amd_rapl.get_energy_report()
+        if self._active_sensor is not _SensorBackend.GPU:
+            logger.warning(
+                "No readable RAPL interface found, so the host power is unknown and only the GPU is read. "
+                f"Intel RAPL requires a readable {self.rapl.path}/*/energy_uj, which only root "
+                "can read by default. AMD RAPL requires kernel 5.11+ or amd_energy driver."
+            )
+            self._active_sensor = _SensorBackend.GPU
+        return EnergyUsage(host_energy_usage=None)
 
     async def get_energy_usage(self) -> EnergyUsage:
         """
@@ -331,27 +372,9 @@ class LinuxEnergyConsumption(EnergyConsumption):
 
         :return: the generated energy usage.
         """
-        energy_usage: EnergyUsage
-        if self.rapl.is_rapl_compatible():
-            if self._active_sensor is not _SensorBackend.INTEL_RAPL:
-                logger.info("Using Intel RAPL (powercap) for energy measurement")
-                self._active_sensor = _SensorBackend.INTEL_RAPL
-            energy_usage = await self.rapl.get_energy_report()
-        elif await self.amd_rapl.is_amd_rapl_compatible():
-            if self._active_sensor is not _SensorBackend.AMD_RAPL:
-                logger.info("Using AMD RAPL (HWMON) for energy measurement")
-                self._active_sensor = _SensorBackend.AMD_RAPL
-            energy_usage = await self.amd_rapl.get_energy_report()
-        else:
-            if self._active_sensor is not _SensorBackend.GPU:
-                logger.warning(
-                    "No readable RAPL interface found, so the host power is unknown and only the GPU is read. "
-                    f"Intel RAPL requires a readable {self.rapl.path}/*/energy_uj, which only root "
-                    "can read by default. AMD RAPL requires kernel 5.11+ or amd_energy driver."
-                )
-                self._active_sensor = _SensorBackend.GPU
-            energy_usage = EnergyUsage(host_energy_usage=None)
-
+        previous_gpu_read_at = self._gpu_read_at
+        self._gpu_read_at = {}
+        energy_usage = await self._read_energy_counters()
         for gpu_type in (NvidiaGPU, AMDGPU):
             try:
                 gpu_power = gpu_type.get_gpu_power_usage()
@@ -364,12 +387,21 @@ class LinuxEnergyConsumption(EnergyConsumption):
             if not math.isfinite(gpu_power) or gpu_power < 0.0:
                 logger.warning(f"Ignoring invalid {gpu_type.__name__} power reading: {gpu_power}")
                 continue
+            measured_at = time.monotonic()
+            gpu_joules = gpu_power * (measured_at - previous_gpu_read_at.get(gpu_type, measured_at))
+            self._gpu_read_at[gpu_type] = measured_at
             if gpu_type is NvidiaGPU:
                 if energy_usage.host_energy_usage is not None:
                     energy_usage.host_energy_usage += gpu_power
+                if UsageType.HOST in energy_usage.interval_joules:
+                    energy_usage.interval_joules[UsageType.HOST] += gpu_joules
                 energy_usage.gpu_energy_usage = (energy_usage.gpu_energy_usage or 0.0) + gpu_power
+                energy_usage.interval_joules[UsageType.GPU] = (
+                    energy_usage.interval_joules.get(UsageType.GPU, 0.0) + gpu_joules
+                )
             else:
                 energy_usage.gpu_energy_usage = gpu_power
+                energy_usage.interval_joules[UsageType.GPU] = gpu_joules
             break
         if self._active_sensor is _SensorBackend.GPU and energy_usage.gpu_energy_usage is None:
             raise TracarbonException(

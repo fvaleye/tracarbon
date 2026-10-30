@@ -229,3 +229,49 @@ async def test_carbon_usage_includes_carbon_intensity_metadata(mocker):
         co2g_kwh=co2g_per_kwh,
         zone="fr",
     )
+
+
+@pytest.mark.asyncio
+async def test_carbon_emission_leaves_out_the_window_of_a_failed_reading(mocker):
+    readings = [EnergyUsage(host_energy_usage=60.0), OSError("sensor unavailable")] + [
+        EnergyUsage(host_energy_usage=60.0)
+    ] * 2
+    mocker.patch.object(MacEnergyConsumption, "get_energy_usage", side_effect=readings)
+    mocker.patch.object(Country, "get_latest_co2g_kwh", return_value=74.0)
+    clock = mocker.patch.object(carbon_emissions, "time")
+    carbon_emission = CarbonEmission(
+        location=Country(name="fr", co2g_kwh=74.0), energy_consumption=MacEnergyConsumption()
+    )
+    clock.monotonic.return_value = 0.0
+    await carbon_emission.get_co2_usage()
+    with pytest.raises(OSError, match="sensor unavailable"):
+        await carbon_emission.get_co2_usage()
+
+    clock.monotonic.return_value = 120.0
+    reopened = await carbon_emission.get_co2_usage()
+    clock.monotonic.return_value = 180.0
+    one_minute = await carbon_emission.get_co2_usage()
+
+    assert reopened.host_carbon_usage is None
+    assert one_minute.host_carbon_usage == pytest.approx(0.074)
+
+
+@pytest.mark.asyncio
+async def test_missing_component_reopens_only_its_own_carbon_window(mocker):
+    mocker.patch.object(
+        MacEnergyConsumption,
+        "get_energy_usage",
+        side_effect=[EnergyUsage(host_energy_usage=60, gpu_energy_usage=gpu) for gpu in (10, None, 10, 10)],
+    )
+    mocker.patch.object(Country, "get_latest_co2g_kwh", return_value=100)
+    clock = mocker.patch.object(carbon_emissions, "time")
+    sensor = CarbonEmission(location=Country(name="fr", co2g_kwh=100), energy_consumption=MacEnergyConsumption())
+
+    reports = []
+    for measured_at in (0, 60, 120, 180):
+        clock.monotonic.return_value = measured_at
+        reports.append(await sensor.get_co2_usage())
+
+    assert [report.gpu_carbon_usage for report in reports[:3]] == [None, None, None]
+    assert reports[3].gpu_carbon_usage == pytest.approx(10 / 60 / 1000 * 100)
+    assert sum(report.host_carbon_usage or 0 for report in reports) == pytest.approx(0.3)
