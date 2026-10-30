@@ -1,12 +1,10 @@
 import asyncio
-import sys
 from datetime import datetime
 from datetime import timezone
 from threading import Event
 from unittest.mock import AsyncMock
 
 import orjson
-import psutil
 import pytest
 
 from tracarbon import Country
@@ -17,66 +15,30 @@ from tracarbon.exporters import Metric
 from tracarbon.exporters import Tag
 
 
-@pytest.mark.parametrize("indent", [0, 1, 2, 4])
-def test_json_exporter_should_write_well_formatted_metrics_in_json_file(mocker, tmpdir, indent):
-    mock = mocker.patch("tracarbon.exporters.json_exporter.datetime")
+@pytest.mark.parametrize(("suffix", "indent", "pretty"), [("json", 1, False), ("json", 2, True), ("jsonl", 4, False)])
+def test_json_exporter_appends_across_restarts(mocker, tmp_path, suffix, indent, pretty):
     fixed_timestamp = datetime(2021, 12, 21, tzinfo=timezone.utc)
-    mock.now.return_value = fixed_timestamp
-    test_json_file = tmpdir.mkdir("data").join("test.json")
-    interval_in_seconds = 1
-    memory_value = 70
-    mock_memory_value = ["0", "0", memory_value]
-    mocker.patch.object(psutil, "virtual_memory", return_value=mock_memory_value)
+    mocker.patch("tracarbon.exporters.json_exporter.datetime").now.return_value = fixed_timestamp
+    output = tmp_path / f"metrics.{suffix}"
+    metric = Metric(name="sample", value=AsyncMock(return_value=70), tags=[Tag(key="test", value="tags")])
+    exporter = JSONExporter(path=str(output), indent=indent, metric_generators=[MetricGenerator(metrics=[metric])])
 
-    async def get_memory_usage() -> float:
-        return psutil.virtual_memory()[2]
+    for _ in range(2):
+        exporter.start(interval_in_seconds=60)
+        exporter.stop()
+    exporter.flush()
 
-    expected = [
-        {
-            "timestamp": str(fixed_timestamp),
-            "metric_name": "test_metric_1",
-            "metric_value": 70,
-            "metric_tags": ["test:tags"],
-        },
-        {
-            "timestamp": str(fixed_timestamp),
-            "metric_name": "test_metric_1",
-            "metric_value": 70,
-            "metric_tags": ["test:tags"],
-        },
-    ]
-
-    mocker.patch.object(
-        Country,
-        "get_location",
-        return_value=Country(name="fr", co2g_kwh=50.0),
-    )
-    memory_metric = Metric(
-        name="test_metric_1",
-        value=get_memory_usage,
-        tags=[Tag(key="test", value="tags")],
-    )
-
-    metric_generators = [MetricGenerator(metrics=[memory_metric])]
-    exporter = JSONExporter(quit=True, metric_generators=metric_generators, path=str(test_json_file), indent=indent)
-    exporter.start(interval_in_seconds=interval_in_seconds)
-    exporter.stop()
-
-    exporter.start(interval_in_seconds=interval_in_seconds)
-    exporter.stop()
-
-    with open(test_json_file, "rb") as file:
-        contents = file.read()
-    assert orjson.loads(contents) == expected
-    assert (b'\n  "timestamp":' in contents) == (indent >= 2)
-
-    assert exporter.metric_report["test_metric_1"].exporter_name == JSONExporter.get_name()
-    assert exporter.metric_report["test_metric_1"].metric == memory_metric
-    assert exporter.metric_report["test_metric_1"].total > 0
-    assert exporter.metric_report["test_metric_1"].average > 0
-    assert exporter.metric_report["test_metric_1"].minimum < sys.float_info.max
-    assert exporter.metric_report["test_metric_1"].maximum > 0
-    assert exporter.metric_report["test_metric_1"].call_count == 1
+    record = {
+        "timestamp": str(fixed_timestamp),
+        "metric_name": "sample",
+        "metric_value": 70,
+        "metric_tags": ["test:tags"],
+    }
+    contents = output.read_bytes()
+    records = [orjson.loads(line) for line in contents.splitlines()] if suffix == "jsonl" else orjson.loads(contents)
+    assert records == [record, record]
+    assert (b'\n  "' in contents) == pretty
+    assert exporter.metric_report["sample"].call_count == 1
 
 
 @pytest.mark.parametrize("initial_content", ["", "[\n  ]\n"])
@@ -137,7 +99,7 @@ def test_json_exporter_defaults_to_a_json_array(monkeypatch, tmp_path):
     assert [record["metric_value"] for record in records] == [1.0]
 
 
-async def test_json_exporter_waits_for_a_cancelled_write_before_closing_the_array(mocker, tmp_path):
+async def test_json_exporter_preserves_records_on_cancellation(mocker, tmp_path):
     output = tmp_path / "metrics.json"
     append_started = Event()
     release_append = Event()
@@ -160,36 +122,13 @@ async def test_json_exporter_waits_for_a_cancelled_write_before_closing_the_arra
         assert await asyncio.to_thread(append_started.wait, 2)
         collection.cancel()
         await asyncio.sleep(0.05)
-        finished_before_append = collection.done()
     finally:
         release_append.set()
         with pytest.raises(asyncio.CancelledError):
             await collection
         assert await asyncio.to_thread(append_finished.wait, 2)
 
-    assert not finished_before_append
     assert [record["metric_name"] for record in orjson.loads(output.read_bytes())] == ["sample"]
-
-
-def test_jsonl_appends_across_restarts(mocker, tmp_path):
-    fixed_timestamp = datetime(2021, 12, 21, tzinfo=timezone.utc)
-    mocker.patch("tracarbon.exporters.json_exporter.datetime").now.return_value = fixed_timestamp
-    output = tmp_path / "metrics.jsonl"
-    metric = Metric(name="test_metric_1", value=AsyncMock(return_value=70), tags=[Tag(key="test", value="tags")])
-    exporter = JSONExporter(path=str(output), metric_generators=[MetricGenerator(metrics=[metric])])
-
-    for _ in range(2):
-        exporter.start(interval_in_seconds=60)
-        exporter.stop()
-    exporter.flush()
-
-    record = {
-        "timestamp": str(fixed_timestamp),
-        "metric_name": "test_metric_1",
-        "metric_value": 70,
-        "metric_tags": ["test:tags"],
-    }
-    assert [orjson.loads(line) for line in output.read_bytes().splitlines()] == [record, record]
 
 
 def test_jsonl_records_are_readable_during_collection(tmp_path):

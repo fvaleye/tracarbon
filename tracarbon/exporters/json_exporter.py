@@ -138,11 +138,11 @@ class JSONExporter(Exporter):
                 "metric_value": metric_value,
                 "metric_tags": metric.format_tags(),
             }
-            append = asyncio.get_running_loop().run_in_executor(None, self._append_record, record)
+            pending_write = asyncio.get_running_loop().run_in_executor(None, self._append_record, record)
             try:
-                await asyncio.shield(append)
+                await asyncio.shield(pending_write)
             except asyncio.CancelledError:
-                await append
+                await pending_write
                 raise
         if first_failure is not None:
             raise first_failure
