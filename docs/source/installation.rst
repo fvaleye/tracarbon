@@ -2,6 +2,8 @@
 Installation
 ************
 
+Tracarbon requires Python 3.10 or newer.
+
 Using Pip
 =========
 .. code-block:: bash
@@ -9,5 +11,5 @@ Using Pip
     # Install Tracarbon
     pip install 'tracarbon'
 
-    # Install one or more exporters from the list
+    # Add Datadog, Prometheus, and Kubernetes support
     pip install 'tracarbon[datadog,prometheus,kubernetes]'
