@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.1](https://github.com/fvaleye/tracarbon/compare/v0.15.0...v0.15.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* integrate sensor energy over its measured windows ([#562](https://github.com/fvaleye/tracarbon/issues/562)) ([0aa9667](https://github.com/fvaleye/tracarbon/commit/0aa9667805a0ad3c5db9903e9a5612aafba094ec))
+
 ## [0.15.0](https://github.com/fvaleye/tracarbon/compare/v0.14.0...v0.15.0) (2026-10-29)
 
 
