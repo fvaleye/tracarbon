@@ -1,3 +1,4 @@
+import contextlib
 import os
 import shutil
 import signal
@@ -156,12 +157,9 @@ def run_metrics(
             pids=pids,
         )
         logger.info("Tracarbon CLI started.")
-        with tracarbon:
-            try:
-                while running:
-                    time.sleep(tracarbon.configuration.interval_in_seconds)
-            except KeyboardInterrupt:
-                pass
+        with tracarbon, contextlib.suppress(KeyboardInterrupt):
+            while running:
+                time.sleep(tracarbon.configuration.interval_in_seconds)
     except KeyboardInterrupt:
         if tracarbon is None:
             raise

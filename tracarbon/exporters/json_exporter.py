@@ -143,10 +143,8 @@ class JSONExporter(Exporter):
             else:
                 prior_byte_length = path_stat.st_size
             async with aiofiles.open(self.path, "a+") as file:
-                if prior_byte_length > 0:
-                    await file.write(f",{os.linesep}")
-                else:
-                    await file.write(f"[{os.linesep}")
+                prefix = "," if prior_byte_length > 0 else "["
+                await file.write(f"{prefix}{os.linesep}")
                 indent_opt = orjson.OPT_INDENT_2 if self.indent >= 2 else 0
                 payload = orjson.dumps(record, option=indent_opt)
                 await file.write(payload.decode("utf-8"))
