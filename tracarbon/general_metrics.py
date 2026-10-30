@@ -5,6 +5,8 @@ from typing import Iterable
 
 from pydantic import Field
 
+from tracarbon._sampling import sample_energy
+from tracarbon._sampling import sample_processes
 from tracarbon.conf import KUBERNETES_INSTALLED
 from tracarbon.emissions import CarbonEmission
 from tracarbon.emissions import CarbonUsageUnit
@@ -51,7 +53,7 @@ class EnergyConsumptionGenerator(MetricGenerator):
 
         :return: an async generator of the metrics
         """
-        energy_usage = await self.energy_consumption.get_energy_usage()
+        energy_usage = await sample_energy(self.energy_consumption)
 
         for usage_type in UsageType:
 
@@ -142,9 +144,9 @@ class EnergyConsumptionProcessGenerator(MetricGenerator):
 
     async def generate(self) -> AsyncGenerator[Metric, None]:
         """Yield process CPU power with PID, name, location and unit labels."""
-        energy_usage = await self.energy_consumption.get_energy_usage()
+        energy_usage = await sample_energy(self.energy_consumption)
         cpu_joules = energy_usage.interval_joules.get(UsageType.CPU)
-        for process in self.processes.get_processes_usage():
+        for process in sample_processes(self.processes):
 
             async def get_process_cpu_energy_consumption(p=process) -> float | None:
                 if energy_usage.cpu_energy_usage is None:
@@ -188,7 +190,7 @@ class CarbonEmissionProcessGenerator(MetricGenerator):
     async def generate(self) -> AsyncGenerator[Metric, None]:
         """Yield process CPU carbon with PID, name, location, source and unit labels."""
         carbon_usage = await self.carbon_emission.get_co2_usage()
-        for process in self.processes.get_processes_usage():
+        for process in sample_processes(self.processes):
 
             async def get_process_cpu_carbon_emission(p=process) -> float | None:
                 if carbon_usage.cpu_carbon_usage is None:
@@ -238,7 +240,7 @@ if KUBERNETES_INSTALLED:
 
             :return: an async generator of the metrics
             """
-            energy_usage = await self.energy_consumption.get_energy_usage()
+            energy_usage = await sample_energy(self.energy_consumption)
             energy_usage.convert_unit(unit=EnergyUsageUnit.MILLIWATT)
             cpu_joules = energy_usage.interval_joules.get(UsageType.CPU)
             memory_joules = energy_usage.interval_joules.get(UsageType.MEMORY)
@@ -396,3 +398,16 @@ if KUBERNETES_INSTALLED:
                         value=get_memory_pod_carbon_emission,
                         tags=tags,
                     )
+
+
+def _process_generators(
+    location: Location, pids: Iterable[int], energy_consumption: EnergyConsumption | None = None
+) -> list[MetricGenerator]:
+    data = {"energy_consumption": energy_consumption} if energy_consumption is not None else {}
+    energy = EnergyConsumptionProcessGenerator(location=location, pids=pids, **data)
+    carbon = CarbonEmissionProcessGenerator(
+        location=location,
+        processes=energy.processes,
+        carbon_emission=CarbonEmission(location=location, energy_consumption=energy.energy_consumption),
+    )
+    return [energy, carbon]

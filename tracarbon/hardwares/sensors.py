@@ -94,7 +94,8 @@ class EnergyConsumption(Sensor):
     """
     A sensor to calculate the energy consumption.
 
-    A counter reading covers the time since the sensor's previous reading, so give each reader its own sensor.
+    A counter reading covers the time since the sensor's previous reading. The generators of one exporter can share a
+    sensor, because each collection reads it once; give any other reader its own sensor.
     """
 
     init: bool = False
