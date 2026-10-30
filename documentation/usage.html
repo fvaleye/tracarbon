@@ -50,7 +50,7 @@
     <link rel="prev" title="Installation" href="installation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.0" />
+  <meta name="docsearch:version" content="0.15.0" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -410,6 +410,12 @@ to measure a workload.</p>
 </pre></div>
 </div>
 <p>Press <code class="docutils literal notranslate"><span class="pre">Ctrl+C</span></code> to stop. No API key is required.</p>
+<p>Measure your machine’s energy and carbon while a command runs:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">tracarbon exec -- python generate.py</span>
+</pre></div>
+</div>
+<p>When the command exits, Tracarbon prints the totals per component to stderr and exits with the
+command’s status. Add <code class="docutils literal notranslate"><span class="pre">--output</span> <span class="pre">report.json</span></code> to save the report.</p>
 <p>Keep Tracarbon running while you use your local LLM. See the
 <a class="reference external" href="https://github.com/fvaleye/tracarbon/tree/main/examples">local LLM example</a>.</p>
 </section>
@@ -661,7 +667,8 @@ this endpoint. By default it listens on <code class="docutils literal notranslat
 <p>Energy gauges report power; carbon gauges report emissions over the latest collection interval.
 Host, container and process carbon counters ending in <code class="docutils literal notranslate"><span class="pre">_grams_total</span></code> accumulate grams of CO2 eq
 without a <code class="docutils literal notranslate"><span class="pre">units</span></code> label.</p>
-<p>Zero values are exported. If Kubernetes returns no pod metrics, the CLI logs
+<p>A gauge reads <code class="docutils literal notranslate"><span class="pre">0</span></code> for a measured zero and <code class="docutils literal notranslate"><span class="pre">NaN</span></code> when no reading is available; its carbon counter
+then pauses. If Kubernetes returns no pod metrics, the CLI logs
 <code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">Kubernetes</span> <span class="pre">container</span> <span class="pre">metrics</span> <span class="pre">were</span> <span class="pre">collected.</span></code> Host metrics are still exported.</p>
 </section>
 </section>

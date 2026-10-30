@@ -50,7 +50,7 @@
     <link rel="prev" title="Usage" href="usage.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.14.0" />
+  <meta name="docsearch:version" content="0.15.0" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -419,6 +419,47 @@
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><em>List</em>[<a class="reference internal" href="#tracarbon.exporters.exporter.MetricGenerator" title="tracarbon.exporters.exporter.MetricGenerator"><em>MetricGenerator</em></a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tracarbon.cli.build_tracarbon">
+<span class="sig-prename descclassname"><span class="pre">tracarbon.cli.</span></span><span class="sig-name descname"><span class="pre">build_tracarbon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exporter_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configuration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">country_code_alpha_iso_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">containers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.cli.build_tracarbon" title="Link to this definition">#</a></dt>
+<dd><p>Build Tracarbon reporting the host energy and carbon through the selected exporter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>exporter_name</strong> (<em>str</em>) – the exporter name to run</p></li>
+<li><p><strong>configuration</strong> (<a class="reference internal" href="#tracarbon.conf.TracarbonConfiguration" title="tracarbon.conf.TracarbonConfiguration"><em>TracarbonConfiguration</em></a>) – the configuration of Tracarbon</p></li>
+<li><p><strong>country_code_alpha_iso_2</strong> (<em>str</em><em> | </em><em>None</em>) – the alpha iso2 country name where it’s running</p></li>
+<li><p><strong>containers</strong> (<em>bool</em>) – activate the containers feature</p></li>
+<li><p><strong>pids</strong> (<em>List</em><em>[</em><em>int</em><em>] </em><em>| </em><em>None</em>) – the processes to attribute CPU energy and carbon emissions to</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the Tracarbon instance, not started</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#tracarbon.builder.Tracarbon" title="tracarbon.builder.Tracarbon"><em>Tracarbon</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tracarbon.cli.exec_command">
+<span class="sig-prename descclassname"><span class="pre">tracarbon.cli.</span></span><span class="sig-name descname"><span class="pre">exec_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;typer.models.ArgumentInfo</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;typer.models.OptionInfo</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">country_code_alpha_iso_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.cli.exec_command" title="Link to this definition">#</a></dt>
+<dd><p>Measure your machine’s energy and carbon while a command runs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>command</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>)</p></li>
+<li><p><strong>output</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>country_code_alpha_iso_2</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1387,7 +1428,8 @@ Supports multiple GPUs by summing power consumption.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="tracarbon.hardwares.ioreport.IOReportEnergy.get_energy_report">
 <span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_energy_report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.ioreport.IOReportEnergy.get_energy_report" title="Link to this definition">#</a></dt>
-<dd><p>Return watts per component, including ANE energy in the host total.</p>
+<dd><p>Return component watts and a host total.</p>
+<p>Where CPU, memory and ANE counters stall or arrive in delayed batches, only GPU watts are returned.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#tracarbon.hardwares.energy.EnergyUsage" title="tracarbon.hardwares.energy.EnergyUsage"><em>EnergyUsage</em></a></p>
@@ -2407,11 +2449,11 @@ context: The context.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="tracarbon.hardwares.sensors.MacEnergyConsumption">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.sensors.</span></span><span class="sig-name descname"><span class="pre">MacEnergyConsumption</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shell_command</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&quot;ioreg</span> <span class="pre">-rw0</span> <span class="pre">-a</span> <span class="pre">-c</span> <span class="pre">AppleSmartBattery</span> <span class="pre">|</span> <span class="pre">plutil</span> <span class="pre">-extract</span> <span class="pre">'0.BatteryData.SystemPower'</span> <span class="pre">raw</span> <span class="pre">-&quot;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adapter_shell_command</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&quot;ioreg</span> <span class="pre">-rw0</span> <span class="pre">-a</span> <span class="pre">-c</span> <span class="pre">AppleSmartBattery</span> <span class="pre">|</span> <span class="pre">plutil</span> <span class="pre">-extract</span> <span class="pre">'0.BatteryData.AdapterPower'</span> <span class="pre">raw</span> <span class="pre">-&quot;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.MacEnergyConsumption" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tracarbon.hardwares.sensors.</span></span><span class="sig-name descname"><span class="pre">MacEnergyConsumption</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shell_command</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&quot;ioreg</span> <span class="pre">-rw0</span> <span class="pre">-a</span> <span class="pre">-c</span> <span class="pre">AppleSmartBattery</span> <span class="pre">|</span> <span class="pre">plutil</span> <span class="pre">-extract</span> <span class="pre">'0.BatteryData.SystemPower'</span> <span class="pre">raw</span> <span class="pre">-&quot;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adapter_shell_command</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&quot;ioreg</span> <span class="pre">-rw0</span> <span class="pre">-a</span> <span class="pre">-c</span> <span class="pre">AppleSmartBattery</span> <span class="pre">|</span> <span class="pre">plutil</span> <span class="pre">-extract</span> <span class="pre">'0.BatteryData.AdapterPower'</span> <span class="pre">raw</span> <span class="pre">-&quot;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_load_shell_command</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&quot;ioreg</span> <span class="pre">-rw0</span> <span class="pre">-a</span> <span class="pre">-c</span> <span class="pre">AppleSmartBattery</span> <span class="pre">|</span> <span class="pre">plutil</span> <span class="pre">-extract</span> <span class="pre">'0.PowerTelemetryData.SystemLoad'</span> <span class="pre">raw</span> <span class="pre">-&quot;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.hardwares.sensors.MacEnergyConsumption" title="Link to this definition">#</a></dt>
 <dd><p>Energy Consumption of a Mac in watts.</p>
 <p>Reads the IOReport energy counters on Apple Silicon, which give the energy of an interval
-rather than a power reading held over it, need no elevated privileges and cover CPU, GPU,
-memory and ANE.</p>
+rather than a power reading held over it, need no elevated privileges and cover the GPU, plus
+CPU, memory and ANE when available.</p>
 <p>Falls back to powermetrics, which measures the same components but has to be run as root, and
 then to the system power ioreg reports. That last one is the power of the whole machine rather
 than of the chip, and the battery only refreshes it every few tens of seconds, so it does not
@@ -2422,6 +2464,7 @@ follow what the machine computes and is a last resort.</p>
 <li><p><strong>init</strong> (<em>bool</em>)</p></li>
 <li><p><strong>shell_command</strong> (<em>str</em>)</p></li>
 <li><p><strong>adapter_shell_command</strong> (<em>str</em>)</p></li>
+<li><p><strong>system_load_shell_command</strong> (<em>str</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -3237,7 +3280,8 @@ context: The context.</p>
 <span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">launch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric_generator</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tracarbon.exporters.prometheus_exporter.PrometheusExporter.launch" title="Link to this definition">#</a></dt>
 <dd><p>Launch the Prometheus exporter with the metrics.
 Each metric is a gauge holding its latest value. Carbon also accumulates in a counter of grams
-named with <code class="docutils literal notranslate"><span class="pre">_grams_total</span></code> and labelled without <code class="docutils literal notranslate"><span class="pre">units</span></code>.</p>
+named with <code class="docutils literal notranslate"><span class="pre">_grams_total</span></code> and labelled without <code class="docutils literal notranslate"><span class="pre">units</span></code>.
+An unavailable reading sets its gauge to NaN and leaves the counter unchanged.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>metric_generator</strong> (<a class="reference internal" href="#tracarbon.exporters.exporter.MetricGenerator" title="tracarbon.exporters.exporter.MetricGenerator"><em>MetricGenerator</em></a>) – the metric generator</p>
@@ -4311,6 +4355,8 @@ context: The context.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-tracarbon.cli">CLI</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.cli.add_containers_generator"><code class="docutils literal notranslate"><span class="pre">add_containers_generator()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.cli.build_tracarbon"><code class="docutils literal notranslate"><span class="pre">build_tracarbon()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.cli.exec_command"><code class="docutils literal notranslate"><span class="pre">exec_command()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.cli.get_exporter"><code class="docutils literal notranslate"><span class="pre">get_exporter()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.cli.list_exporters"><code class="docutils literal notranslate"><span class="pre">list_exporters()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tracarbon.cli.run"><code class="docutils literal notranslate"><span class="pre">run()</span></code></a></li>
