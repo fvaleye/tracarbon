@@ -39,3 +39,24 @@ With uv
 
     # List everything
     make help
+
+Build the documentation
+=======================
+
+From the repository root, install the development dependencies and build the
+Sphinx site:
+
+.. code-block:: bash
+
+    make init
+    make build-documentation
+
+The build treats warnings and unresolved references as errors, as in CI.
+Preview the generated site locally:
+
+.. code-block:: bash
+
+    uv run python -m http.server 8000 --bind 127.0.0.1 --directory docs/build/html
+
+Open ``http://127.0.0.1:8000``. After editing files in ``docs/source``, rebuild
+the documentation and refresh the page. Press ``Ctrl+C`` to stop the preview.
