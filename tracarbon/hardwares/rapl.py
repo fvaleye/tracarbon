@@ -194,7 +194,7 @@ class RAPL(BaseModel):
     @staticmethod
     def _by_usage_type(by_domain: Dict[str, float]) -> Dict[UsageType, float]:
         """
-        Combine domain values into host, CPU without the integrated GPU, memory and GPU.
+        Report package values as CPU, retaining overlapping GPU values separately.
 
         :param by_domain: watts or joules by domain
         :return: the values by usage type, leaving out unmeasured ones
@@ -203,9 +203,7 @@ class RAPL(BaseModel):
         host_domains = [domain for domain in ("package", "memory") if domain in by_domain]
         if host_domains:
             by_usage_type[UsageType.HOST] = sum(by_domain[domain] for domain in host_domains)
-        if "package" in by_domain:
-            by_usage_type[UsageType.CPU] = by_domain["package"] - by_domain.get("gpu", 0.0)
-        for domain, usage_type in (("memory", UsageType.MEMORY), ("gpu", UsageType.GPU)):
+        for domain, usage_type in (("package", UsageType.CPU), ("memory", UsageType.MEMORY), ("gpu", UsageType.GPU)):
             if domain in by_domain:
                 by_usage_type[usage_type] = by_domain[domain]
         return by_usage_type
