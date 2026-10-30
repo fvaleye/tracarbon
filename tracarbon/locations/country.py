@@ -263,43 +263,6 @@ class Country(Location):
         return hash(self.name)
 
 
-class AWSLocation(Country):
-    """
-    AWS Location.
-    """
-
-    def __init__(self, region_name: str, **data: Any) -> None:
-        resource_file = importlib.resources.files("tracarbon.locations.data").joinpath("grid-emissions-factors-aws.csv")
-        co2g_kwh = None
-        with resource_file.open("r", encoding="utf-8") as csv_file:
-            reader = csv.reader(csv_file)
-            for row in reader:
-                if row[0] == region_name:
-                    co2g_kwh = float(row[3]) * 1000000
-                    super().__init__(name=f"AWS({region_name})", co2g_kwh=co2g_kwh, **data)
-            if not co2g_kwh:
-                raise CloudProviderRegionIsMissing(
-                    f"The region [{region_name}] is not in the AWS grid emissions factors file."
-                )
-
-    async def get_latest_co2g_kwh(self) -> float:
-        """
-        Get the latest co2g_kwh for AWS.
-
-        :return: the latest co2g_kwh
-        """
-        self._update_carbon_intensity_metadata()
-        return cast(float, self.co2g_kwh)
-
-    async def get_co2g_kwh(self) -> float:
-        """
-        Get the Co2g per kwh.
-
-        :return: the co2g/kwh value
-        """
-        return cast(float, self.co2g_kwh)
-
-
 class CloudLocation(Country):
     """
     Base class for cloud provider locations.
@@ -373,6 +336,21 @@ class CloudLocation(Country):
         :return: the co2g/kwh value
         """
         return cast(float, self.co2g_kwh)
+
+
+class AWSLocation(CloudLocation):
+    """AWS Location."""
+
+    @classmethod
+    def _get_csv_filename(cls) -> str:
+        return "grid-emissions-factors-aws.csv"
+
+    @classmethod
+    def _get_provider_name(cls) -> str:
+        return "AWS"
+
+    def __init__(self, region_name: str, **data: Any) -> None:
+        super().__init__(region_name=region_name, **data)
 
 
 class GCPLocation(CloudLocation):
