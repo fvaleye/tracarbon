@@ -1,5 +1,3 @@
-.. _tracarbon-documentation:
-
 Tracarbon
 =========
 
@@ -12,7 +10,7 @@ This documentation covers version |release|.
 Quick start
 -----------
 
-Install Tracarbon with Python 3.10 or newer and start tracking:
+Install Tracarbon and start tracking:
 
 .. code-block:: console
 
@@ -22,14 +20,8 @@ Install Tracarbon with Python 3.10 or newer and start tracking:
 Press ``Ctrl+C`` to stop and print the report. No API key is required.
 See :doc:`installation` for optional exporters.
 
-To measure your machine while a command runs:
-
-.. code-block:: console
-
-   tracarbon exec -- python your_script.py
-
-See :doc:`usage` for Python examples, carbon intensity configuration, process
-tracking, and exporting metrics.
+See :doc:`usage` to measure a command, use the Python API, configure carbon
+intensity, track processes, and export metrics.
 
 Guides and reference
 --------------------
