@@ -238,8 +238,8 @@ cycle and at shutdown. For a custom path or JSON Lines, configure the exporter i
    print(tracker.report.total_co2g)
 
 Each record contains ``timestamp``, ``metric_name``, ``metric_value``, and
-``metric_tags``. The CLI has no output-path option; ``.jsonl`` paths are selected
-through the Python API.
+``metric_tags``. ``tracarbon run`` has no output-path option; ``.jsonl`` paths are
+selected through the Python API.
 
 Datadog
 -------

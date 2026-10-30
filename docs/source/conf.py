@@ -16,7 +16,6 @@ import sys
 import toml
 
 sys.path.insert(0, os.path.abspath("../.."))
-sys.path.insert(0, os.path.abspath("./_ext"))
 
 
 def get_release_version() -> str:
@@ -35,13 +34,14 @@ project = "tracarbon"
 copyright = "2023-2026 Tracarbon contributors"
 author = "Florian Valeye"
 version = get_release_version()
+release = version
 
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["sphinx.ext.autodoc", "edit_on_github"]
+extensions = ["sphinx.ext.autodoc"]
 autodoc_typehints = "description"
 nitpicky = True
 nitpick_ignore = [
@@ -53,10 +53,6 @@ nitpick_ignore = [
     ("py:class", "ConfigDict"),
     ("py:class", "BaseModel"),
 ]
-
-# Add any paths that contain templates here, relative to this directory.
-templates_path = ["_templates"]
-
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -72,17 +68,19 @@ exclude_patterns = []
 html_theme = "pydata_sphinx_theme"
 html_logo = "../../logo.png"
 html_favicon = "../../logo.png"
+html_baseurl = "https://fvaleye.github.io/tracarbon/documentation/"
 html_theme_options = {
-    "external_links": [],
     "github_url": "https://github.com/fvaleye/tracarbon",
-    "icon_links": [],
+    "use_edit_page_button": True,
+}
+html_context = {
+    "github_user": "fvaleye",
+    "github_repo": "tracarbon",
+    "github_version": "main",
+    "doc_path": "docs/source",
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
-
-edit_on_github_project = "fvaleye/tracarbon"
-edit_on_github_branch = "main"
-page_source_prefix = "python/docs/source"
