@@ -1,8 +1,10 @@
+from typing import Any as _Any
+
+from tracarbon import conf as _conf
 from tracarbon.builder import Tracarbon
 from tracarbon.builder import TracarbonBuilder
 from tracarbon.builder import TracarbonReport
 from tracarbon.conf import DATADOG_INSTALLED
-from tracarbon.conf import KUBERNETES_INSTALLED
 from tracarbon.conf import PROMETHEUS_INSTALLED
 from tracarbon.conf import TracarbonConfiguration
 from tracarbon.conf import check_optional_dependency
@@ -66,11 +68,6 @@ if DATADOG_INSTALLED:
 
 if PROMETHEUS_INSTALLED:
     from tracarbon.exporters import PrometheusExporter as PrometheusExporter
-
-if KUBERNETES_INSTALLED:
-    from tracarbon.general_metrics import CarbonEmissionKubernetesGenerator as CarbonEmissionKubernetesGenerator
-    from tracarbon.general_metrics import EnergyConsumptionKubernetesGenerator as EnergyConsumptionKubernetesGenerator
-    from tracarbon.hardwares.containers import Kubernetes as Kubernetes
 
 __all__ = [
     "AWSSensorException",
@@ -143,9 +140,28 @@ if DATADOG_INSTALLED:
 if PROMETHEUS_INSTALLED:
     __all__.append("PrometheusExporter")
 
-if KUBERNETES_INSTALLED:
-    __all__ += [
-        "CarbonEmissionKubernetesGenerator",
-        "EnergyConsumptionKubernetesGenerator",
-        "Kubernetes",
-    ]
+# Resolve optional exports on access while keeping the static exports visible to tooling.
+_PUBLIC_EXPORTS = __all__
+del __all__
+
+_KUBERNETES_EXPORTS = ("CarbonEmissionKubernetesGenerator", "EnergyConsumptionKubernetesGenerator", "Kubernetes")
+
+
+def __getattr__(name: str) -> _Any:
+    if name == "KUBERNETES_INSTALLED":
+        return _conf.KUBERNETES_INSTALLED
+    if name == "__all__":
+        if name not in globals():
+            globals()[name] = _PUBLIC_EXPORTS + (list(_KUBERNETES_EXPORTS) if _conf.KUBERNETES_INSTALLED else [])
+        return globals()[name]
+    if name in _KUBERNETES_EXPORTS and _conf.KUBERNETES_INSTALLED:
+        from tracarbon import general_metrics
+
+        value = getattr(general_metrics, name)
+        globals()[name] = value
+        return value
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__() -> list[str]:
+    return sorted(set(globals()) | set(__getattr__("__all__")))

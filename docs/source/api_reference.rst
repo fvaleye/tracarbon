@@ -7,12 +7,14 @@ CLI
 
 .. automodule:: tracarbon.cli
     :members:
+    :ignore-module-all:
 
 Configuration
 =============
 
 .. automodule:: tracarbon.conf
     :members:
+    :ignore-module-all:
 
 Builder
 =======
@@ -94,3 +96,4 @@ General Metrics
 
 .. automodule:: tracarbon.general_metrics
     :members:
+    :ignore-module-all:

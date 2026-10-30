@@ -18,7 +18,6 @@ def check_optional_dependency(name: str) -> bool:
     return True
 
 
-KUBERNETES_INSTALLED = check_optional_dependency(name="kubernetes")
 DATADOG_INSTALLED = check_optional_dependency(name="datadog")
 PROMETHEUS_INSTALLED = check_optional_dependency(name="prometheus_client")
 
@@ -72,3 +71,18 @@ class TracarbonConfiguration(BaseModel):
             emission_factor_type=os.environ.get("TRACARBON_EMISSION_FACTOR_TYPE", emission_factor_type),
             **data,
         )
+
+
+__all__ = sorted({key for key in globals() if not key.startswith("_")} | {"KUBERNETES_INSTALLED"})
+
+
+def __getattr__(name: str) -> Any:
+    if name == "KUBERNETES_INSTALLED":
+        installed = check_optional_dependency(name="kubernetes")
+        globals()[name] = installed
+        return installed
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__() -> list[str]:
+    return sorted(set(globals()) | {"KUBERNETES_INSTALLED"})

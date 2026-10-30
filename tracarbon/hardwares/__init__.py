@@ -1,4 +1,6 @@
-from tracarbon.conf import KUBERNETES_INSTALLED
+from typing import Any as _Any
+
+from tracarbon import conf as _conf
 from tracarbon.hardwares.amd_rapl import AMDRAPLResult
 from tracarbon.hardwares.cloud_providers import AWS
 from tracarbon.hardwares.cloud_providers import GCP
@@ -57,9 +59,28 @@ __all__ = [
     "WindowsEnergyConsumption",
 ]
 
-if KUBERNETES_INSTALLED:
-    from tracarbon.hardwares.containers import Container
-    from tracarbon.hardwares.containers import Kubernetes
-    from tracarbon.hardwares.containers import Pod
+# Resolve optional exports on access while keeping the static exports visible to tooling.
+_PUBLIC_EXPORTS = __all__
+del __all__
 
-    __all__ += ["Container", "Kubernetes", "Pod"]
+_KUBERNETES_EXPORTS = ("Container", "Kubernetes", "Pod")
+
+
+def __getattr__(name: str) -> _Any:
+    if name == "KUBERNETES_INSTALLED":
+        return _conf.KUBERNETES_INSTALLED
+    if name == "__all__":
+        if name not in globals():
+            globals()[name] = _PUBLIC_EXPORTS + (list(_KUBERNETES_EXPORTS) if _conf.KUBERNETES_INSTALLED else [])
+        return globals()[name]
+    if name in _KUBERNETES_EXPORTS and _conf.KUBERNETES_INSTALLED:
+        from tracarbon.hardwares import containers
+
+        value = getattr(containers, name)
+        globals()[name] = value
+        return value
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__() -> list[str]:
+    return sorted(set(globals()) | set(__getattr__("__all__")) | {"KUBERNETES_INSTALLED"})

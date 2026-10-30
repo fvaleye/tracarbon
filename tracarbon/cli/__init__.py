@@ -14,7 +14,6 @@ from loguru import logger
 from tracarbon.builder import Tracarbon
 from tracarbon.builder import TracarbonBuilder
 from tracarbon.builder import TracarbonReport
-from tracarbon.conf import KUBERNETES_INSTALLED
 from tracarbon.conf import TracarbonConfiguration
 from tracarbon.conf import logger_configuration
 from tracarbon.emissions import CarbonEmission
@@ -77,6 +76,8 @@ def add_containers_generator(location: Country) -> List[MetricGenerator]:
     :param: country for the metric generators of containers
     :return: the list of metric generators for containers
     """
+    from tracarbon.conf import KUBERNETES_INSTALLED
+
     if KUBERNETES_INSTALLED:
         from tracarbon.general_metrics import CarbonEmissionKubernetesGenerator
         from tracarbon.general_metrics import EnergyConsumptionKubernetesGenerator
@@ -329,5 +330,20 @@ def main() -> None:
     app()
 
 
+__all__ = sorted({key for key in globals() if not key.startswith("_")} | {"KUBERNETES_INSTALLED"})
+
+
+def __getattr__(name: str) -> bool:
+    if name == "KUBERNETES_INSTALLED":
+        from tracarbon.conf import KUBERNETES_INSTALLED
+
+        return KUBERNETES_INSTALLED
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
 if __name__ == "__main__":
     main()
+
+
+def __dir__() -> list[str]:
+    return sorted(set(globals()) | {"KUBERNETES_INSTALLED"})

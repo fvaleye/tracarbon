@@ -1,3 +1,4 @@
+from threading import Lock as _Lock
 from typing import Any
 from typing import AsyncGenerator
 from typing import Dict
@@ -5,9 +6,9 @@ from typing import Iterable
 
 from pydantic import Field
 
+from tracarbon import conf as _conf
 from tracarbon._sampling import sample_energy
 from tracarbon._sampling import sample_processes
-from tracarbon.conf import KUBERNETES_INSTALLED
 from tracarbon.emissions import CarbonEmission
 from tracarbon.emissions import CarbonUsageUnit
 from tracarbon.exporters import Metric
@@ -213,7 +214,17 @@ class CarbonEmissionProcessGenerator(MetricGenerator):
             )
 
 
-if KUBERNETES_INSTALLED:
+_KUBERNETES_EXPORTS = ("CarbonEmissionKubernetesGenerator", "EnergyConsumptionKubernetesGenerator", "Kubernetes")
+_kubernetes_lock = _Lock()
+CarbonEmissionKubernetesGenerator: Any
+EnergyConsumptionKubernetesGenerator: Any
+Kubernetes: Any
+
+
+# C901 includes the unchanged methods inside these deferred class definitions.
+def _load_kubernetes_generators() -> None:  # noqa: C901
+    global CarbonEmissionKubernetesGenerator, EnergyConsumptionKubernetesGenerator, Kubernetes
+
     from tracarbon.hardwares.containers import Kubernetes
 
     class EnergyConsumptionKubernetesGenerator(MetricGenerator):
@@ -411,3 +422,23 @@ def _process_generators(
         carbon_emission=CarbonEmission(location=location, energy_consumption=energy.energy_consumption),
     )
     return [energy, carbon]
+
+
+def __getattr__(name: str) -> Any:
+    if name == "KUBERNETES_INSTALLED":
+        return _conf.KUBERNETES_INSTALLED
+    if name == "__all__":
+        exports = {key for key in globals() if not key.startswith("_")} | {"KUBERNETES_INSTALLED"}
+        if _conf.KUBERNETES_INSTALLED:
+            exports.update(_KUBERNETES_EXPORTS)
+        return sorted(exports)
+    if name in _KUBERNETES_EXPORTS and _conf.KUBERNETES_INSTALLED:
+        with _kubernetes_lock:
+            if name not in globals():
+                _load_kubernetes_generators()
+            return globals()[name]
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__() -> list[str]:
+    return sorted(set(globals()) | set(__getattr__("__all__")))
