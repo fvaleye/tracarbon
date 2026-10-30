@@ -468,3 +468,67 @@ def test_a_timed_out_probe_can_recover_after_cooling_down(mocker, monkeypatch, t
     assert gpu_type.get_gpu_power_usage() == 25.0
     assert time.monotonic() - started_at < 3
     assert launched_probes.call_count == 2
+
+
+@pytest.mark.parametrize(
+    "sudo_error",
+    [
+        b"sudo: a password is required",
+        b"user is not in the sudoers file",
+        b"user is not allowed to execute powermetrics",
+    ],
+)
+def test_powermetrics_permission_denial_cools_down_and_recovers(mocker, monkeypatch, sudo_error):
+    monkeypatch.setattr("tracarbon.hardwares.gpu._stuck_probe_retry_times", {})
+    clock = mocker.patch("tracarbon.hardwares.gpu.time.monotonic", return_value=100.0)
+    mocker.patch.object(shutil, "which", side_effect=lambda command: "/usr/bin/" + command)
+    process = mocker.Mock(returncode=1)
+    process.communicate.side_effect = [(b"", b"powermetrics must be invoked as the superuser"), (b"", sudo_error)] * 2
+    started = mocker.patch.object(subprocess, "Popen", return_value=process)
+
+    with pytest.raises(HardwareNoGPUDetectedException):
+        AppleSiliconPowerMetrics.get_power_breakdown()
+    with pytest.raises(HardwareNoGPUDetectedException):
+        AppleSiliconPowerMetrics.get_power_breakdown()
+    assert started.call_count == 2
+    clock.return_value = 159.0
+    with pytest.raises(HardwareNoGPUDetectedException):
+        AppleSiliconPowerMetrics.get_power_breakdown()
+    assert started.call_count == 2
+    clock.return_value = 161.0
+    process.returncode = 0
+    process.communicate.side_effect = None
+    process.communicate.return_value = (b"CPU Power: 3000 mW", b"")
+
+    assert AppleSiliconPowerMetrics.get_power_breakdown() == (3.0, None, None)
+    assert started.call_count == 3
+
+
+def test_powermetrics_does_not_cool_down_an_ordinary_failure(mocker, monkeypatch):
+    monkeypatch.setattr("tracarbon.hardwares.gpu._stuck_probe_retry_times", {})
+    mocker.patch.object(shutil, "which", return_value="/usr/bin/powermetrics")
+    process = mocker.Mock(returncode=1)
+    process.communicate.return_value = (b"", b"temporarily unavailable")
+    started = mocker.patch.object(subprocess, "Popen", return_value=process)
+
+    with pytest.raises(HardwareNoGPUDetectedException):
+        AppleSiliconPowerMetrics.get_power_breakdown()
+    process.returncode = 0
+    process.communicate.return_value = (b"CPU Power: 3000 mW", b"")
+
+    assert AppleSiliconPowerMetrics.get_power_breakdown() == (3.0, None, None)
+    assert started.call_count == 2
+
+
+def test_powermetrics_successful_sudo_does_not_cool_down(mocker, monkeypatch):
+    monkeypatch.setattr("tracarbon.hardwares.gpu._stuck_probe_retry_times", {})
+    mocker.patch.object(shutil, "which", side_effect=lambda command: "/usr/bin/" + command)
+    denied = mocker.Mock(returncode=1)
+    denied.communicate.return_value = (b"", b"powermetrics must be invoked as the superuser")
+    allowed = mocker.Mock(returncode=0)
+    allowed.communicate.return_value = (b"CPU Power: 3000 mW", b"")
+    started = mocker.patch.object(subprocess, "Popen", side_effect=[denied, allowed, denied, allowed])
+
+    assert AppleSiliconPowerMetrics.get_power_breakdown() == (3.0, None, None)
+    assert AppleSiliconPowerMetrics.get_power_breakdown() == (3.0, None, None)
+    assert started.call_count == 4
