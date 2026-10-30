@@ -66,3 +66,8 @@ To measure with the container, pass options to its ``tracarbon run`` entrypoint:
 
 Measurements require access to supported Linux sensors. Docker on macOS cannot
 read the Mac's sensors; use a native installation to measure the Mac.
+
+.. toctree::
+   :maxdepth: 1
+
+   decisions/index

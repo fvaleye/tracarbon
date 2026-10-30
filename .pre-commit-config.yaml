@@ -31,3 +31,9 @@ repos:
         language: system
         types: [python]
         pass_filenames: false
+      - id: sphinx
+        name: build documentation
+        entry: make build-documentation
+        language: system
+        files: ^docs/source/
+        pass_filenames: false
