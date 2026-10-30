@@ -1,4 +1,7 @@
-<img src="https://raw.githubusercontent.com/fvaleye/tracarbon/main/logo.png" alt="Tracarbon logo" width="200">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/fvaleye/tracarbon/main/logo-dark.svg">
+  <img src="https://raw.githubusercontent.com/fvaleye/tracarbon/main/logo.svg" alt="Tracarbon logo" width="260">
+</picture>
 
 [![Build](https://github.com/fvaleye/tracarbon/actions/workflows/build.yml/badge.svg)](https://github.com/fvaleye/tracarbon/actions/workflows/build.yml)
 [![PyPI](https://img.shields.io/pypi/v/tracarbon.svg)](https://pypi.org/project/tracarbon/)

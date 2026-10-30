@@ -66,12 +66,12 @@ exclude_patterns = []
 # a list of builtin themes.
 #
 html_theme = "pydata_sphinx_theme"
-html_logo = "../../logo.png"
-html_favicon = "../../logo.png"
+html_favicon = "../../logo-mark.svg"
 html_baseurl = "https://fvaleye.github.io/tracarbon/documentation/"
 html_theme_options = {
     "github_url": "https://github.com/fvaleye/tracarbon",
     "use_edit_page_button": True,
+    "logo": {"image_light": "../../logo.svg", "image_dark": "../../logo-dark.svg"},
 }
 html_context = {
     "github_user": "fvaleye",
