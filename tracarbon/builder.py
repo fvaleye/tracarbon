@@ -15,8 +15,9 @@ from tracarbon.exporters import Exporter
 from tracarbon.exporters import MetricReport
 from tracarbon.exporters import StdoutExporter
 from tracarbon.general_metrics import CarbonEmissionGenerator
-from tracarbon.general_metrics import CarbonEmissionProcessGenerator
-from tracarbon.general_metrics import EnergyConsumptionProcessGenerator
+from tracarbon.general_metrics import CarbonEmissionProcessGenerator as CarbonEmissionProcessGenerator
+from tracarbon.general_metrics import EnergyConsumptionProcessGenerator as EnergyConsumptionProcessGenerator
+from tracarbon.general_metrics import _process_generators
 from tracarbon.hardwares import UsageType
 from tracarbon.locations import Country
 from tracarbon.locations import Location
@@ -153,17 +154,17 @@ class TracarbonBuilder(BaseModel):
                 co2signal_url=self.configuration.co2signal_url,
                 emission_factor_type=self.configuration.emission_factor_type,
             )
+        process_sensor = None
         if not self.exporter:
+            carbon = CarbonEmissionGenerator(location=self.location)
+            process_sensor = carbon.carbon_emission.energy_consumption
             self.exporter = StdoutExporter(
-                metric_generators=[CarbonEmissionGenerator(location=self.location)],
+                metric_generators=[carbon],
                 metric_prefix_name=self.configuration.metric_prefix_name,
             )
         if self._pending_pids:
             self.exporter.metric_generators.extend(
-                [
-                    EnergyConsumptionProcessGenerator(location=self.location, pids=self._pending_pids),
-                    CarbonEmissionProcessGenerator(location=self.location, pids=self._pending_pids),
-                ]
+                _process_generators(self.location, self._pending_pids, energy_consumption=process_sensor)
             )
             self._pending_pids = None
 

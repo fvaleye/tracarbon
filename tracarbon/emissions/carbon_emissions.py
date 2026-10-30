@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from pydantic import Field
 from pydantic import PrivateAttr
 
+from tracarbon._sampling import sample_energy
 from tracarbon.hardwares import EnergyConsumption
 from tracarbon.hardwares import Power
 from tracarbon.hardwares import Sensor
@@ -132,7 +133,7 @@ class CarbonEmission(Sensor):
 
         :return: the generated energy usage.
         """
-        return await self.energy_consumption.get_energy_usage()
+        return await sample_energy(self.energy_consumption)
 
     async def get_co2_usage(self) -> CarbonUsage:
         """
