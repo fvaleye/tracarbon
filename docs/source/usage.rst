@@ -25,8 +25,7 @@ Measure your machine's energy and carbon while a command runs:
 When the command exits, Tracarbon prints the totals per component to stderr and exits with the
 command's status. Add ``--output report.json`` to save the report.
 
-Keep Tracarbon running while you use your local LLM. See the
-`local LLM example <https://github.com/fvaleye/tracarbon/tree/main/examples>`_.
+To measure a local LLM, see `Measure a local LLM`_.
 
 Python API
 ==========
@@ -196,6 +195,27 @@ Pass ``with_processes([1234, 5678])`` to select other processes. Attribution use
 share of total CPU capacity: one busy core of four gets a quarter of host CPU power.
 ``energy_consumption_process_cpu`` reports watts and ``carbon_emission_process_cpu`` reports grams
 of CO2 eq, labelled with ``pid`` and ``process_name``.
+
+Measure a local LLM
+===================
+
+Run the model on the machine Tracarbon measures and load it before you start. Then measure at least
+5 seconds of requests in one session, because `shorter GPU readings are unstable
+<https://ml.energy/blog/energy/measurement/thermally-stable-profiling-for-accurate-gpu-energy-measurement/>`_:
+
+.. code-block:: console
+
+   ollama run qwen2.5:0.5b "Say hello."
+   tracarbon exec --output session.json -- sh -ec \
+     'for request in 1 2 3 4 5; do ollama run --verbose qwen2.5:0.5b "Explain how a database executes a join."; done'
+
+To compare sessions:
+
+- Run on a quiet machine: readings include all activity on the hardware.
+- Repeat each session and compare medians.
+- Record the token counts, model, quantization, runtime version and settings with each report.
+- Watch the prompt cache: cached prompt tokens skip evaluation.
+- Host already includes the components, so do not add them to it, except an AMD GPU on Linux.
 
 Export metrics
 ==============
