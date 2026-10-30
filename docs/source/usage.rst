@@ -193,6 +193,7 @@ In Python, track the current process with any exporter:
 
 Pass ``with_processes([1234, 5678])`` to select other processes. Attribution uses each process tree's
 share of total CPU capacity: one busy core of four gets a quarter of host CPU power.
+On Linux, that power is the RAPL package, which can include an integrated GPU.
 ``energy_consumption_process_cpu`` reports watts and ``carbon_emission_process_cpu`` reports grams
 of CO2 eq, labelled with ``pid`` and ``process_name``.
 
@@ -215,7 +216,8 @@ To compare sessions:
 - Repeat each session and compare medians.
 - Record the token counts, model, quantization, runtime version and settings with each report.
 - Watch the prompt cache: cached prompt tokens skip evaluation.
-- Host already includes the components, so do not add them to it, except an AMD GPU on Linux.
+- Compare ``host`` totals: components can overlap.
+- On Linux, ``host`` excludes an AMD GPU: add it for a discrete card, not an APU.
 
 Export metrics
 ==============

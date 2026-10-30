@@ -359,7 +359,7 @@ async def test_counter_readings_count_each_window_once_in_energy_and_carbon(mock
     "gpu_joules,expected_joules",
     [
         (None, {"host": 12, "cpu": 10, "memory": 2}),
-        (3, {"host": 12, "cpu": 7, "memory": 2, "gpu": 3}),
+        (12, {"host": 12, "cpu": 10, "memory": 2, "gpu": 12}),
     ],
 )
 async def test_rapl_domains_keep_their_own_intervals_through_the_report(mocker, gpu_joules, expected_joules):

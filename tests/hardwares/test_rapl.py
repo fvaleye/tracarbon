@@ -408,14 +408,12 @@ async def test_a_wrap_without_a_published_ceiling_survives_a_load_increase(mocke
 @pytest.mark.parametrize(
     ("watts_by_zone", "cpu_watts", "host_watts"),
     [
-        ({"package-0": 20.0, "core": 12.0, "uncore": 5.0, "dram": 3.0}, 15.0, 23.0),
+        ({"package-0": 20.0, "core": 12.0, "uncore": 5.0, "dram": 3.0}, 20.0, 23.0),
         ({"package-0": 150.0, "dram": 20.0}, 150.0, 170.0),
     ],
     ids=["client_with_an_integrated_gpu", "server_without_a_core_zone"],
 )
-async def test_cpu_power_is_the_package_without_the_integrated_gpu(
-    mocker, tmpdir, watts_by_zone, cpu_watts, host_watts
-):
+async def test_cpu_power_uses_the_package_counter(mocker, tmpdir, watts_by_zone, cpu_watts, host_watts):
     seconds_between_reports = 60.0
     first_energy_uj = 1_000_000_000
     zones = [tmpdir.mkdir(f"intel-raplT{index}") for index in range(len(watts_by_zone))]
