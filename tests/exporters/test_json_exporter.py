@@ -1,6 +1,8 @@
+import asyncio
 import sys
 from datetime import datetime
 from datetime import timezone
+from threading import Event
 from unittest.mock import AsyncMock
 
 import orjson
@@ -15,7 +17,8 @@ from tracarbon.exporters import Metric
 from tracarbon.exporters import Tag
 
 
-def test_json_exporter_should_write_well_formatted_metrics_in_json_file(mocker, tmpdir):
+@pytest.mark.parametrize("indent", [0, 1, 2, 4])
+def test_json_exporter_should_write_well_formatted_metrics_in_json_file(mocker, tmpdir, indent):
     mock = mocker.patch("tracarbon.exporters.json_exporter.datetime")
     fixed_timestamp = datetime(2021, 12, 21, tzinfo=timezone.utc)
     mock.now.return_value = fixed_timestamp
@@ -55,7 +58,7 @@ def test_json_exporter_should_write_well_formatted_metrics_in_json_file(mocker, 
     )
 
     metric_generators = [MetricGenerator(metrics=[memory_metric])]
-    exporter = JSONExporter(quit=True, metric_generators=metric_generators, path=str(test_json_file))
+    exporter = JSONExporter(quit=True, metric_generators=metric_generators, path=str(test_json_file), indent=indent)
     exporter.start(interval_in_seconds=interval_in_seconds)
     exporter.stop()
 
@@ -63,7 +66,9 @@ def test_json_exporter_should_write_well_formatted_metrics_in_json_file(mocker, 
     exporter.stop()
 
     with open(test_json_file, "rb") as file:
-        assert orjson.loads(file.read()) == expected
+        contents = file.read()
+    assert orjson.loads(contents) == expected
+    assert (b'\n  "timestamp":' in contents) == (indent >= 2)
 
     assert exporter.metric_report["test_metric_1"].exporter_name == JSONExporter.get_name()
     assert exporter.metric_report["test_metric_1"].metric == memory_metric
@@ -130,6 +135,40 @@ def test_json_exporter_defaults_to_a_json_array(monkeypatch, tmp_path):
 
     records = orjson.loads((tmp_path / exporter.path).read_bytes())
     assert [record["metric_value"] for record in records] == [1.0]
+
+
+async def test_json_exporter_waits_for_a_cancelled_write_before_closing_the_array(mocker, tmp_path):
+    output = tmp_path / "metrics.json"
+    append_started = Event()
+    release_append = Event()
+    append_finished = Event()
+    append_record = JSONExporter._append_record
+
+    def delayed_append(self, record):
+        append_started.set()
+        assert release_append.wait(timeout=2)
+        append_record(self, record)
+        append_finished.set()
+
+    mocker.patch.object(JSONExporter, "_append_record", delayed_append)
+    exporter = JSONExporter(
+        path=str(output),
+        metric_generators=[MetricGenerator(metrics=[Metric(name="sample", value=AsyncMock(return_value=1.0))])],
+    )
+    collection = asyncio.create_task(exporter._launch_all())
+    try:
+        assert await asyncio.to_thread(append_started.wait, 2)
+        collection.cancel()
+        await asyncio.sleep(0.05)
+        finished_before_append = collection.done()
+    finally:
+        release_append.set()
+        with pytest.raises(asyncio.CancelledError):
+            await collection
+        assert await asyncio.to_thread(append_finished.wait, 2)
+
+    assert not finished_before_append
+    assert [record["metric_name"] for record in orjson.loads(output.read_bytes())] == ["sample"]
 
 
 def test_jsonl_appends_across_restarts(mocker, tmp_path):

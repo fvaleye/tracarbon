@@ -6,8 +6,6 @@ from datetime import timezone
 from typing import Any
 from typing import Dict
 
-import aiofiles
-import aiofiles.os
 import orjson
 from loguru import logger
 
@@ -90,20 +88,28 @@ class JSONExporter(Exporter):
         finally:
             await asyncio.to_thread(self.flush)
 
-    def _append_line(self, record: Dict[str, Any]) -> None:
+    def _append_record(self, record: Dict[str, Any]) -> None:
         """
-        Append a JSON line, separating it from an unterminated previous record.
+        Append a record with the separator required by its file format.
 
         :param record: the record to append
         """
-        line = orjson.dumps(record, option=orjson.OPT_APPEND_NEWLINE)
+        json_lines = self.path.endswith(".jsonl")
+        if json_lines:
+            option = orjson.OPT_APPEND_NEWLINE
+        else:
+            option = orjson.OPT_INDENT_2 if self.indent >= 2 else 0
+        payload = orjson.dumps(record, option=option)
         with open(self.path, "a+b") as file:
             end = file.seek(0, os.SEEK_END)
-            if end > 0:
-                file.seek(end - 1)
-                if file.read(1) != b"\n":
-                    line = b"\n" + line
-            file.write(line)
+            if json_lines:
+                if end > 0:
+                    file.seek(end - 1)
+                    if file.read(1) != b"\n":
+                        payload = b"\n" + payload
+            else:
+                payload = (b"," if end else b"[") + os.linesep.encode() + payload
+            file.write(payload)
 
     async def launch(self, metric_generator: MetricGenerator) -> None:
         """
@@ -112,8 +118,7 @@ class JSONExporter(Exporter):
 
         :param metric_generator: produces metrics to serialize
         """
-        json_lines = self.path.endswith(".jsonl")
-        if not json_lines:
+        if not self.path.endswith(".jsonl"):
             await asyncio.to_thread(self._strip_trailing_closing_bracket)
         first_failure: Exception | None = None
         async for metric in metric_generator.generate():
@@ -133,21 +138,12 @@ class JSONExporter(Exporter):
                 "metric_value": metric_value,
                 "metric_tags": metric.format_tags(),
             }
-            if json_lines:
-                await asyncio.to_thread(self._append_line, record)
-                continue
+            append = asyncio.get_running_loop().run_in_executor(None, self._append_record, record)
             try:
-                path_stat = await aiofiles.os.stat(self.path)
-            except FileNotFoundError:
-                prior_byte_length = 0
-            else:
-                prior_byte_length = path_stat.st_size
-            async with aiofiles.open(self.path, "a+") as file:
-                prefix = "," if prior_byte_length > 0 else "["
-                await file.write(f"{prefix}{os.linesep}")
-                indent_opt = orjson.OPT_INDENT_2 if self.indent >= 2 else 0
-                payload = orjson.dumps(record, option=indent_opt)
-                await file.write(payload.decode("utf-8"))
+                await asyncio.shield(append)
+            except asyncio.CancelledError:
+                await append
+                raise
         if first_failure is not None:
             raise first_failure
 
