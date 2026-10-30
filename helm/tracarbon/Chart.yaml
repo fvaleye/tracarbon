@@ -4,7 +4,7 @@ description: A Helm chart for Tracarbon
 maintainers:
   - name: fvaleye
     url: https://fvaleye.github.io/
-icon: https://github.com/fvaleye/tracarbon/blob/main/logo.png
+icon: https://raw.githubusercontent.com/fvaleye/tracarbon/main/logo-mark.svg
 home: https://github.com/fvaleye/tracarbon
 type: application
 version: 0.2.2
