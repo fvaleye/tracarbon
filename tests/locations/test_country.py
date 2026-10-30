@@ -81,7 +81,6 @@ def test_carbon_intensity_cache_respects_configuration_changes(mocker, changed_f
     assert request.await_count == 2
 
 
-@pytest.mark.asyncio
 async def test_france_location_should_return_latest_known(mocker):
     co2_expected = 51.1
     response = {
@@ -112,7 +111,6 @@ async def test_france_location_should_return_latest_known(mocker):
     assert country.co2g_kwh_source == CarbonIntensitySource.CO2SignalAPI
 
 
-@pytest.mark.asyncio
 async def test_france_location_with_recent_api_versions_should_return_latest_known(
     mocker,
 ):
@@ -145,7 +143,6 @@ async def test_france_location_with_recent_api_versions_should_return_latest_kno
     assert country.co2g_kwh_source == CarbonIntensitySource.CO2SignalAPI
 
 
-@pytest.mark.asyncio
 async def test_france_location_should_return_taux_co2():
     co2_expected = 51.1
     co2signal_api_key = ""
@@ -159,7 +156,6 @@ async def test_france_location_should_return_taux_co2():
     assert country.co2g_kwh_source == CarbonIntensitySource.FILE
 
 
-@pytest.mark.asyncio
 async def test_electricity_maps_api_v4_lifecycle(mocker):
     co2_expected = 67.0
     response = {
@@ -206,7 +202,6 @@ async def test_electricity_maps_api_v4_lifecycle(mocker):
     }
 
 
-@pytest.mark.asyncio
 async def test_electricity_maps_api_v4_direct(mocker):
     co2_expected = 42.0
     response = {
@@ -236,7 +231,6 @@ async def test_electricity_maps_api_v4_direct(mocker):
     assert parse_qs(urlparse(request.call_args.kwargs["url"]).query)["emissionFactorType"] == ["direct"]
 
 
-@pytest.mark.asyncio
 async def test_carbon_intensity_metadata_marks_api_fallback(mocker):
     co2_expected = 74.0
     mocker.patch.object(Country, "request", side_effect=RuntimeError("api failed"))
@@ -261,7 +255,6 @@ async def test_carbon_intensity_metadata_marks_api_fallback(mocker):
     )
 
 
-@pytest.mark.asyncio
 async def test_carbon_intensity_api_failure_without_fallback_raises(mocker):
     mocker.patch.object(Country, "request", side_effect=RuntimeError("api failed"))
     country = Country(
@@ -275,7 +268,6 @@ async def test_carbon_intensity_api_failure_without_fallback_raises(mocker):
         await country.get_latest_co2g_kwh()
 
 
-@pytest.mark.asyncio
 async def test_electricity_maps_api_v4_data_center(mocker):
     co2_expected = 35.0
     request = mocker.patch.object(Country, "request", return_value={"carbonIntensity": co2_expected})
@@ -351,7 +343,6 @@ def test_get_location_without_api_key_warns_that_direct_emission_factors_are_una
     assert country.carbon_intensity_metadata.emission_factor_type == EmissionFactorType.LIFECYCLE
 
 
-@pytest.mark.asyncio
 async def test_bundled_country_keeps_its_carbon_intensity_metadata_when_refreshed():
     country = Country.from_file("fr")
 

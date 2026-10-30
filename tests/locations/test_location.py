@@ -170,74 +170,34 @@ def test_world_emission_should_raise_error_when_country_is_missing():
     assert exception.value.args[0] == f"The country [{country_code_alpha_iso_2}] is not in the co2 emission file."
 
 
-def test_aws_location_should_return_an_error_if_region_not_exists():
-    region_name = "zf"
-
+@pytest.mark.parametrize(
+    ("location_type", "provider_name", "region_name"),
+    [(AWSLocation, "AWS", "zf"), (GCPLocation, "GCP", "unknown-region"), (AzureLocation, "Azure", "unknown-region")],
+    ids=["aws", "gcp", "azure"],
+)
+def test_cloud_location_rejects_unknown_regions(location_type, provider_name, region_name):
     with pytest.raises(CloudProviderRegionIsMissing) as exception:
-        AWSLocation(region_name=region_name)
-    assert exception.value.args[0] == f"The region [{region_name}] is not in the AWS grid emissions factors file."
+        location_type(region_name=region_name)
+
+    assert str(exception.value) == (
+        f"The region [{region_name}] is not in the {provider_name} grid emissions factors file."
+    )
 
 
-@pytest.mark.parametrize("region_name", ["eu-west-1", " EU-WEST-1 "])
-def test_aws_location_loads_normalized_regions(region_name):
-    location = AWSLocation(region_name=region_name)
+@pytest.mark.parametrize(
+    ("location_type", "region_name", "expected_name", "co2g_kwh"),
+    [
+        pytest.param(AWSLocation, "eu-west-1", "AWS(eu-west-1)", 316.0, id="aws"),
+        pytest.param(AWSLocation, " EU-WEST-1 ", "AWS( EU-WEST-1 )", 316.0, id="aws-normalized"),
+        pytest.param(GCPLocation, "europe-west1", "GCP(europe-west1)", 126.43, id="gcp-europe"),
+        pytest.param(GCPLocation, "us-central1", "GCP(us-central1)", 431.95, id="gcp-us"),
+        pytest.param(AzureLocation, "West Europe", "Azure(West Europe)", 390.0, id="azure-europe"),
+        pytest.param(AzureLocation, "East US", "Azure(East US)", 415.755, id="azure-us"),
+    ],
+)
+def test_cloud_location_loads_bundled_carbon_intensity(location_type, region_name, expected_name, co2g_kwh):
+    location = location_type(region_name=region_name)
 
-    assert location.name == f"AWS({region_name})"
-    assert location.co2g_kwh == 316.0
-    assert location.co2g_kwh_source.value == "file"
-
-
-def test_gcp_location_should_return_an_error_if_region_not_exists():
-    region_name = "unknown-region"
-
-    with pytest.raises(CloudProviderRegionIsMissing) as exception:
-        GCPLocation(region_name=region_name)
-    assert exception.value.args[0] == f"The region [{region_name}] is not in the GCP grid emissions factors file."
-
-
-def test_gcp_location_should_return_ok_if_region_exists():
-    region_name = "europe-west1"
-
-    location = GCPLocation(region_name=region_name)
-
-    assert location.name == "GCP(europe-west1)"
-    assert location.co2g_kwh == 126.43
-    assert location.co2g_kwh_source.value == "file"
-
-
-def test_gcp_location_us_central1():
-    region_name = "us-central1"
-
-    location = GCPLocation(region_name=region_name)
-
-    assert location.name == "GCP(us-central1)"
-    assert location.co2g_kwh == 431.95
-
-
-def test_azure_location_should_return_an_error_if_region_not_exists():
-    region_name = "unknown-region"
-
-    with pytest.raises(CloudProviderRegionIsMissing) as exception:
-        AzureLocation(region_name=region_name)
-    assert exception.value.args[0] == f"The region [{region_name}] is not in the Azure grid emissions factors file."
-
-
-def test_azure_location_should_return_ok_if_region_exists():
-    region_name = "West Europe"
-
-    location = AzureLocation(region_name=region_name)
-
-    assert location.name == "Azure(West Europe)"
-    assert location.co2g_kwh > 380
-    assert location.co2g_kwh < 400
-    assert location.co2g_kwh_source.value == "file"
-
-
-def test_azure_location_east_us():
-    region_name = "East US"
-
-    location = AzureLocation(region_name=region_name)
-
-    assert location.name == "Azure(East US)"
-    assert location.co2g_kwh > 410
-    assert location.co2g_kwh < 420
+    assert location.name == expected_name
+    assert location.co2g_kwh == pytest.approx(co2g_kwh)
+    assert location.co2g_kwh_source is CarbonIntensitySource.FILE

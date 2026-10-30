@@ -30,7 +30,6 @@ def one_minute_ago() -> datetime.datetime:
     return datetime.datetime.now() - datetime.timedelta(seconds=60)
 
 
-@pytest.mark.asyncio
 @pytest.mark.darwin
 async def test_carbon_emission_should_run_to_convert_watt_hours_to_co2g_on_mac(mocker):
     co2g_per_kwh = 20.0
@@ -58,7 +57,6 @@ async def test_carbon_emission_should_run_to_convert_watt_hours_to_co2g_on_mac(m
     assert round(co2g.gpu_carbon_usage, 3) == carbon_usage_expected
 
 
-@pytest.mark.asyncio
 @pytest.mark.darwin
 async def test_carbon_emission_should_report_nothing_on_the_first_measurement(mocker):
     co2g_per_kwh = 20.0
@@ -73,7 +71,6 @@ async def test_carbon_emission_should_report_nothing_on_the_first_measurement(mo
     assert co2g.cpu_carbon_usage is None
 
 
-@pytest.mark.asyncio
 @pytest.mark.linux
 async def test_carbon_emission_should_run_to_convert_watt_hours_to_co2g_on_linux(
     mocker,
@@ -94,7 +91,6 @@ async def test_carbon_emission_should_run_to_convert_watt_hours_to_co2g_on_linux
     assert round(co2g.host_carbon_usage, 3) == carbon_usage_expected
 
 
-@pytest.mark.asyncio
 @pytest.mark.darwin
 async def test_carbon_emission_measures_a_window_a_clock_correction_cannot_reverse(mocker):
     co2g_per_kwh = 74.0
@@ -118,7 +114,6 @@ async def test_carbon_emission_measures_a_window_a_clock_correction_cannot_rever
     assert round(co2g.host_carbon_usage, 3) == a_minute_of_sixty_watts_in_co2g
 
 
-@pytest.mark.asyncio
 @pytest.mark.darwin
 async def test_carbon_emission_measures_the_window_between_the_readings(mocker):
     co2g_per_kwh = 74.0
@@ -210,7 +205,6 @@ def test_carbon_unit_conversion_preserves_zero_and_missing_components(grams, mil
         )
 
 
-@pytest.mark.asyncio
 @pytest.mark.darwin
 async def test_carbon_usage_includes_carbon_intensity_metadata(mocker):
     co2g_per_kwh = 20.0
@@ -231,7 +225,6 @@ async def test_carbon_usage_includes_carbon_intensity_metadata(mocker):
     )
 
 
-@pytest.mark.asyncio
 async def test_carbon_emission_leaves_out_the_window_of_a_failed_reading(mocker):
     readings = [EnergyUsage(host_energy_usage=60.0), OSError("sensor unavailable")] + [
         EnergyUsage(host_energy_usage=60.0)
@@ -256,7 +249,6 @@ async def test_carbon_emission_leaves_out_the_window_of_a_failed_reading(mocker)
     assert one_minute.host_carbon_usage == pytest.approx(0.074)
 
 
-@pytest.mark.asyncio
 async def test_missing_component_reopens_only_its_own_carbon_window(mocker):
     mocker.patch.object(
         MacEnergyConsumption,

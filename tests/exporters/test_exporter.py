@@ -369,7 +369,6 @@ def test_metric_name_and_tags_format():
     assert metric_tags == expected_tags
 
 
-@pytest.mark.asyncio
 async def test_metric_generator_generate():
     async def get_memory_usage() -> float:
         return psutil.virtual_memory()[2]
@@ -449,7 +448,6 @@ def test_metric_report_keeps_distinct_series_when_formatted_tags_collide():
     assert report.total == 0.0
 
 
-@pytest.mark.asyncio
 async def test_exporter_totals_established_series_when_a_new_series_reports_first(mocker):
     first_container = _metric(container_name="first")
     second_container = _metric(container_name="second")
@@ -474,7 +472,6 @@ async def test_exporter_totals_established_series_when_a_new_series_reports_firs
     assert report.total == two_one_minute_windows_from_each_series + two_hours_of_sixty_watts_from_each_series
 
 
-@pytest.mark.asyncio
 async def test_exporter_forgets_a_series_absent_from_the_current_cycle(mocker):
     gone_container = _metric(container_name="gone")
     report = MetricReport(exporter_name=StdoutExporter.get_name(), metric=gone_container)
@@ -500,7 +497,6 @@ def test_metric_report_averages_every_interval():
     assert report.average_interval_in_seconds == 20.0
 
 
-@pytest.mark.asyncio
 async def test_metric_report_totals_a_metric_that_is_not_power_as_itself():
     carbon_metric = _metric(units="co2g")
     exporter = StdoutExporter(metric_generators=[])
@@ -580,7 +576,6 @@ def test_exporter_forgets_series_that_stopped_reporting_while_another_generator_
     assert len(exporter.metric_report["pod_energy"]._measured_at_by_series) == 1
 
 
-@pytest.mark.asyncio
 async def test_exporter_never_holds_a_sampled_reading_across_a_missed_collection(mocker):
     sampled_watts = iter([10.0, 10.0, None, 20.0, 20.0])
 

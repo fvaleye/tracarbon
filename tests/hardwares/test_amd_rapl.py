@@ -10,7 +10,6 @@ from tracarbon.hardwares.energy import EnergyUsageUnit
 from tracarbon.hardwares.energy import UsageType
 
 
-@pytest.mark.asyncio
 @pytest.mark.linux
 @pytest.mark.darwin
 async def test_is_amd_rapl_compatible_false_when_no_path():
@@ -18,7 +17,6 @@ async def test_is_amd_rapl_compatible_false_when_no_path():
     assert await amd_rapl.is_amd_rapl_compatible() is False
 
 
-@pytest.mark.asyncio
 @pytest.mark.linux
 @pytest.mark.darwin
 async def test_is_amd_rapl_compatible_with_custom_path():
@@ -27,7 +25,6 @@ async def test_is_amd_rapl_compatible_with_custom_path():
     assert await amd_rapl.is_amd_rapl_compatible() is True
 
 
-@pytest.mark.asyncio
 @pytest.mark.linux
 @pytest.mark.darwin
 async def test_a_counter_only_root_can_read_is_not_amd_compatible(tmpdir):
@@ -43,7 +40,6 @@ async def test_a_counter_only_root_can_read_is_not_amd_compatible(tmpdir):
     assert await AMDRAPL(hwmon_base_path=str(tmpdir)).is_amd_rapl_compatible() is False
 
 
-@pytest.mark.asyncio
 async def test_get_amd_rapl_power_usage():
     path = f"{pathlib.Path(__file__).parent.resolve()}/data/amd-energy"
     amd_rapl = AMDRAPL(amd_energy_path=path)
@@ -69,7 +65,6 @@ async def test_get_amd_rapl_power_usage():
     assert rapl_results[2].energy_uj == 24346753748.0
 
 
-@pytest.mark.asyncio
 @pytest.mark.linux
 @pytest.mark.darwin
 async def test_get_energy_report_first_call():
@@ -82,7 +77,6 @@ async def test_get_energy_report_first_call():
     assert energy_report.cpu_energy_usage == 0.0
 
 
-@pytest.mark.asyncio
 @pytest.mark.linux
 @pytest.mark.darwin
 async def test_get_energy_report_with_previous_results():
@@ -143,7 +137,6 @@ def test_classify_domain():
     assert amd_rapl._classify_domain("something_else") == "unknown"
 
 
-@pytest.mark.asyncio
 async def test_a_counter_reading_lower_than_before_restarted_and_is_left_out():
     path = f"{pathlib.Path(__file__).parent.resolve()}/data/amd-energy"
     two_seconds_ago = datetime.datetime.now() - datetime.timedelta(seconds=2)
@@ -162,7 +155,6 @@ async def test_a_counter_reading_lower_than_before_restarted_and_is_left_out():
     assert energy_report.cpu_energy_usage is None
 
 
-@pytest.mark.asyncio
 async def test_amd_sample_intervals_ignore_wall_clock_changes(mocker, tmpdir):
     hwmon = tmpdir.mkdir("hwmon0")
     hwmon.join("energy1_label").write("Esocket0\n")
@@ -185,7 +177,6 @@ async def test_amd_sample_intervals_ignore_wall_clock_changes(mocker, tmpdir):
     assert energy_report.interval_joules[UsageType.HOST] == pytest.approx(6000.0)
 
 
-@pytest.mark.asyncio
 async def test_each_amd_socket_keeps_its_own_energy_increment(mocker):
     previous = [
         AMDRAPLResult(
@@ -208,7 +199,6 @@ async def test_each_amd_socket_keeps_its_own_energy_increment(mocker):
     assert report.interval_joules == {UsageType.HOST: 20, UsageType.CPU: 20}
 
 
-@pytest.mark.asyncio
 async def test_the_first_amd_report_measures_a_short_interval_rather_than_none(mocker, tmpdir):
     hwmon = tmpdir.mkdir("hwmon0")
     hwmon.join("energy1_label").write("Esocket0\n")

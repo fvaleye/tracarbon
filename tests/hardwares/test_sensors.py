@@ -64,7 +64,6 @@ def test_get_platform_should_return_the_platform_energy_consumption_mac():
     assert energy_consumption.init is False
 
 
-@pytest.mark.asyncio
 async def test_mac_energy_consumption_with_powermetrics(mocker):
     mocker.patch.object(
         AppleSiliconPowerMetrics,
@@ -80,7 +79,6 @@ async def test_mac_energy_consumption_with_powermetrics(mocker):
     assert abs(energy_usage.host_energy_usage - 7.3) < 0.01
 
 
-@pytest.mark.asyncio
 async def test_mac_energy_consumption_powermetrics_no_ane(mocker):
     mocker.patch.object(
         AppleSiliconPowerMetrics,
@@ -105,7 +103,6 @@ async def test_mac_energy_consumption_powermetrics_no_ane(mocker):
     ],
     ids=["watts", "milliwatts", "encoded-float"],
 )
-@pytest.mark.asyncio
 async def test_mac_energy_consumption_fallback_to_ioreg(mocker, reported_power, expected_watts):
     mocker.patch.object(
         AppleSiliconPowerMetrics,
@@ -126,7 +123,6 @@ async def test_mac_energy_consumption_fallback_to_ioreg(mocker, reported_power, 
     assert energy_usage.cpu_energy_usage is None
 
 
-@pytest.mark.asyncio
 async def test_mac_energy_consumption_ioreg_parse_failure_reports_unknown_power(mocker):
     mocker.patch.object(
         AppleSiliconPowerMetrics,
@@ -157,7 +153,6 @@ def test_is_ec2_should_return_false_on_exception():
     assert AWS.is_ec2() is False
 
 
-@pytest.mark.asyncio
 async def test_aws_sensor_with_gpu_should_return_energy_consumption(mocker):
     aws_ec2_sensor = AWSEC2EnergyConsumption(instance_type="p2.8xlarge")
 
@@ -184,7 +179,6 @@ async def test_aws_sensor_with_gpu_should_return_energy_consumption(mocker):
     assert energy_usage.host_energy_usage == value_expected
 
 
-@pytest.mark.asyncio
 async def test_aws_sensor_without_gpu_should_return_energy_consumption(mocker):
     aws_ec2_sensor = AWSEC2EnergyConsumption(instance_type="m5.8xlarge")
 
@@ -211,7 +205,6 @@ async def test_aws_sensor_without_gpu_should_return_energy_consumption(mocker):
     ("cpu_usage", "cpu_watts", "memory_watts"),
     [(0.0, 1.21, 1.2), (49.0, 7.05725, 4.884), (100.0, 9.96, 8.0)],
 )
-@pytest.mark.asyncio
 async def test_aws_sensor_interpolates_the_cpu_and_memory_power_at_the_cpu_load(
     mocker, cpu_usage, cpu_watts, memory_watts
 ):
@@ -348,7 +341,6 @@ def test_cloud_provider_auto_detect_caches_negative_result(mocker):
     CloudProviders.auto_detect.cache_clear()
 
 
-@pytest.mark.asyncio
 async def test_get_platform_should_return_the_platform_energy_consumption_linux_error(
     mocker,
 ):
@@ -362,7 +354,6 @@ async def test_get_platform_should_return_the_platform_energy_consumption_linux_
     assert "No supported RAPL interface found" in exception.value.args[0]
 
 
-@pytest.mark.asyncio
 async def test_linux_reads_the_gpu_when_no_rapl_counter_is_readable(mocker):
     mocker.patch.object(RAPL, "is_rapl_compatible", return_value=False)
     mocker.patch.object(AMDRAPL, "is_amd_rapl_compatible", return_value=False)
@@ -376,7 +367,6 @@ async def test_linux_reads_the_gpu_when_no_rapl_counter_is_readable(mocker):
     assert first_energy_usage.gpu_energy_usage == second_energy_usage.gpu_energy_usage == 250.0
 
 
-@pytest.mark.asyncio
 async def test_linux_combines_counter_energy_with_sampled_gpu_energy_without_bridging_gaps(mocker):
     mocker.patch.object(
         LinuxEnergyConsumption,
@@ -407,7 +397,6 @@ async def test_linux_combines_counter_energy_with_sampled_gpu_energy_without_bri
     assert [r.interval_joules[UsageType.CPU] for r in reports] == [9] * 5
 
 
-@pytest.mark.asyncio
 async def test_get_platform_should_return_the_platform_energy_consumption_linux(mocker):
     energy_usage = EnergyUsage(host_energy_usage=1.8)
     mocker.patch.object(RAPL, "is_rapl_compatible", return_value=True)
@@ -422,7 +411,6 @@ async def test_get_platform_should_return_the_platform_energy_consumption_linux(
     assert results == energy_usage
 
 
-@pytest.mark.asyncio
 async def test_linux_adds_nvidia_power_to_amd_rapl_when_powercap_unavailable(mocker):
     mocker.patch.object(RAPL, "is_rapl_compatible", return_value=False)
     mocker.patch.object(AMDRAPL, "is_amd_rapl_compatible", return_value=True)
@@ -448,7 +436,6 @@ async def test_linux_adds_nvidia_power_to_amd_rapl_when_powercap_unavailable(moc
         (15.0, b"0 W", 100.0, 15.0),
     ],
 )
-@pytest.mark.asyncio
 async def test_linux_adds_nvidia_power_once_and_preserves_rapl_gpu(
     mocker, rapl_gpu, nvidia_output, expected_host, expected_gpu
 ):
@@ -468,7 +455,6 @@ async def test_linux_adds_nvidia_power_once_and_preserves_rapl_gpu(
 
 
 @pytest.mark.parametrize("rapl_gpu", [None, 15.0])
-@pytest.mark.asyncio
 async def test_linux_keeps_amd_fallback_out_of_rapl_host_power(mocker, rapl_gpu):
     mocker.patch.object(RAPL, "is_rapl_compatible", return_value=True)
     mocker.patch.object(
@@ -489,7 +475,6 @@ async def test_linux_keeps_amd_fallback_out_of_rapl_host_power(mocker, rapl_gpu)
     assert energy_usage.gpu_energy_usage == 45.0
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize("gpu_power", [0.0, 50.0])
 async def test_windows_reports_gpu_power_without_inventing_host_power(mocker, gpu_power):
     mocker.patch.object(NvidiaGPU, "get_gpu_power_usage", return_value=gpu_power)
@@ -533,7 +518,6 @@ def test_gcp_from_metadata(mocker):
     assert gcp.region_name == "us-central1"
 
 
-@pytest.mark.asyncio
 async def test_gcp_sensor_returns_energy_consumption_for_a_newer_machine_series(mocker):
     gcp_sensor = GCPEnergyConsumption(instance_type="c4-standard-2")
 
@@ -572,7 +556,6 @@ def test_azure_from_metadata(mocker):
     assert azure.region_name == "eastus"
 
 
-@pytest.mark.asyncio
 async def test_azure_sensor_should_return_energy_consumption(mocker):
     azure_sensor = AzureEnergyConsumption(instance_type="D2 v3")
 
@@ -626,7 +609,6 @@ def test_azure_metadata_names_find_the_instance_and_the_region(mocker, vm_size, 
     ],
     ids=["gcp", "aws"],
 )
-@pytest.mark.asyncio
 async def test_cloud_sensors_each_measure_the_cpu_load_since_their_own_previous_reading(
     mocker, new_sensor, idle_watts, full_load_watts
 ):
@@ -647,7 +629,6 @@ async def test_cloud_sensors_each_measure_the_cpu_load_since_their_own_previous_
     assert [reading.cpu_energy_usage for reading in next_readings] == [full_load_watts(energy_sensor)] * 2
 
 
-@pytest.mark.asyncio
 async def test_mac_energy_consumption_reads_the_adapter_when_no_system_power_is_reported(mocker):
     mocker.patch.object(
         AppleSiliconPowerMetrics,
@@ -665,7 +646,6 @@ async def test_mac_energy_consumption_reads_the_adapter_when_no_system_power_is_
     assert "AdapterPower" in read_power.call_args.args[0]
 
 
-@pytest.mark.asyncio
 async def test_mac_energy_consumption_reports_unknown_power_when_ioreg_reports_no_key(mocker):
     mocker.patch.object(
         AppleSiliconPowerMetrics,
@@ -681,7 +661,6 @@ async def test_mac_energy_consumption_reports_unknown_power_when_ioreg_reports_n
     assert energy_usage.host_energy_usage is None
 
 
-@pytest.mark.asyncio
 @pytest.mark.linux
 @pytest.mark.darwin
 @pytest.mark.parametrize(
@@ -753,7 +732,6 @@ async def test_stopping_ioreg_stops_pipeline_children(mocker, monkeypatch, tmp_p
                     os.kill(int(pid_file.read_text()), signal.SIGKILL)
 
 
-@pytest.mark.asyncio
 async def test_mac_energy_consumption_prefers_the_energy_counters(mocker):
     counted = EnergyUsage(host_energy_usage=8.0, cpu_energy_usage=5.0, gpu_energy_usage=2.0, memory_energy_usage=1.0)
     mocker.patch.object(IOReportEnergy, "is_available", return_value=True)
@@ -767,7 +745,6 @@ async def test_mac_energy_consumption_prefers_the_energy_counters(mocker):
     powermetrics.get_power_breakdown.assert_not_called()
 
 
-@pytest.mark.asyncio
 async def test_mac_energy_consumption_falls_back_when_the_counters_cannot_be_read(mocker):
     mocker.patch.object(IOReportEnergy, "is_available", return_value=True)
     mocker.patch.object(IOReportEnergy, "__init__", return_value=None)
@@ -803,7 +780,6 @@ async def test_mac_energy_consumption_falls_back_when_the_counters_cannot_be_rea
         (2.0, (5.0, 3.0, 0.5), EnergyUsage(host_energy_usage=8.5, cpu_energy_usage=5.0, gpu_energy_usage=3.0)),
     ],
 )
-@pytest.mark.asyncio
 async def test_mac_energy_consumption_falls_back_when_only_the_gpu_counter_is_read(
     mocker, ioreport_gpu, powermetrics, expected
 ):
