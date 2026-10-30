@@ -8,6 +8,7 @@ from tracarbon import RAPL
 from tracarbon.hardwares import EnergyUsageUnit
 from tracarbon.hardwares import Power
 from tracarbon.hardwares import RAPLResult
+from tracarbon.hardwares import UsageType
 
 
 @pytest.mark.linux
@@ -87,6 +88,7 @@ async def test_get_rapl_power_wrap_around_when_0(mocker):
     assert round(energy_report.host_energy_usage, 0) == host_energy_usage_expected
     assert round(energy_report.cpu_energy_usage, 0) == cpu_energy_usage_expected
     assert energy_report.memory_energy_usage is None
+    assert energy_report.interval_joules[UsageType.HOST] == pytest.approx(0.069998)
 
 
 @pytest.mark.asyncio

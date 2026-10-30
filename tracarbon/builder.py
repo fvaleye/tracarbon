@@ -101,7 +101,8 @@ class Tracarbon:
             self.exporter.finish()
         finally:
             self.report.metric_report = self.exporter.metric_report
-            self.report.end_time = datetime.datetime.now()
+            if self.report.end_time is None:
+                self.report.end_time = datetime.datetime.now()
         return self.report.total_co2g
 
 

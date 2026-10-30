@@ -7,6 +7,7 @@ import pytest
 from tracarbon.hardwares.amd_rapl import AMDRAPL
 from tracarbon.hardwares.amd_rapl import AMDRAPLResult
 from tracarbon.hardwares.energy import EnergyUsageUnit
+from tracarbon.hardwares.energy import UsageType
 
 
 @pytest.mark.asyncio
@@ -181,6 +182,30 @@ async def test_amd_sample_intervals_ignore_wall_clock_changes(mocker, tmpdir):
     energy_report = await amd_rapl.get_energy_report()
 
     assert energy_report.host_energy_usage == pytest.approx(100.0)
+    assert energy_report.interval_joules[UsageType.HOST] == pytest.approx(6000.0)
+
+
+@pytest.mark.asyncio
+async def test_each_amd_socket_keeps_its_own_energy_increment(mocker):
+    previous = [
+        AMDRAPLResult(
+            name=f"amd-{index}-Esocket{index}",
+            label=f"Esocket{index}",
+            energy_uj=0,
+            timestamp=datetime.datetime(2026, 1, 1),
+            monotonic_time=0,
+        )
+        for index in range(2)
+    ]
+    current = [
+        reading.model_copy(update={"energy_uj": 10_000_000, "monotonic_time": seconds})
+        for reading, seconds in zip(previous, (0.1, 0.4), strict=True)
+    ]
+    mocker.patch.object(AMDRAPL, "get_amd_rapl_power_usage", return_value=current)
+    report = await AMDRAPL(rapl_results={reading.name: reading for reading in previous}).get_energy_report()
+
+    assert report.host_energy_usage == 125
+    assert report.interval_joules == {UsageType.HOST: 20, UsageType.CPU: 20}
 
 
 @pytest.mark.asyncio

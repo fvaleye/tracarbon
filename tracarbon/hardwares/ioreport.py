@@ -35,14 +35,20 @@ class IOReportEnergy:
         if not interval.millijoules:
             raise HardwareIOReportException("IOReport returned no readable energy channel.")
 
-        watts = {usage: energy / 1000 / interval.seconds for usage, energy in interval.millijoules.items()}
+        joules = {usage: energy / 1000 for usage, energy in interval.millijoules.items()}
+        watts = {usage: energy / interval.seconds for usage, energy in joules.items()}
         if self._gpu_only:
-            return EnergyUsage(host_energy_usage=None, gpu_energy_usage=watts.get(UsageType.GPU))
+            return EnergyUsage(
+                host_energy_usage=None,
+                gpu_energy_usage=watts.get(UsageType.GPU),
+                interval_joules={UsageType.GPU: joules[UsageType.GPU]} if UsageType.GPU in joules else {},
+            )
         return EnergyUsage(
             host_energy_usage=watts.get(UsageType.HOST, 0.0),
             cpu_energy_usage=watts.get(UsageType.CPU),
             memory_energy_usage=watts.get(UsageType.MEMORY),
             gpu_energy_usage=watts.get(UsageType.GPU),
+            interval_joules=joules,
         )
 
     def close(self) -> None:

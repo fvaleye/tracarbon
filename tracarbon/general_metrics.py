@@ -42,6 +42,9 @@ class EnergyConsumptionGenerator(MetricGenerator):
             location = Country.get_location()
         super().__init__(location=location, metrics=[], **data)
 
+    def reset(self) -> None:
+        self.energy_consumption.reset()
+
     async def generate(self) -> AsyncGenerator[Metric, None]:
         """
         Generate a metric for energy consumption.
@@ -68,6 +71,7 @@ class EnergyConsumptionGenerator(MetricGenerator):
                     Tag(key="location", value=self.location.name),
                     Tag(key="units", value=energy_usage.unit.value),
                 ],
+                interval_joules=energy_usage.interval_joules.get(usage_type),
             )
 
 
@@ -126,6 +130,7 @@ class EnergyConsumptionProcessGenerator(MetricGenerator):
     processes: Processes
 
     def reset(self) -> None:
+        self.energy_consumption.reset()
         self.processes.reset()
 
     def __init__(self, pids: Iterable[int] = (), **data: Any) -> None:
@@ -138,6 +143,7 @@ class EnergyConsumptionProcessGenerator(MetricGenerator):
     async def generate(self) -> AsyncGenerator[Metric, None]:
         """Yield process CPU power with PID, name, location and unit labels."""
         energy_usage = await self.energy_consumption.get_energy_usage()
+        cpu_joules = energy_usage.interval_joules.get(UsageType.CPU)
         for process in self.processes.get_processes_usage():
 
             async def get_process_cpu_energy_consumption(p=process) -> float | None:
@@ -157,6 +163,7 @@ class EnergyConsumptionProcessGenerator(MetricGenerator):
                     Tag(key="location", value=self.location.name),
                     Tag(key="units", value=energy_usage.unit.value),
                 ],
+                interval_joules=cpu_joules * process.cpu_usage if cpu_joules is not None else None,
             )
 
 
@@ -222,6 +229,9 @@ if KUBERNETES_INSTALLED:
                 data["kubernetes"] = Kubernetes()
             super().__init__(metrics=[], **data)
 
+        def reset(self) -> None:
+            self.energy_consumption.reset()
+
         async def generate(self) -> AsyncGenerator[Metric, None]:
             """
             Generate metrics for the energy consumption with Kubernetes.
@@ -230,8 +240,14 @@ if KUBERNETES_INSTALLED:
             """
             energy_usage = await self.energy_consumption.get_energy_usage()
             energy_usage.convert_unit(unit=EnergyUsageUnit.MILLIWATT)
+            cpu_joules = energy_usage.interval_joules.get(UsageType.CPU)
+            memory_joules = energy_usage.interval_joules.get(UsageType.MEMORY)
             for pod in self.kubernetes.get_pods_usage():
                 for container in pod.containers:
+                    container_cpu_joules = cpu_joules * container.cpu_usage if cpu_joules is not None else None
+                    container_memory_joules = (
+                        memory_joules * container.memory_usage if memory_joules is not None else None
+                    )
 
                     async def get_pod_memory_energy_consumption(c=container) -> float | None:
                         """
@@ -277,16 +293,21 @@ if KUBERNETES_INSTALLED:
                         name="energy_consumption_kubernetes_total",
                         value=get_pod_total_energy_consumption,
                         tags=tags,
+                        interval_joules=container_cpu_joules + container_memory_joules
+                        if container_cpu_joules is not None and container_memory_joules is not None
+                        else None,
                     )
                     yield Metric(
                         name="energy_consumption_kubernetes_cpu",
                         value=get_pod_cpu_energy_consumption,
                         tags=tags,
+                        interval_joules=container_cpu_joules,
                     )
                     yield Metric(
                         name="energy_consumption_kubernetes_memory",
                         value=get_pod_memory_energy_consumption,
                         tags=tags,
+                        interval_joules=container_memory_joules,
                     )
 
     class CarbonEmissionKubernetesGenerator(MetricGenerator):

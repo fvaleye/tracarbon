@@ -27,6 +27,7 @@ from tracarbon.exceptions import HardwareIOReportException
 from tracarbon.exceptions import HardwareNoGPUDetectedException
 from tracarbon.hardwares import EnergyUsage
 from tracarbon.hardwares import HardwareInfo
+from tracarbon.hardwares import UsageType
 from tracarbon.hardwares import WindowsEnergyConsumption
 from tracarbon.hardwares.cloud_providers import AWS
 from tracarbon.hardwares.cloud_providers import GCP
@@ -371,7 +372,39 @@ async def test_linux_reads_the_gpu_when_no_rapl_counter_is_readable(mocker):
     first_energy_usage = await linux_energy_consumption.get_energy_usage()
     second_energy_usage = await linux_energy_consumption.get_energy_usage()
 
-    assert first_energy_usage == second_energy_usage == EnergyUsage(host_energy_usage=None, gpu_energy_usage=250.0)
+    assert first_energy_usage.host_energy_usage is second_energy_usage.host_energy_usage is None
+    assert first_energy_usage.gpu_energy_usage == second_energy_usage.gpu_energy_usage == 250.0
+
+
+@pytest.mark.asyncio
+async def test_linux_combines_counter_energy_with_sampled_gpu_energy_without_bridging_gaps(mocker):
+    mocker.patch.object(
+        LinuxEnergyConsumption,
+        "_read_energy_counters",
+        side_effect=lambda: EnergyUsage(
+            host_energy_usage=100,
+            cpu_energy_usage=90,
+            gpu_energy_usage=10,
+            interval_joules={UsageType.HOST: 10, UsageType.CPU: 9, UsageType.GPU: 1},
+        ),
+    )
+    mocker.patch.object(
+        NvidiaGPU,
+        "get_gpu_power_usage",
+        side_effect=[30, 30, HardwareNoGPUDetectedException("unavailable"), 30, 30],
+    )
+    mocker.patch.object(AMDGPU, "get_gpu_power_usage", side_effect=HardwareNoGPUDetectedException("no AMD GPU"))
+    clock = mocker.patch("tracarbon.hardwares.sensors.time")
+    sensor = LinuxEnergyConsumption()
+
+    reports = []
+    for read_at in (0, 2, 4, 6, 8):
+        clock.monotonic.return_value = read_at
+        reports.append(await sensor.get_energy_usage())
+
+    assert [r.interval_joules[UsageType.HOST] for r in reports] == [10, 70, 10, 10, 70]
+    assert [r.interval_joules[UsageType.GPU] for r in reports] == [1, 61, 1, 1, 61]
+    assert [r.interval_joules[UsageType.CPU] for r in reports] == [9] * 5
 
 
 @pytest.mark.asyncio
@@ -756,8 +789,16 @@ async def test_mac_energy_consumption_falls_back_when_the_counters_cannot_be_rea
 @pytest.mark.parametrize(
     ("ioreport_gpu", "powermetrics", "expected"),
     [
-        (0.0, (None, 2.0, None), EnergyUsage(host_energy_usage=45.964, gpu_energy_usage=0.0)),
-        (2.0, (None, None, None), EnergyUsage(host_energy_usage=45.964, gpu_energy_usage=2.0)),
+        (
+            0.0,
+            (None, 2.0, None),
+            EnergyUsage(host_energy_usage=45.964, gpu_energy_usage=0.0, interval_joules={UsageType.GPU: 0.0}),
+        ),
+        (
+            2.0,
+            (None, None, None),
+            EnergyUsage(host_energy_usage=45.964, gpu_energy_usage=2.0, interval_joules={UsageType.GPU: 4.0}),
+        ),
         (None, (None, 2.0, None), EnergyUsage(host_energy_usage=45.964, gpu_energy_usage=2.0)),
         (2.0, (5.0, 3.0, 0.5), EnergyUsage(host_energy_usage=8.5, cpu_energy_usage=5.0, gpu_energy_usage=3.0)),
     ],
@@ -769,7 +810,11 @@ async def test_mac_energy_consumption_falls_back_when_only_the_gpu_counter_is_re
     mocker.patch.object(
         MacEnergyConsumption,
         "_read_energy_counters",
-        return_value=EnergyUsage(host_energy_usage=None, gpu_energy_usage=ioreport_gpu),
+        return_value=EnergyUsage(
+            host_energy_usage=None,
+            gpu_energy_usage=ioreport_gpu,
+            interval_joules={UsageType.GPU: ioreport_gpu * 2} if ioreport_gpu is not None else {},
+        ),
     )
     mocker.patch.object(AppleSiliconPowerMetrics, "get_power_breakdown", return_value=powermetrics)
     read_power = mocker.patch.object(MacEnergyConsumption, "_read_power", side_effect=[None, None, 45.964])

@@ -3,6 +3,7 @@ from enum import Enum
 from typing import ClassVar
 
 from pydantic import BaseModel
+from pydantic import Field
 
 __all__ = [
     "EnergyUsageUnit",
@@ -34,7 +35,7 @@ class UsageType(Enum):
 
 class EnergyUsage(BaseModel):
     """
-    Energy report in watts.
+    Power readings, with per-component energy in joules for each measurement interval.
     """
 
     host_energy_usage: float | None = 0.0
@@ -42,6 +43,7 @@ class EnergyUsage(BaseModel):
     memory_energy_usage: float | None = None
     gpu_energy_usage: float | None = None
     unit: EnergyUsageUnit = EnergyUsageUnit.WATT
+    interval_joules: dict[UsageType, float] = Field(default_factory=dict)
 
     def get_energy_usage_on_type(self, usage_type: UsageType) -> float | None:
         """

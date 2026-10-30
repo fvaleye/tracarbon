@@ -92,11 +92,17 @@ class CarbonEmission(Sensor):
     previous_energy_consumption_time: datetime | None = None
 
     _measured_at: float | None = PrivateAttr(default=None)
+    _previous_components: set[UsageType] = PrivateAttr(default_factory=set)
 
     def reset(self) -> None:
         """Open a new measurement window without including time from an earlier run."""
+        self._reset_measurement_window()
+        self.energy_consumption.reset()
+
+    def _reset_measurement_window(self) -> None:
         self._measured_at = None
         self.previous_energy_consumption_time = None
+        self._previous_components.clear()
 
     def _seconds_since_the_previous_measurement(self, measured_at: float) -> float:
         """
@@ -134,28 +140,45 @@ class CarbonEmission(Sensor):
 
         :return: the carbon usage.
         """
-        energy_usage = await self.get_energy_usage()
+        try:
+            energy_usage = await self.get_energy_usage()
+        except Exception:
+            self._reset_measurement_window()
+            raise
         measured_at = time.monotonic()
         energy_usage.convert_unit(unit=EnergyUsageUnit.WATT)
         logger.debug(f"Energy consumption run: {energy_usage}W")
 
         seconds = self._seconds_since_the_previous_measurement(measured_at=measured_at)
+        previous_components = self._previous_components
+        if self._measured_at is None and self.previous_energy_consumption_time is not None:
+            previous_components = set(UsageType)
+        self._previous_components = {
+            usage for usage in UsageType if energy_usage.get_energy_usage_on_type(usage) is not None
+        }
+        self.previous_energy_consumption_time = datetime.now()
+        self._measured_at = measured_at
         co2g_per_kwh = await self.location.get_latest_co2g_kwh()
         logger.debug(f"Carbon Emission of the location: {co2g_per_kwh}g CO2 eq/kWh")
 
-        def co2g_from(watts: float | None) -> float | None:
-            if watts is None or seconds <= 0:
+        def co2g_from(usage_type: UsageType) -> float | None:
+            watts = energy_usage.get_energy_usage_on_type(usage_type)
+            if watts is None:
                 return None
-            watt_hours = Power.watt_hours_from_watts_over(watts=watts, seconds=seconds)
+            joules = energy_usage.interval_joules.get(usage_type)
+            if joules is not None:
+                watt_hours = joules / Power.SECONDS_TO_HOURS_FACTOR
+            elif seconds > 0 and usage_type in previous_components:
+                watt_hours = Power.watt_hours_from_watts_over(watts=watts, seconds=seconds)
+            else:
+                return None
             return Power.co2g_from_watts_hour(watt_hours, co2g_per_kwh=co2g_per_kwh)
 
-        self.previous_energy_consumption_time = datetime.now()
-        self._measured_at = measured_at
         return CarbonUsage(
-            host_carbon_usage=co2g_from(energy_usage.host_energy_usage),
-            cpu_carbon_usage=co2g_from(energy_usage.cpu_energy_usage),
-            memory_carbon_usage=co2g_from(energy_usage.memory_energy_usage),
-            gpu_carbon_usage=co2g_from(energy_usage.gpu_energy_usage),
+            host_carbon_usage=co2g_from(UsageType.HOST),
+            cpu_carbon_usage=co2g_from(UsageType.CPU),
+            memory_carbon_usage=co2g_from(UsageType.MEMORY),
+            gpu_carbon_usage=co2g_from(UsageType.GPU),
             unit=CarbonUsageUnit.CO2_G,
             carbon_intensity_metadata=self.location.carbon_intensity_metadata.model_copy(),
         )
