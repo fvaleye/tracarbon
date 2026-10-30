@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.15.2](https://github.com/fvaleye/tracarbon/compare/v0.15.1...v0.15.2) (2026-10-30)
+
+
+### Bug Fixes
+
+* **rapl:** measure CPU power as the full package ([#569](https://github.com/fvaleye/tracarbon/issues/569)) ([3340da9](https://github.com/fvaleye/tracarbon/commit/3340da9e108241bdf76a4e21ff3d48b3fa57a67d))
+
+
+### Performance Improvements
+
+* share sensor samples within each collection ([#568](https://github.com/fvaleye/tracarbon/issues/568)) ([e8b44ea](https://github.com/fvaleye/tracarbon/commit/e8b44ea22df04d9a5e97de2a272acfe28b8f3abd))
+
 ## [0.15.1](https://github.com/fvaleye/tracarbon/compare/v0.15.0...v0.15.1) (2026-10-30)
 
 
