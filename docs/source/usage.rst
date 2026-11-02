@@ -133,6 +133,23 @@ The CLI configures its own handler with local variables hidden in tracebacks.
 For application handlers, set ``LOGURU_DIAGNOSE=False`` before starting Python
 or pass ``diagnose=False`` to ``logger.add()``.
 
+Tracarbon logs through Loguru, which ignores ``logging`` configuration. To route
+its records to ``logging``, replace Loguru's default handler with the
+`PropagateHandler <https://loguru.readthedocs.io/en/stable/overview.html#entirely-compatible-with-standard-logging>`_
+recipe. Set a ``level``: ``logging`` logger levels do not apply to propagated records.
+
+.. code-block:: python
+
+   logger.remove()
+   logger.add(PropagateHandler(), level="INFO", format="{message}")
+
+To silence Tracarbon but keep the ``Stdout`` exporter's metric lines:
+
+.. code-block:: python
+
+   logger.disable("tracarbon")
+   logger.enable("tracarbon.exporters.stdout")
+
 Choose metrics
 ==============
 
