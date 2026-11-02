@@ -15,10 +15,6 @@ __all__: list[str] = []
 
 if KUBERNETES_INSTALLED:
     __all__ = ["Container", "Pod", "Kubernetes"]
-    from kubernetes import config
-    from kubernetes.client import CoreV1Api
-    from kubernetes.client import CustomObjectsApi
-    from kubernetes.utils.quantity import parse_quantity
 
     class Container(BaseModel):
         """
@@ -33,6 +29,8 @@ if KUBERNETES_INSTALLED:
             """
             Initialize the Contaniner values based on cpu and memory usages.
             """
+            from kubernetes.utils.quantity import parse_quantity
+
             cores = HardwareInfo.get_number_of_cores()
             memory_total = HardwareInfo.get_memory_total()
             if isinstance(data["cpu_usage"], str):
@@ -52,23 +50,27 @@ if KUBERNETES_INSTALLED:
         namespace: str
         containers: List[Container]
 
+    def _core_v1_api() -> Any:
+        from kubernetes.client import CoreV1Api
+
+        return CoreV1Api()
+
     class Kubernetes(BaseModel):
         """
         Kubernetes client.
         """
 
         namespaces: List[str] | None = None
-        api: CustomObjectsApi
+        api: Any
         node_name: str | None = None
         group: str = "metrics.k8s.io"
         version: str = "v1beta1"
-        _core_api: CoreV1Api = PrivateAttr(default_factory=CoreV1Api)
-
-        model_config = {
-            "arbitrary_types_allowed": True,
-        }
+        _core_api: Any = PrivateAttr(default_factory=_core_v1_api)
 
         def __init__(self, **data: Any) -> None:
+            from kubernetes import config
+            from kubernetes.client import CustomObjectsApi
+
             try:
                 config.load_incluster_config()
             except Exception:
