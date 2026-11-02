@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.3](https://github.com/fvaleye/tracarbon/compare/v0.15.2...v0.15.3) (2026-11-02)
+
+
+### Performance Improvements
+
+* defer optional Kubernetes imports ([#571](https://github.com/fvaleye/tracarbon/issues/571)) ([3d6b674](https://github.com/fvaleye/tracarbon/commit/3d6b6740a786d193bbf676d616695470bde557aa))
+
 ## [0.15.2](https://github.com/fvaleye/tracarbon/compare/v0.15.1...v0.15.2) (2026-10-30)
 
 
