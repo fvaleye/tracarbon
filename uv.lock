@@ -2256,7 +2256,7 @@ wheels = [
 
 [[package]]
 name = "tracarbon"
-version = "0.15.2"
+version = "0.15.3"
 source = { editable = "." }
 dependencies = [
     { name = "aiofiles" },
