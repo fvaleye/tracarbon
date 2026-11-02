@@ -11,11 +11,7 @@ from pydantic import Field
 def check_optional_dependency(name: str) -> bool:
     import importlib.util
 
-    try:
-        importlib.import_module(name)
-    except ImportError:
-        return False
-    return True
+    return importlib.util.find_spec(name) is not None
 
 
 KUBERNETES_INSTALLED = check_optional_dependency(name="kubernetes")
