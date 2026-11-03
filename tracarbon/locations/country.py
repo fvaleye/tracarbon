@@ -291,7 +291,6 @@ class CloudLocation(Country):
         resource_file = importlib.resources.files("tracarbon.locations.data").joinpath(self._get_csv_filename())
         provider_name = self._get_provider_name()
         conversion_factor = self._get_conversion_factor()
-        co2g_kwh = None
         with resource_file.open("r", encoding="utf-8") as csv_file:
             reader = csv.reader(csv_file)
             header = next(reader)  # Get header to determine format
@@ -315,10 +314,9 @@ class CloudLocation(Country):
                     co2g_kwh = float(row[co2e_col_idx]) * conversion_factor
                     super().__init__(name=f"{provider_name}({region_name})", co2g_kwh=co2g_kwh, **data)
                     return
-        if not co2g_kwh:
-            raise CloudProviderRegionIsMissing(
-                f"The region [{region_name}] is not in the {provider_name} grid emissions factors file."
-            )
+        raise CloudProviderRegionIsMissing(
+            f"The region [{region_name}] is not in the {provider_name} grid emissions factors file."
+        )
 
     async def get_latest_co2g_kwh(self) -> float:
         """

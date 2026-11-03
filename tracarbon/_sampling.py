@@ -2,7 +2,7 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
 from dataclasses import field
-from typing import Iterator
+from typing import Generator
 
 from tracarbon.hardwares.energy import EnergyUsage
 from tracarbon.hardwares.processes import Processes
@@ -20,7 +20,7 @@ _samples: ContextVar[_Samples | None] = ContextVar("tracarbon_collection_samples
 
 
 @contextmanager
-def collection_samples() -> Iterator[None]:
+def collection_samples() -> Generator[None, None, None]:
     token = _samples.set(_Samples())
     try:
         yield
