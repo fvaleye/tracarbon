@@ -132,7 +132,7 @@ Each process and its descendants get their share of the host CPU energy and carb
 
 | Exporter | Description |
 | --- | --- |
-| Stdout | Log metrics through the application's logging handler (stderr in the CLI). |
+| Stdout | Log metrics through the application's Loguru handlers (stderr in the CLI). |
 | JSON | Write a JSON array by default, or [JSON Lines](https://jsonlines.org/) with a `.jsonl` path. |
 | Prometheus | Expose an HTTP endpoint for Prometheus to scrape. |
 | Datadog | Send the metrics to Datadog. |
