@@ -1,6 +1,6 @@
 FROM python:3.14-slim-trixie AS builder
 
-COPY --from=ghcr.io/astral-sh/uv:0.12.19 /uv /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.13.7 /uv /bin/
 ENV UV_PYTHON_DOWNLOADS=0
 
 WORKDIR /app
