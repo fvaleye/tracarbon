@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.15.4](https://github.com/fvaleye/tracarbon/compare/v0.15.3...v0.15.4) (2026-11-03)
+
+
+### Dependencies
+
+* **deps:** Bump astral-sh/setup-uv from 10.3.2 to 10.3.3 ([#574](https://github.com/fvaleye/tracarbon/issues/574)) ([a44894d](https://github.com/fvaleye/tracarbon/commit/a44894d4d58dcea5d2553b76f88ce5e24ea31c6f))
+* **deps:** upgrade uv and Python dependencies ([#576](https://github.com/fvaleye/tracarbon/issues/576)) ([dd9e3cc](https://github.com/fvaleye/tracarbon/commit/dd9e3cc124d6fbc0577203e84507371958ec0d95))
+
 ## [0.15.3](https://github.com/fvaleye/tracarbon/compare/v0.15.2...v0.15.3) (2026-11-02)
 
 
