@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.15.5](https://github.com/fvaleye/tracarbon/compare/v0.15.4...v0.15.5) (2026-11-10)
+
+
+### Dependencies
+
+* **deps-dev:** Update datadog requirement from &lt;0.56,&gt;=0.44 to &gt;=0.44,&lt;0.57 ([#578](https://github.com/fvaleye/tracarbon/issues/578)) ([93e0641](https://github.com/fvaleye/tracarbon/commit/93e06411c56525670ee51286a6ee20f60cd92bbc))
+* **deps:** Bump amannn/action-semantic-pull-request from 6.1.1 to 6.1.2 ([#579](https://github.com/fvaleye/tracarbon/issues/579)) ([344700c](https://github.com/fvaleye/tracarbon/commit/344700c1d6987732f7f7973650d0de6707cc3de4))
+* **deps:** Update typer requirement from &lt;0.28,&gt;=0.16 to &gt;=0.16,&lt;0.29 ([#577](https://github.com/fvaleye/tracarbon/issues/577)) ([c74c621](https://github.com/fvaleye/tracarbon/commit/c74c621c2150260e4969d09ebb1cddaff3a81ecc))
+
 ## [0.15.4](https://github.com/fvaleye/tracarbon/compare/v0.15.3...v0.15.4) (2026-11-03)
 
 
