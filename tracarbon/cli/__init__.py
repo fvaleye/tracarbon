@@ -24,6 +24,7 @@ from tracarbon.exporters import StdoutExporter
 from tracarbon.general_metrics import CarbonEmissionGenerator
 from tracarbon.general_metrics import EnergyConsumptionGenerator
 from tracarbon.general_metrics import _process_generators
+from tracarbon.hardwares import EnergyConsumption
 from tracarbon.hardwares import UsageType
 from tracarbon.locations import Country
 
@@ -70,20 +71,29 @@ def get_exporter(
     )
 
 
-def add_containers_generator(location: Country) -> List[MetricGenerator]:
+def add_containers_generator(
+    location: Country, energy_consumption: EnergyConsumption | None = None
+) -> List[MetricGenerator]:
     """
     Add metric generators for containers if available
 
-    :param: country for the metric generators of containers
+    :param location: country for the metric generators of containers
+    :param energy_consumption: host sensor to share with the container generators
     :return: the list of metric generators for containers
     """
     if KUBERNETES_INSTALLED:
         from tracarbon.general_metrics import CarbonEmissionKubernetesGenerator
         from tracarbon.general_metrics import EnergyConsumptionKubernetesGenerator
 
+        data = {"energy_consumption": energy_consumption} if energy_consumption is not None else {}
+        energy = EnergyConsumptionKubernetesGenerator(location=location, **data)
         return [
-            EnergyConsumptionKubernetesGenerator(location=location),
-            CarbonEmissionKubernetesGenerator(location=location),
+            energy,
+            CarbonEmissionKubernetesGenerator(
+                location=location,
+                kubernetes=energy.kubernetes,
+                carbon_emission=CarbonEmission(location=location, energy_consumption=energy.energy_consumption),
+            ),
         ]
     else:
         raise ImportError("kubernetes optional dependency is not installed")
@@ -122,7 +132,9 @@ def build_tracarbon(
         ),
     ]
     if containers:
-        metric_generators.extend(add_containers_generator(location=location))
+        metric_generators.extend(
+            add_containers_generator(location=location, energy_consumption=energy.energy_consumption)
+        )
     if pids:
         metric_generators.extend(_process_generators(location, pids, energy.energy_consumption))
     exporter = get_exporter(

@@ -2,12 +2,19 @@ import asyncio
 import os
 
 import pytest
+from kubernetes import config
+from kubernetes.client import CoreV1Api
+from kubernetes.client import CustomObjectsApi
+from kubernetes.client import V1ObjectMeta
+from kubernetes.client import V1Pod
+from kubernetes.client import V1PodList
 
 from tracarbon import CarbonEmission
 from tracarbon import Country
 from tracarbon import EnergyConsumption
 from tracarbon import EnergyUsage
 from tracarbon import EnergyUsageUnit
+from tracarbon import HardwareInfo
 from tracarbon import TracarbonBuilder
 from tracarbon import TracarbonConfiguration
 from tracarbon._sampling import collection_samples
@@ -122,3 +129,53 @@ async def test_supplied_exporter_keeps_its_sensors_when_process_tracking_is_adde
 
     assert custom.reads == default.reads == 1
     assert tracker.exporter.metric_report["energy_consumption_host"].average == 50
+
+
+async def test_cli_containers_share_fresh_host_and_pod_samples_each_cycle(mocker, monkeypatch):
+    sensors = []
+
+    def create_sensor():
+        sensor = CountingSensor()
+        sensors.append(sensor)
+        return sensor
+
+    mocker.patch.object(EnergyConsumption, "from_platform", side_effect=create_sensor)
+    mocker.patch.object(Country, "get_location", return_value=Country(name="fr", co2g_kwh=100))
+    mocker.patch.object(config, "load_incluster_config")
+    mocker.patch.object(HardwareInfo, "get_number_of_cores", return_value=2)
+    monkeypatch.setenv("TRACARBON_KUBERNETES_NODE_NAME", "node-a")
+    pod_metrics = mocker.patch.object(
+        CustomObjectsApi,
+        "list_cluster_custom_object",
+        side_effect=[
+            {
+                "items": [
+                    {
+                        "metadata": {"name": "worker", "namespace": "default"},
+                        "containers": [{"name": "app", "usage": {"cpu": share, "memory": "0"}}],
+                    }
+                ]
+            }
+            for share in ["500m", "1000m"]
+        ],
+    )
+    node_pods = mocker.patch.object(
+        CoreV1Api,
+        "list_pod_for_all_namespaces",
+        return_value=V1PodList(items=[V1Pod(metadata=V1ObjectMeta(name="worker", namespace="default"))]),
+    )
+    tracker = build_tracarbon("Stdout", TracarbonConfiguration(), containers=True)
+
+    await tracker.exporter._launch_all()
+
+    assert sum(sensor.reads for sensor in sensors) == 1
+    assert pod_metrics.call_count == node_pods.call_count == 1
+    assert tracker.exporter.metric_report["energy_consumption_kubernetes_cpu"].total == pytest.approx(5 / 3600)
+    assert tracker.exporter.metric_report["carbon_emission_kubernetes_cpu"].total == pytest.approx(5 / 3600 * 100)
+
+    await tracker.exporter._launch_all()
+
+    assert sum(sensor.reads for sensor in sensors) == 2
+    assert pod_metrics.call_count == node_pods.call_count == 2
+    assert tracker.exporter.metric_report["energy_consumption_kubernetes_cpu"].total == pytest.approx(15 / 3600)
+    assert tracker.exporter.metric_report["carbon_emission_kubernetes_cpu"].total == pytest.approx(15 / 3600 * 100)

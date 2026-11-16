@@ -6,6 +6,7 @@ from typing import Iterable
 from pydantic import Field
 
 from tracarbon._sampling import sample_energy
+from tracarbon._sampling import sample_pods
 from tracarbon._sampling import sample_processes
 from tracarbon.conf import KUBERNETES_INSTALLED
 from tracarbon.emissions import CarbonEmission
@@ -244,7 +245,7 @@ if KUBERNETES_INSTALLED:
             energy_usage.convert_unit(unit=EnergyUsageUnit.MILLIWATT)
             cpu_joules = energy_usage.interval_joules.get(UsageType.CPU)
             memory_joules = energy_usage.interval_joules.get(UsageType.MEMORY)
-            for pod in self.kubernetes.get_pods_usage():
+            for pod in sample_pods(self.kubernetes):
                 for container in pod.containers:
                     container_cpu_joules = cpu_joules * container.cpu_usage if cpu_joules is not None else None
                     container_memory_joules = (
@@ -340,7 +341,7 @@ if KUBERNETES_INSTALLED:
             carbon_usage = await self.carbon_emission.get_co2_usage()
             carbon_usage.convert_unit(unit=CarbonUsageUnit.CO2_MG)
 
-            for pod in self.kubernetes.get_pods_usage():
+            for pod in sample_pods(self.kubernetes):
                 for container in pod.containers:
 
                     async def get_cpu_pod_carbon_emission(c=container) -> float | None:
