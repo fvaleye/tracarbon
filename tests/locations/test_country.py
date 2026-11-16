@@ -39,7 +39,7 @@ def test_carbon_intensity_cache_expires_across_event_loops(mocker, source):
     )
 
     assert asyncio.run(country.get_latest_co2g_kwh()) == 100.0
-    request.return_value = {"carbonIntensity": 200.0}
+    request.return_value = {"carbonIntensity": 200.0, "datetime": "2025-01-15T12:00:00.000Z"}
     clock.return_value = 4599.0
     assert asyncio.run(country.get_latest_co2g_kwh()) == 100.0
     assert request.await_count == 1
@@ -48,11 +48,16 @@ def test_carbon_intensity_cache_expires_across_event_loops(mocker, source):
     assert asyncio.run(country.get_latest_co2g_kwh()) == 200.0
     assert request.await_count == 2
     assert country.carbon_intensity_metadata.co2g_kwh == 200.0
+    successful_metadata = country.carbon_intensity_metadata
 
     clock.return_value = 8200.0
     request.side_effect = RuntimeError("api failed")
     assert asyncio.run(country.get_latest_co2g_kwh()) == 200.0
     assert country.carbon_intensity_metadata.fallback_used
+    assert request.await_count == 3
+    assert country.carbon_intensity_metadata == successful_metadata.model_copy(update={"fallback_used": True})
+    clock.return_value = 8259.0
+    assert asyncio.run(country.get_latest_co2g_kwh()) == 200.0
     assert request.await_count == 3
 
     clock.return_value = 8260.0
