@@ -126,7 +126,7 @@ Each process and its descendants get their share of the host CPU energy and carb
 | NVIDIA | ✅ Supported via `nvidia-smi`. Works on Linux, Windows, and Intel Macs. Supports multiple GPUs. |
 | AMD | ✅ Supported via `rocm-smi` or `amd-smi` on Linux. Supports multiple GPUs. |
 | Apple Silicon | ✅ Integrated GPU power via IOReport, without sudo. Falls back to `powermetrics` (requires sudo). |
-| Intel | ❌ Not yet implemented. |
+| Intel | ✅ Integrated GPU power on Linux when RAPL exposes an uncore counter. CPU package readings include that energy. Discrete Intel GPU tracking is not implemented. |
 
 ## 📡 Exporters
 
