@@ -17,7 +17,7 @@ from pydantic import BaseModel
 from tracarbon.exceptions import HardwareNoGPUDetectedException
 
 _RE_POWER_W = re.compile(r"Power\s*\(W\):\s*([\d.]+)", re.IGNORECASE)
-_RE_POWER_USAGE_W = re.compile(r"POWER[^:]*:\s*([\d.]+)\s*W", re.IGNORECASE)
+_RE_SOCKET_POWER_W = re.compile(r"\bSOCKET_POWER:\s*([\d.]+)\s*W", re.IGNORECASE)
 _ANE_SAMPLER = "ane_power"
 PROBE_TIMEOUT_SECONDS = 10
 KILLED_PROBE_WAIT_SECONDS = 1
@@ -148,7 +148,7 @@ class AMDGPU(BaseModel):
             total_power = 0.0
             output_str = gpu_output.decode()
             power_matches = _RE_POWER_W.findall(output_str)
-            power_matches += _RE_POWER_USAGE_W.findall(output_str)
+            power_matches += _RE_SOCKET_POWER_W.findall(output_str)
             for power_str in power_matches:
                 total_power += float(power_str)
             if total_power > 0:
