@@ -89,10 +89,12 @@ GPU[1]          : Average Graphics Package Power (W): 52.5
 def test_get_amd_gpu_power_usage_amd_smi(mocker):
     amd_smi_output = b"""
 GPU: 0
-    POWER_USAGE: 65.0 W
+    SOCKET_POWER: 65.0 W
+    APU_AVERAGE_SOCKET_POWER: 65.0 W
 
 GPU: 1
-    POWER_USAGE: 70.0 W
+    SOCKET_POWER: 70.0 W
+    UBB_POWER: 800 W
 """
     gpu_usage_expected = 135.0
     mocker.patch.object(shutil, "which", return_value="/usr/bin/amd-smi")
@@ -106,7 +108,7 @@ GPU: 1
 def test_get_amd_gpu_power_usage_fallback_rocm_to_amd_smi(mocker):
     amd_smi_output = b"""
 GPU: 0
-    POWER_USAGE: 50.0 W
+    SOCKET_POWER: 50.0 W
 """
     gpu_usage_expected = 50.0
 
