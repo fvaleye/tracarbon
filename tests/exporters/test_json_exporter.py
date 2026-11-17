@@ -1,4 +1,6 @@
 import asyncio
+import gc
+import weakref
 from datetime import datetime
 from datetime import timezone
 from threading import Event
@@ -170,3 +172,36 @@ def test_jsonl_separates_a_torn_record_from_the_next(tmp_path):
     complete, torn, after = output.read_bytes().splitlines()
     assert torn == b'{"metric_na'
     assert [orjson.loads(line)["metric_name"] for line in (complete, after)] == ["complete", "after"]
+
+
+@pytest.mark.parametrize("suffix", ["json", "jsonl"])
+def test_completed_json_exporters_can_be_collected(tmp_path, suffix):
+    exporter = JSONExporter(
+        path=str(tmp_path / f"metrics.{suffix}"),
+        metric_generators=[MetricGenerator(metrics=[Metric(name="sample", value=AsyncMock(return_value=1.0))])],
+    )
+    reference = weakref.ref(exporter)
+    try:
+        exporter.start(interval_in_seconds=60)
+        exporter.stop()
+        del exporter
+        gc.collect()
+
+        assert reference() is None
+    finally:
+        retained = reference()
+        if retained is not None:
+            retained.stop()
+            retained.flush()
+
+
+async def test_direct_json_launch_closes_the_array_at_process_exit(mocker, tmp_path):
+    register_at_exit = mocker.patch("tracarbon.exporters.json_exporter.atexit.register")
+    output = tmp_path / "metrics.json"
+    exporter = JSONExporter(path=str(output), metric_generators=[])
+
+    await exporter.launch(MetricGenerator(metrics=[Metric(name="sample", value=AsyncMock(return_value=1.0))]))
+    close_at_exit = register_at_exit.call_args.args[0]
+    close_at_exit()
+
+    assert [record["metric_value"] for record in orjson.loads(output.read_bytes())] == [1.0]
