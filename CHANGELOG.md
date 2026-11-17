@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.15.5](https://github.com/fvaleye/tracarbon/compare/v0.15.4...v0.15.5) (2026-11-17)
+
+
+### Bug Fixes
+
+* count only socket power in AMD GPU readings ([#588](https://github.com/fvaleye/tracarbon/issues/588)) ([33f55c2](https://github.com/fvaleye/tracarbon/commit/33f55c2d6e309cf9c18ac5b7e3e6c9a507467050))
+* preserve carbon intensity fallback identity and retry timing ([#587](https://github.com/fvaleye/tracarbon/issues/587)) ([efe29a6](https://github.com/fvaleye/tracarbon/commit/efe29a666b88c1231e645b84755318402ae7b175))
+* release JSON exporters after successful flushing ([#586](https://github.com/fvaleye/tracarbon/issues/586)) ([e27a06b](https://github.com/fvaleye/tracarbon/commit/e27a06b7ba54312760f5c264cf218988704c9f5a))
+
+
+### Dependencies
+
+* **deps-dev:** Update datadog requirement from &lt;0.56,&gt;=0.44 to &gt;=0.44,&lt;0.57 ([#578](https://github.com/fvaleye/tracarbon/issues/578)) ([93e0641](https://github.com/fvaleye/tracarbon/commit/93e06411c56525670ee51286a6ee20f60cd92bbc))
+* **deps-dev:** Update pytest-asyncio requirement from &lt;1.5.0,&gt;=0.24.0 to &gt;=0.24.0,&lt;1.6.0 ([#584](https://github.com/fvaleye/tracarbon/issues/584)) ([0a05fe0](https://github.com/fvaleye/tracarbon/commit/0a05fe08cecce10b3c71b71b319adc53ca3bd2bc))
+* **deps:** Bump amannn/action-semantic-pull-request from 6.1.1 to 6.1.2 ([#579](https://github.com/fvaleye/tracarbon/issues/579)) ([344700c](https://github.com/fvaleye/tracarbon/commit/344700c1d6987732f7f7973650d0de6707cc3de4))
+* **deps:** Bump python from 3.14-slim-trixie to 3.15-slim-trixie ([#585](https://github.com/fvaleye/tracarbon/issues/585)) ([c0c5ea5](https://github.com/fvaleye/tracarbon/commit/c0c5ea588a186f161ddbc1de25d82916c4f5ef14))
+* **deps:** Update loguru requirement from &lt;0.8,&gt;=0.6 to &gt;=0.6,&lt;0.9 ([#582](https://github.com/fvaleye/tracarbon/issues/582)) ([bb93adc](https://github.com/fvaleye/tracarbon/commit/bb93adc3ba2bd335ec44bf1da978146da577f2b2))
+* **deps:** Update typer requirement from &lt;0.28,&gt;=0.16 to &gt;=0.16,&lt;0.29 ([#577](https://github.com/fvaleye/tracarbon/issues/577)) ([c74c621](https://github.com/fvaleye/tracarbon/commit/c74c621c2150260e4969d09ebb1cddaff3a81ecc))
+* **deps:** Update typer requirement from &lt;0.29,&gt;=0.16 to &gt;=0.16,&lt;0.30 ([#583](https://github.com/fvaleye/tracarbon/issues/583)) ([3a9e9ff](https://github.com/fvaleye/tracarbon/commit/3a9e9ffe4f8f9c79625850fb96a17472c7752e68))
+
 ## [0.15.4](https://github.com/fvaleye/tracarbon/compare/v0.15.3...v0.15.4) (2026-11-03)
 
 
