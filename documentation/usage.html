@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Usage &#8212; tracarbon 0.15.4 documentation</title>
+    <title>Usage &#8212; tracarbon 0.15.5 documentation</title>
   
   
   
@@ -37,7 +37,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=13e65a98"></script>
+    <script src="_static/documentation_options.js?v=b79ede81"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'usage';</script>
@@ -51,7 +51,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.15.4" />
+  <meta name="docsearch:version" content="0.15.5" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -123,8 +123,8 @@
       
     
     
-    <img src="_static/logo.svg" class="logo__image only-light" alt="tracarbon 0.15.4 documentation - Home"/>
-    <img src="_static/logo-dark.svg" class="logo__image only-dark pst-js-only" alt="tracarbon 0.15.4 documentation - Home"/>
+    <img src="_static/logo.svg" class="logo__image only-light" alt="tracarbon 0.15.5 documentation - Home"/>
+    <img src="_static/logo-dark.svg" class="logo__image only-dark pst-js-only" alt="tracarbon 0.15.5 documentation - Home"/>
   
   
 </a></div>
@@ -493,8 +493,9 @@ Set <code class="docutils literal notranslate"><span class="pre">TRACARBON_EMISS
 </pre></div>
 </div>
 <p>Each location caches a successful response for one hour, independently of the
-measurement interval. A failed refresh uses the last successful value and marks
-<code class="docutils literal notranslate"><span class="pre">location.carbon_intensity_metadata.fallback_used</span></code>. If the first request fails,
+measurement interval. A failed refresh uses the last successful value, marks
+<code class="docutils literal notranslate"><span class="pre">location.carbon_intensity_metadata.fallback_used</span></code>, and retries at most once a
+minute. If the first request fails,
 the error propagates and the CLI exits with an error. An invalid key does not
 automatically select bundled files. On AWS, GCP, and Azure, the default API uses
 the detected provider and region; without a key, their packaged region files apply.</p>
