@@ -1,4 +1,4 @@
-FROM python:3.14-slim-trixie AS builder
+FROM python:3.15-slim-trixie AS builder
 
 COPY --from=ghcr.io/astral-sh/uv:0.13.7 /uv /bin/
 ENV UV_PYTHON_DOWNLOADS=0
@@ -9,7 +9,7 @@ COPY tracarbon tracarbon
 
 RUN uv sync --locked --no-editable --extra all
 
-FROM python:3.14-slim-trixie
+FROM python:3.15-slim-trixie
 
 WORKDIR /app
 COPY --from=builder /app/.venv /app/.venv
