@@ -48,7 +48,6 @@ class Country(Location):
     def _update_carbon_intensity_metadata(
         self,
         response: dict[str, Any] | None = None,
-        fallback_used: bool = False,
     ) -> None:
         payload = response.get("data", response) if response else {}
         emission_factor_type = payload.get("emissionFactorType")
@@ -63,7 +62,6 @@ class Country(Location):
             emission_factor_type=EmissionFactorType(emission_factor_type) if emission_factor_type else None,
             is_estimated=payload.get("isEstimated"),
             estimation_method=payload.get("estimationMethod"),
-            fallback_used=fallback_used,
         )
 
     @classmethod
@@ -251,7 +249,11 @@ class Country(Location):
         except Exception:
             if self.co2g_kwh is None:
                 raise
-            self._update_carbon_intensity_metadata(response=response if response else None, fallback_used=True)
+            if self.carbon_intensity_metadata.co2g_kwh is None:
+                self._update_carbon_intensity_metadata()
+            self.carbon_intensity_metadata = self.carbon_intensity_metadata.model_copy(update={"fallback_used": True})
+            self._carbon_intensity_cache_key = cache_key
+            self._carbon_intensity_expires_at = time.monotonic() + 60
             logger.error(
                 f"Failed to get the latest carbon intensity of your country {self.name} {response if response else ''}."
                 f"Please check your API configuration."

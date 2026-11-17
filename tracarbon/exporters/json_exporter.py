@@ -26,7 +26,6 @@ class JSONExporter(Exporter):
         if "path" not in data or not data.get("path"):
             data["path"] = datetime.now().strftime("tracarbon_export_%d_%m_%Y.json")
         super().__init__(**data)
-        atexit.register(self.flush)
 
     def _strip_trailing_closing_bracket(self) -> None:
         """
@@ -59,15 +58,16 @@ class JSONExporter(Exporter):
         """
         Close the JSON array if needed by appending a closing bracket. A JSON Lines file has nothing to close.
         """
+        if self._close_array():
+            atexit.unregister(self._close_array)
+
+    def _close_array(self) -> bool:
         if self.path.endswith(".jsonl") or not os.path.isfile(self.path):
-            return
+            return True
         try:
             with open(self.path, "rb+") as file:
                 file.seek(0, os.SEEK_END)
                 size = file.tell()
-                if size == 0:
-                    file.write(b"[]")
-                    return
                 pos = size
                 last = None
                 while pos > 0:
@@ -77,10 +77,14 @@ class JSONExporter(Exporter):
                     if ch not in b" \t\r\n":
                         last = ch
                         break
-                if last != b"]":
+                if size == 0:
+                    file.write(b"[]")
+                elif last != b"]":
                     file.write(b"\n]")
         except Exception as exc:
             logger.debug(f"JSONExporter: flush failed for {self.path}: {exc}")
+            return False
+        return True
 
     async def _launch_all(self) -> None:
         try:
@@ -119,6 +123,8 @@ class JSONExporter(Exporter):
         :param metric_generator: produces metrics to serialize
         """
         if not self.path.endswith(".jsonl"):
+            atexit.unregister(self._close_array)
+            atexit.register(self._close_array)
             await asyncio.to_thread(self._strip_trailing_closing_bracket)
         first_failure: Exception | None = None
         async for metric in metric_generator.generate():

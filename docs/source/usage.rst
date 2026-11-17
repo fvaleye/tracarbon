@@ -116,8 +116,9 @@ Set ``TRACARBON_EMISSION_FACTOR_TYPE`` to ``lifecycle`` (default) or ``direct``.
    TRACARBON_CO2SIGNAL_API_KEY=API_KEY TRACARBON_EMISSION_FACTOR_TYPE=direct tracarbon run --country-code-alpha-iso-2 fr
 
 Each location caches a successful response for one hour, independently of the
-measurement interval. A failed refresh uses the last successful value and marks
-``location.carbon_intensity_metadata.fallback_used``. If the first request fails,
+measurement interval. A failed refresh uses the last successful value, marks
+``location.carbon_intensity_metadata.fallback_used``, and retries at most once a
+minute. If the first request fails,
 the error propagates and the CLI exits with an error. An invalid key does not
 automatically select bundled files. On AWS, GCP, and Azure, the default API uses
 the detected provider and region; without a key, their packaged region files apply.
