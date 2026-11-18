@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.15.6](https://github.com/fvaleye/tracarbon/compare/v0.15.5...v0.15.6) (2026-11-18)
+
+
+### Bug Fixes
+
+* **cli:** handle SIGTERM while a command starts ([#592](https://github.com/fvaleye/tracarbon/issues/592)) ([cd786ac](https://github.com/fvaleye/tracarbon/commit/cd786ac4d06d1c096ae736b02254e7fb5db5c6e6))
+
+
+### Dependencies
+
+* **deps:** sync uv.lock with dependency ranges ([#590](https://github.com/fvaleye/tracarbon/issues/590)) ([cbb58c3](https://github.com/fvaleye/tracarbon/commit/cbb58c30a70c2af06d14b41940803dbb90fbbe17))
+
 ## [0.15.5](https://github.com/fvaleye/tracarbon/compare/v0.15.4...v0.15.5) (2026-11-17)
 
 
