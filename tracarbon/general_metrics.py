@@ -1,5 +1,7 @@
 from typing import Any
 from typing import AsyncGenerator
+from typing import Awaitable
+from typing import Callable
 from typing import Dict
 from typing import Iterable
 
@@ -30,6 +32,21 @@ def _carbon_emission(location: Location, data: Dict[str, Any]) -> CarbonEmission
     )
 
 
+def _share_of(share: float, total: float | None) -> float | None:
+    return None if total is None else share * total
+
+
+def _total(cpu: float | None, memory: float | None) -> float | None:
+    return None if cpu is None or memory is None else cpu + memory
+
+
+def _returning(value: float | None) -> Callable[[], Awaitable[float | None]]:
+    async def read() -> float | None:
+        return value
+
+    return read
+
+
 class EnergyConsumptionGenerator(MetricGenerator):
     """
     Energy consumption generator for energy consumption.
@@ -54,20 +71,12 @@ class EnergyConsumptionGenerator(MetricGenerator):
         :return: an async generator of the metrics
         """
         energy_usage = await sample_energy(self.energy_consumption)
-
+        if self.location is None:
+            raise ValueError("Location must be set")
         for usage_type in UsageType:
-
-            async def energy_consumption_by_usage_type(ut=usage_type) -> float | None:
-                """
-                Get the energy usage.
-                """
-                return energy_usage.get_energy_usage_on_type(usage_type=ut)
-
-            if self.location is None:
-                raise ValueError("Location must be set")
             yield Metric(
                 name=f"energy_consumption_{usage_type.value}",
-                value=energy_consumption_by_usage_type,
+                value=_returning(energy_usage.get_energy_usage_on_type(usage_type=usage_type)),
                 tags=[
                     Tag(key="platform", value=self.platform),
                     Tag(key="location", value=self.location.name),
@@ -102,20 +111,12 @@ class CarbonEmissionGenerator(MetricGenerator):
         :return: an async generator of the metrics
         """
         carbon_usage = await self.carbon_emission.get_co2_usage()
-
+        if self.location is None:
+            raise ValueError("Location must be set")
         for usage_type in UsageType:
-
-            async def get_carbon_emission_by_usage_type(ut=usage_type) -> float | None:
-                """
-                Get the carbon usage.
-                """
-                return carbon_usage.get_carbon_usage_on_type(usage_type=ut)
-
-            if self.location is None:
-                raise ValueError("Location must be set")
             yield Metric(
                 name=f"carbon_emission_{usage_type.value}",
-                value=get_carbon_emission_by_usage_type,
+                value=_returning(carbon_usage.get_carbon_usage_on_type(usage_type=usage_type)),
                 tags=[
                     Tag(key="platform", value=self.platform),
                     Tag(key="location", value=self.location.name),
@@ -145,19 +146,13 @@ class EnergyConsumptionProcessGenerator(MetricGenerator):
     async def generate(self) -> AsyncGenerator[Metric, None]:
         """Yield process CPU power with PID, name, location and unit labels."""
         energy_usage = await sample_energy(self.energy_consumption)
+        if self.location is None:
+            raise ValueError("Location must be set")
         cpu_joules = energy_usage.interval_joules.get(UsageType.CPU)
         for process in sample_processes(self.processes):
-
-            async def get_process_cpu_energy_consumption(p=process) -> float | None:
-                if energy_usage.cpu_energy_usage is None:
-                    return None
-                return p.cpu_usage * energy_usage.cpu_energy_usage
-
-            if self.location is None:
-                raise ValueError("Location must be set")
             yield Metric(
                 name="energy_consumption_process_cpu",
-                value=get_process_cpu_energy_consumption,
+                value=_returning(_share_of(process.cpu_usage, energy_usage.cpu_energy_usage)),
                 tags=[
                     Tag(key="pid", value=str(process.pid)),
                     Tag(key="process_name", value=process.name),
@@ -165,7 +160,7 @@ class EnergyConsumptionProcessGenerator(MetricGenerator):
                     Tag(key="location", value=self.location.name),
                     Tag(key="units", value=energy_usage.unit.value),
                 ],
-                interval_joules=cpu_joules * process.cpu_usage if cpu_joules is not None else None,
+                interval_joules=_share_of(process.cpu_usage, cpu_joules),
             )
 
 
@@ -190,18 +185,12 @@ class CarbonEmissionProcessGenerator(MetricGenerator):
     async def generate(self) -> AsyncGenerator[Metric, None]:
         """Yield process CPU carbon with PID, name, location, source and unit labels."""
         carbon_usage = await self.carbon_emission.get_co2_usage()
+        if self.location is None:
+            raise ValueError("Location must be set")
         for process in sample_processes(self.processes):
-
-            async def get_process_cpu_carbon_emission(p=process) -> float | None:
-                if carbon_usage.cpu_carbon_usage is None:
-                    return None
-                return p.cpu_usage * carbon_usage.cpu_carbon_usage
-
-            if self.location is None:
-                raise ValueError("Location must be set")
             yield Metric(
                 name="carbon_emission_process_cpu",
-                value=get_process_cpu_carbon_emission,
+                value=_returning(_share_of(process.cpu_usage, carbon_usage.cpu_carbon_usage)),
                 tags=[
                     Tag(key="pid", value=str(process.pid)),
                     Tag(key="process_name", value=process.name),
@@ -242,45 +231,16 @@ if KUBERNETES_INSTALLED:
             """
             energy_usage = await sample_energy(self.energy_consumption)
             energy_usage.convert_unit(unit=EnergyUsageUnit.MILLIWATT)
+            if self.location is None:
+                raise ValueError("Location must be set")
             cpu_joules = energy_usage.interval_joules.get(UsageType.CPU)
             memory_joules = energy_usage.interval_joules.get(UsageType.MEMORY)
             for pod in self.kubernetes.get_pods_usage():
                 for container in pod.containers:
-                    container_cpu_joules = cpu_joules * container.cpu_usage if cpu_joules is not None else None
-                    container_memory_joules = (
-                        memory_joules * container.memory_usage if memory_joules is not None else None
-                    )
-
-                    async def get_pod_memory_energy_consumption(c=container) -> float | None:
-                        """
-                        Get the memory energy consumption of the pod.
-                        """
-                        if energy_usage.memory_energy_usage is None:
-                            return None
-                        return c.memory_usage * energy_usage.memory_energy_usage
-
-                    async def get_pod_cpu_energy_consumption(c=container) -> float | None:
-                        """
-                        Get the CPU energy consumption of the pod.
-                        """
-                        if energy_usage.cpu_energy_usage is None:
-                            return None
-                        return c.cpu_usage * energy_usage.cpu_energy_usage
-
-                    async def get_pod_total_energy_consumption(
-                        _mem=get_pod_memory_energy_consumption, _cpu=get_pod_cpu_energy_consumption
-                    ) -> float | None:
-                        """
-                        Get the total energy consumption of the pod.
-                        """
-                        memory = await _mem()
-                        cpu = await _cpu()
-                        if memory is None or cpu is None:
-                            return None
-                        return memory + cpu
-
-                    if self.location is None:
-                        raise ValueError("Location must be set")
+                    container_cpu_energy_usage = _share_of(container.cpu_usage, energy_usage.cpu_energy_usage)
+                    container_memory_energy_usage = _share_of(container.memory_usage, energy_usage.memory_energy_usage)
+                    container_cpu_joules = _share_of(container.cpu_usage, cpu_joules)
+                    container_memory_joules = _share_of(container.memory_usage, memory_joules)
                     tags = [
                         Tag(key="pod_name", value=pod.name),
                         Tag(key="pod_namespace", value=pod.namespace),
@@ -293,21 +253,19 @@ if KUBERNETES_INSTALLED:
 
                     yield Metric(
                         name="energy_consumption_kubernetes_total",
-                        value=get_pod_total_energy_consumption,
+                        value=_returning(_total(container_cpu_energy_usage, container_memory_energy_usage)),
                         tags=tags,
-                        interval_joules=container_cpu_joules + container_memory_joules
-                        if container_cpu_joules is not None and container_memory_joules is not None
-                        else None,
+                        interval_joules=_total(container_cpu_joules, container_memory_joules),
                     )
                     yield Metric(
                         name="energy_consumption_kubernetes_cpu",
-                        value=get_pod_cpu_energy_consumption,
+                        value=_returning(container_cpu_energy_usage),
                         tags=tags,
                         interval_joules=container_cpu_joules,
                     )
                     yield Metric(
                         name="energy_consumption_kubernetes_memory",
-                        value=get_pod_memory_energy_consumption,
+                        value=_returning(container_memory_energy_usage),
                         tags=tags,
                         interval_joules=container_memory_joules,
                     )
@@ -339,40 +297,12 @@ if KUBERNETES_INSTALLED:
             """
             carbon_usage = await self.carbon_emission.get_co2_usage()
             carbon_usage.convert_unit(unit=CarbonUsageUnit.CO2_MG)
-
+            if self.location is None:
+                raise ValueError("Location must be set")
             for pod in self.kubernetes.get_pods_usage():
                 for container in pod.containers:
-
-                    async def get_cpu_pod_carbon_emission(c=container) -> float | None:
-                        """
-                        Get the CPU carbon emission of the pod.
-                        """
-                        if carbon_usage.cpu_carbon_usage is None:
-                            return None
-                        return c.cpu_usage * carbon_usage.cpu_carbon_usage
-
-                    async def get_memory_pod_carbon_emission(c=container) -> float | None:
-                        """
-                        Get the memory carbon emission of the pod.
-                        """
-                        if carbon_usage.memory_carbon_usage is None:
-                            return None
-                        return c.memory_usage * carbon_usage.memory_carbon_usage
-
-                    async def get_total_pod_carbon_emission(
-                        _cpu=get_cpu_pod_carbon_emission, _mem=get_memory_pod_carbon_emission
-                    ) -> float | None:
-                        """
-                        Get the total carbon emission of the pod.
-                        """
-                        cpu = await _cpu()
-                        memory = await _mem()
-                        if cpu is None or memory is None:
-                            return None
-                        return cpu + memory
-
-                    if self.location is None:
-                        raise ValueError("Location must be set")
+                    container_cpu_carbon_usage = _share_of(container.cpu_usage, carbon_usage.cpu_carbon_usage)
+                    container_memory_carbon_usage = _share_of(container.memory_usage, carbon_usage.memory_carbon_usage)
                     tags = [
                         Tag(key="pod_name", value=pod.name),
                         Tag(key="pod_namespace", value=pod.namespace),
@@ -385,17 +315,17 @@ if KUBERNETES_INSTALLED:
                     ]
                     yield Metric(
                         name="carbon_emission_kubernetes_total",
-                        value=get_total_pod_carbon_emission,
+                        value=_returning(_total(container_cpu_carbon_usage, container_memory_carbon_usage)),
                         tags=tags,
                     )
                     yield Metric(
                         name="carbon_emission_kubernetes_cpu",
-                        value=get_cpu_pod_carbon_emission,
+                        value=_returning(container_cpu_carbon_usage),
                         tags=tags,
                     )
                     yield Metric(
                         name="carbon_emission_kubernetes_memory",
-                        value=get_memory_pod_carbon_emission,
+                        value=_returning(container_memory_carbon_usage),
                         tags=tags,
                     )
 

@@ -169,6 +169,27 @@ async def test_energy_consumption_kubernetes_generator(mocker):
     ] == metric.format_tags()
 
 
+async def test_kubernetes_total_is_unavailable_without_memory_energy(mocker):
+    mocker.patch.object(config, "load_kube_config", return_value=None)
+    mocker.patch.object(HardwareInfo, "get_memory_total", return_value=101200121856)
+    mocker.patch.object(HardwareInfo, "get_number_of_cores", return_value=2)
+    energy_usage = EnergyUsage(cpu_energy_usage=12.0, memory_energy_usage=None, interval_joules={UsageType.CPU: 24.0})
+    mocker.patch.object(MacEnergyConsumption, "get_energy_usage", return_value=energy_usage)
+    container = Container(name="grafana", cpu_usage="825800n", memory_usage="46472Ki")
+    mocker.patch.object(
+        Kubernetes, "get_pods_usage", return_value=[Pod(name="grafana", namespace="default", containers=[container])]
+    )
+    generator = EnergyConsumptionKubernetesGenerator(
+        location=Country(name="fr", co2g_kwh=51.1), energy_consumption=MacEnergyConsumption()
+    )
+
+    total = await anext(generator.generate())
+
+    assert total.name == "energy_consumption_kubernetes_total"
+    assert await total.value() is None
+    assert total.interval_joules is None
+
+
 async def test_carbon_emission_kubernetes_generator(mocker):
     location_name = "fr"
     memory_total = 1000000000
