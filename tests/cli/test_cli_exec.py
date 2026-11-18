@@ -1,6 +1,7 @@
 import json
 import os
 import signal
+import subprocess
 import sys
 
 import pytest
@@ -159,3 +160,23 @@ def test_exec_keeps_measuring_until_a_stopped_command_exits(measured_host, comma
 
     assert result.exit_code == status
     assert "host: " in result.output
+
+
+@pytest.mark.darwin
+@pytest.mark.linux
+def test_exec_forwards_sigterm_received_while_the_command_starts(measured_host, mocker):
+    popen = subprocess.Popen
+
+    def terminate_during_spawn(*args, **kwargs):
+        child = popen(*args, **kwargs)
+        signal.raise_signal(signal.SIGTERM)
+        return child
+
+    mocker.patch.object(subprocess, "Popen", terminate_during_spawn)
+    previous_sigterm_handler = signal.signal(signal.SIGTERM, signal.default_int_handler)
+    try:
+        result = _exec_python("import time; time.sleep(5)")
+    finally:
+        signal.signal(signal.SIGTERM, previous_sigterm_handler)
+
+    assert result.exit_code == 143

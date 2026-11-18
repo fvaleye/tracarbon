@@ -231,12 +231,25 @@ def _run_command(command: List[str]) -> int:
     :param command: the program and its arguments, passed without a shell
     :return: its exit status, as a shell reports it
     """
+    child: subprocess.Popen | None = None
+    termination_pending = False
+
+    def forward_sigterm(signum: int, frame: FrameType | None) -> None:
+        nonlocal termination_pending
+        if child is None:
+            termination_pending = True
+        else:
+            child.send_signal(signum)
+
+    if signal.getsignal(signal.SIGTERM) is not signal.SIG_IGN:
+        signal.signal(signal.SIGTERM, forward_sigterm)
     try:
         child = subprocess.Popen(command, env=_ENVIRONMENT_BEFORE_DOTENV)
     except OSError as exception:
         logger.error(f"Command could not run: {exception}")
         return 127 if isinstance(exception, FileNotFoundError) and shutil.which(command[0]) is None else 126
-    signal.signal(signal.SIGTERM, lambda signum, _: child.send_signal(signum))
+    if termination_pending:
+        child.send_signal(signal.SIGTERM)
     returncode = child.wait()
     return 128 - returncode if returncode < 0 else returncode
 
