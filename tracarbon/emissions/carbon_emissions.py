@@ -15,6 +15,7 @@ from tracarbon.hardwares import Sensor
 from tracarbon.hardwares.energy import EnergyUsage
 from tracarbon.hardwares.energy import EnergyUsageUnit
 from tracarbon.hardwares.energy import UsageType
+from tracarbon.hardwares.energy import _scale_by_thousand
 from tracarbon.locations import CarbonIntensityMetadata
 from tracarbon.locations import Country
 from tracarbon.locations import Location
@@ -65,22 +66,8 @@ class CarbonUsage(BaseModel):
         :param: unit: the carbon usage unit for the conversion
         """
         if self.unit != unit:
-            if unit == CarbonUsageUnit.CO2_G and self.unit == CarbonUsageUnit.CO2_MG:
-                self.host_carbon_usage = self.host_carbon_usage / 1000 if self.host_carbon_usage is not None else None
-                self.cpu_carbon_usage = self.cpu_carbon_usage / 1000 if self.cpu_carbon_usage is not None else None
-                self.memory_carbon_usage = (
-                    self.memory_carbon_usage / 1000 if self.memory_carbon_usage is not None else None
-                )
-                self.gpu_carbon_usage = self.gpu_carbon_usage / 1000 if self.gpu_carbon_usage is not None else None
-                self.unit = CarbonUsageUnit.CO2_G
-            elif unit == CarbonUsageUnit.CO2_MG and self.unit == CarbonUsageUnit.CO2_G:
-                self.host_carbon_usage = self.host_carbon_usage * 1000 if self.host_carbon_usage is not None else None
-                self.cpu_carbon_usage = self.cpu_carbon_usage * 1000 if self.cpu_carbon_usage is not None else None
-                self.memory_carbon_usage = (
-                    self.memory_carbon_usage * 1000 if self.memory_carbon_usage is not None else None
-                )
-                self.gpu_carbon_usage = self.gpu_carbon_usage * 1000 if self.gpu_carbon_usage is not None else None
-                self.unit = CarbonUsageUnit.CO2_MG
+            _scale_by_thousand(self, "carbon_usage", multiply=unit == CarbonUsageUnit.CO2_MG)
+            self.unit = unit
 
 
 class CarbonEmission(Sensor):
