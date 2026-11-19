@@ -4,7 +4,6 @@ from enum import Enum
 from typing import Any
 from typing import Dict
 
-import aiohttp
 import orjson
 from loguru import logger
 from pydantic import BaseModel
@@ -69,6 +68,7 @@ class Location(ABC, BaseModel):
         :param headers: headers to add to the request
         :return: the response
         """
+        import aiohttp
 
         headers = {name: _HiddenInRepr(value) for name, value in (headers or {}).items()}
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_IN_SECONDS)) as session:
