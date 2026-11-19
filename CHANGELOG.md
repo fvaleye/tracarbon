@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.7](https://github.com/fvaleye/tracarbon/compare/v0.15.6...v0.15.7) (2026-11-19)
+
+
+### Performance Improvements
+
+* defer aiohttp import until a carbon intensity request ([#595](https://github.com/fvaleye/tracarbon/issues/595)) ([2e2e26c](https://github.com/fvaleye/tracarbon/commit/2e2e26c86324c3d83641799548a10d2f6f8ac25d))
+
 ## [0.15.6](https://github.com/fvaleye/tracarbon/compare/v0.15.5...v0.15.6) (2026-11-18)
 
 
