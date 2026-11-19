@@ -1,6 +1,7 @@
 import asyncio
 import copy
 import platform
+import plistlib
 
 import pytest
 
@@ -53,6 +54,7 @@ async def test_report_converts_native_units_and_measures_each_interval(mocker, n
         ("Energy Model", "DIE_0_GPU Energy", "nJ", 500_000_000),
         ("Energy Model", "DIE_0_DRAM0", "uJ", 250_000),
         ("Energy Model", "DIE_1_DRAM0", "uJ", 250_000),
+        ("Energy Model", "DIE_2_DRAM0", "uJ", -(2**63)),
         ("Energy Model", "ANE0", "mJ", 100),
         ("Energy Model", "DIE_1_ANE1", "J", 1),
         ("Energy Model", "GPU", "mJ", 100_000),
@@ -108,6 +110,48 @@ async def test_macos_27_and_later_report_only_the_gpu_counter(mocker, native_rea
     assert await IOReportEnergy().get_energy_report() == EnergyUsage(
         host_energy_usage=None, gpu_energy_usage=0.5, interval_joules={UsageType.GPU: 1.0}
     )
+
+
+def _mock_clpc_driver(mocker, bundle, release="27.2"):
+    mocker.patch.object(platform, "mac_ver", return_value=(release, ("", "", ""), ""))
+    ioreg = plistlib.dumps([{"CFBundleIdentifier": bundle, "IORegistryEntryID": 7}])
+    mocker.patch("tracarbon.hardwares._ioreport._run_probe").return_value.stdout = ioreg
+    core_foundation, ioreport = mocker.Mock(), mocker.Mock()
+    core_foundation.CFArrayGetCount.return_value = 4
+    mocker.patch("tracarbon.hardwares._ioreport._load_frameworks", return_value=(core_foundation, ioreport))
+    return core_foundation, ioreport
+
+
+@pytest.mark.parametrize(
+    ("release", "bundle", "report_ids"),
+    [
+        ("27.2", "com.apple.driver.AppleT8142CLPC", [0x10_4370_8744, 0x19_6A01_0933, 0x18_BC5E_FDF0, 0x1A_E136_33AA]),
+        ("27.2", "com.apple.driver.AppleT9999CLPC", []),
+        ("28.0", "com.apple.driver.AppleT8142CLPC", []),
+    ],
+)
+def test_only_macos_27_reads_the_clpc_counters_of_known_chips(mocker, release, bundle, report_ids):
+    core_foundation, _ = _mock_clpc_driver(mocker, bundle, release)
+
+    energy = IOReportEnergy()
+
+    descriptions = [plistlib.loads(call.args[1]) for call in core_foundation.CFDataCreate.call_args_list]
+    channels = [channel for description in descriptions for channel in description["IOReportChannels"]]
+    assert [channel["LegendChannel"][0] for channel in channels] == report_ids
+    assert energy._gpu_only == (not report_ids)
+
+
+@pytest.mark.parametrize("subscriptions", [[None, 1], [1, 1]], ids=["refused", "never sampled"])
+def test_an_unknown_clpc_report_id_keeps_the_energy_model_counters(mocker, subscriptions):
+    core_foundation, ioreport = _mock_clpc_driver(mocker, "com.apple.driver.AppleT8142CLPC")
+    ioreport.IOReportCreateSubscription.side_effect = subscriptions
+    core_foundation.CFArrayGetCount.side_effect = [3, 4]
+
+    energy = IOReportEnergy()
+
+    core_foundation.CFRelease.assert_any_call(core_foundation.CFPropertyListCreateWithData.return_value)
+    ioreport.IOReportCopyChannelsInGroup.assert_called_once()
+    assert energy._gpu_only is True
 
 
 async def test_the_first_report_measures_a_short_interval(mocker, native_reader):
@@ -187,6 +231,7 @@ def test_copying_the_adapter_does_not_double_release_native_resources(mocker, na
 
 
 def test_a_failed_subscription_releases_allocated_resources(mocker):
+    mocker.patch.object(platform, "mac_ver", return_value=("26.0", ("", "", ""), ""))
     core_foundation, ioreport = mocker.Mock(), mocker.Mock()
     core_foundation.CFStringCreateWithCString.side_effect = [3, 5]
     core_foundation.CFDictionaryCreateMutableCopy.return_value = 2
@@ -218,7 +263,7 @@ async def test_independent_readers_can_measure_repeatedly_on_this_machine():
     with energy, IOReportEnergy() as other:
         reports = await asyncio.gather(energy.get_energy_report(), other.get_energy_report())
         energy.close()
-        await asyncio.sleep(0.01)
+        await asyncio.sleep(0.05)
         reports.append(await other.get_energy_report())
 
     for report in reports:
@@ -233,6 +278,6 @@ async def test_independent_readers_can_measure_repeatedly_on_this_machine():
             for value in (report.cpu_energy_usage, report.gpu_energy_usage, report.memory_energy_usage)
             if value is not None
         )
-        assert report.host_energy_usage > 0
+        assert 0 < report.host_energy_usage < 1000
         assert report.host_energy_usage >= component_watts or report.host_energy_usage == pytest.approx(component_watts)
         assert report.unit.value == "watts"

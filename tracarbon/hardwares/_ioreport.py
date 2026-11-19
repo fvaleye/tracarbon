@@ -1,12 +1,14 @@
 import ctypes
 import ctypes.util
 import platform
+import plistlib
 import time
 from contextlib import suppress
 from dataclasses import dataclass
 
 from tracarbon.exceptions import HardwareIOReportException
 from tracarbon.hardwares.energy import UsageType
+from tracarbon.hardwares.gpu import _run_probe
 
 _IOREPORT_LIBRARY = "/usr/lib/libIOReport.dylib"
 _UTF8 = 0x08000100
@@ -18,6 +20,30 @@ _AGGREGATE_CHANNEL_TYPES = {
     "GPU Energy": UsageType.GPU,
     "DRAM": UsageType.MEMORY,
     "ANE": UsageType.HOST,
+}
+
+# macOS 27 stalls the Energy Model CPU, DRAM and ANE counters while AppleCLPC keeps counting. AppleCLPC does not
+# publish its channels, so they are described by report ID (index << 32 | key), with per-driver keys from macmon
+# (https://github.com/vladkens/macmon, src/clpc.rs at 6ebbd71c, Copyright (c) 2024 vladkens, MIT License).
+_CLPC_CHANNEL_INDICES = {"CPU Energy": 16, "GPU Energy": 25, "ANE": 24, "DRAM": 26}
+_CLPC_CHANNEL_KEYS = {
+    "com.apple.driver.AppleT6000CLPCv3": (0x47479059, 0x4519BF1E, 0x9AAA17F8, 0xD6CA0CFB),
+    "com.apple.driver.AppleT6002CLPC": (0xB501816B, 0x9E2C3E8B, 0x14D5A574, 0x76704B08),
+    "com.apple.driver.AppleT6020CLPC": (0xE301CD75, 0x8F34CC7A, 0x7415FB0F, 0x26244BB6),
+    "com.apple.driver.AppleT6022CLPC": (0x76F5FD21, 0x90624499, 0x3C097307, 0xE8F2DDF9),
+    "com.apple.driver.AppleT6030CLPC": (0xBE03A01A, 0x472D6C9C, 0xB8990C38, 0x23809C0F),
+    "com.apple.driver.AppleT6031CLPC": (0xD81E0084, 0x1085F98B, 0x313A3BE1, 0x65FF699D),
+    "com.apple.driver.AppleT6032CLPC": (0xF4A21308, 0x85E80513, 0x63DC8E25, 0x63DCAAE5),
+    "com.apple.driver.AppleT6041CLPC": (0x263CF1F0, 0x22E4CF59, 0x7849FB5C, 0xFE932624),
+    "com.apple.driver.AppleT6050CLPC": (0xD3AB60BB, 0x27CD4CE5, 0x8C0F1C59, 0xF3C81737),
+    "com.apple.driver.AppleT6050dCLPC": (0x18B3010E, 0xEDECA11A, 0x188BD883, 0xA33196F9),
+    "com.apple.driver.AppleT8103CLPCv3": (0x2CDD31F2, 0x21BECF42, 0x0667FB81, 0xC0C20839),
+    "com.apple.driver.AppleT8112CLPC": (0xB5435137, 0x638D9D52, 0xEA089C36, 0x8B6E0FAA),
+    "com.apple.driver.AppleT8122CLPC": (0x54B51C99, 0xCE2DD9DC, 0x960AFE2F, 0x0B9641D3),
+    "com.apple.driver.AppleT8132CLPC": (0x4A854D94, 0x3B3E3B79, 0x1FF4A9EC, 0x9A44D225),
+    "com.apple.driver.AppleT8140CLPC": (0x9BF54436, 0xEF70589C, 0x569D941B, 0x035F5005),
+    "com.apple.driver.AppleT8142CLPC": (0x43708744, 0x6A010933, 0xBC5EFDF0, 0xE13633AA),
+    "com.apple.driver.AppleT8152CLPC": (0x485D4BFC, 0x11784654, 0x9380C6BB, 0xE17C13BF),
 }
 
 
@@ -60,6 +86,8 @@ def _load_frameworks() -> tuple[ctypes.CDLL, ctypes.CDLL]:
                     "CFArrayGetCount": (ctypes.c_long, [pointer]),
                     "CFArrayGetValueAtIndex": (pointer, [pointer, ctypes.c_long]),
                     "CFRelease": (None, [pointer]),
+                    "CFDataCreate": (pointer, [pointer, ctypes.c_char_p, ctypes.c_long]),
+                    "CFPropertyListCreateWithData": (pointer, [pointer, pointer, ctypes.c_ulong, pointer, pointer]),
                 },
             ),
             (
@@ -94,6 +122,7 @@ def _load_frameworks() -> tuple[ctypes.CDLL, ctypes.CDLL]:
 class IOReportReader:
     """Own an IOReport subscription and its samples. Use one reader per caller."""
 
+    group = "Energy Model"
     _subscription: int | None = None
     _channels: int | None = None
     _channels_key: int | None = None
@@ -106,17 +135,47 @@ class IOReportReader:
             self._channels_key = self._core_foundation.CFStringCreateWithCString(None, b"IOReportChannels", _UTF8)
             if not self._channels_key:
                 raise HardwareIOReportException("Could not allocate the energy channel key.")
-            self._channels = self._copy_energy_channels()
-            subscribed_channels = ctypes.c_void_p()
-            self._subscription = self._ioreport.IOReportCreateSubscription(
-                None, self._channels, ctypes.byref(subscribed_channels), 0, None
-            )
-            self._subscribed_channels = subscribed_channels.value
-            if not self._subscription:
+            # IOReport refuses unknown CLPC report IDs, or accepts them and never samples them.
+            if self._subscribe(self._copy_clpc_channels(), sample_every_channel=True):
+                self.group = "CLPC"
+            elif not self._subscribe(self._copy_energy_channels()):
                 raise HardwareIOReportException("IOReport refused the subscription to its energy channels.")
         except Exception:
             self.close()
             raise
+
+    def _subscribe(self, channels: int | None, *, sample_every_channel: bool = False) -> bool:
+        if not channels:
+            return False
+        subscribed_channels = ctypes.c_void_p()
+        subscription = self._ioreport.IOReportCreateSubscription(
+            None, channels, ctypes.byref(subscribed_channels), 0, None
+        )
+        if subscription and sample_every_channel and not self._samples_every_channel(subscription, channels):
+            self._core_foundation.CFRelease(subscription)
+            subscription = None
+        if not subscription:
+            for reference in (subscribed_channels.value, channels):
+                if reference:
+                    self._core_foundation.CFRelease(reference)
+            return False
+        self._channels = channels
+        self._subscription = subscription
+        self._subscribed_channels = subscribed_channels.value
+        return True
+
+    def _samples_every_channel(self, subscription: int, channels: int) -> bool:
+        sample = self._ioreport.IOReportCreateSamples(subscription, channels, None)
+        if not sample:
+            return False
+        try:
+            return self._channel_count(sample) == self._channel_count(channels)
+        finally:
+            self._core_foundation.CFRelease(sample)
+
+    def _channel_count(self, reference: int) -> int:
+        channels = self._core_foundation.CFDictionaryGetValue(reference, self._channels_key)
+        return self._core_foundation.CFArrayGetCount(channels) if channels else 0
 
     @staticmethod
     def is_available() -> bool:
@@ -140,9 +199,42 @@ class IOReportReader:
         return ""
 
     def _usage_type(self, channel: int) -> UsageType | None:
-        if self._string(self._ioreport.IOReportChannelGetGroup(channel)) != "Energy Model":
+        if self._string(self._ioreport.IOReportChannelGetGroup(channel)) != self.group:
             return None
         return _channel_usage_type(self._string(self._ioreport.IOReportChannelGetChannelName(channel)))
+
+    def _copy_clpc_channels(self) -> int | None:
+        if platform.mac_ver()[0].partition(".")[0] != "27":
+            return None
+        try:
+            driver = plistlib.loads(_run_probe(["ioreg", "-a", "-r", "-d", "1", "-c", "AppleCLPC"]).stdout)[0]
+            keys = _CLPC_CHANNEL_KEYS[driver["CFBundleIdentifier"]]
+            driver_id = driver["IORegistryEntryID"]
+        except Exception:
+            return None
+        description = {
+            "IOReportChannels": [
+                {
+                    "DriverID": driver_id,
+                    "DriverName": "AppleCLPC",
+                    "IOReportGroupName": "CLPC",
+                    "IOReportSubGroupName": "Energy Counters",
+                    # IOReportTypes.h: one simple integer value, in nanojoules.
+                    "IOReportChannelInfo": {"IOReportChannelUnit": 3 << 56 | 118 << 32},
+                    "LegendChannel": [index << 32 | key, 1 | 2 << 16 | 1 << 32, name],
+                }
+                for (name, index), key in zip(_CLPC_CHANNEL_INDICES.items(), keys, strict=True)
+            ]
+        }
+        data = plistlib.dumps(description, fmt=plistlib.FMT_BINARY)
+        reference = self._core_foundation.CFDataCreate(None, data, len(data))
+        if not reference:
+            return None
+        try:
+            # Mutable, as IOReport's getters cache derived fields in each channel.
+            return self._core_foundation.CFPropertyListCreateWithData(None, reference, 1, None, None)
+        finally:
+            self._core_foundation.CFRelease(reference)
 
     def _copy_energy_channels(self) -> int:
         core_foundation = self._core_foundation
@@ -177,7 +269,11 @@ class IOReportReader:
                 )
                 if usage is None or factor is None:
                     continue
-                energy = self._ioreport.IOReportSimpleGetIntegerValue(channel, 0) * factor
+                value = self._ioreport.IOReportSimpleGetIntegerValue(channel, 0)
+                # A negative delta is IOReport's invalid value or a counter reset, not energy.
+                if value < 0:
+                    continue
+                energy = value * factor
                 if usage != UsageType.HOST:
                     millijoules[usage] = millijoules.get(usage, 0.0) + energy
                 millijoules[UsageType.HOST] = millijoules.get(UsageType.HOST, 0.0) + energy

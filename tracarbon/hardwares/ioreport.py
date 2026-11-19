@@ -14,7 +14,7 @@ class IOReportEnergy:
 
     def __init__(self) -> None:
         self._reader = IOReportReader()
-        self._gpu_only = int(platform.mac_ver()[0].partition(".")[0]) >= 27
+        self._gpu_only = self._reader.group != "CLPC" and int(platform.mac_ver()[0].partition(".")[0]) >= 27
 
     @staticmethod
     def is_available() -> bool:
