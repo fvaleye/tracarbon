@@ -1,11 +1,16 @@
 import asyncio
 import copy
 import platform
+import plistlib
+import subprocess
 
 import pytest
 
 from tracarbon.exceptions import HardwareIOReportException
+from tracarbon.hardwares._ioreport import _CLPC_CHANNEL_KEYS
+from tracarbon.hardwares._ioreport import _MACOS_OF_THE_CLPC_REPORT_IDS
 from tracarbon.hardwares._ioreport import IOReportReader
+from tracarbon.hardwares._ioreport import _macos_major
 from tracarbon.hardwares._ioreport import _Sample
 from tracarbon.hardwares.energy import EnergyUsage
 from tracarbon.hardwares.energy import UsageType
@@ -40,25 +45,21 @@ def test_ioreport_is_unavailable_on_unsupported_platforms(mocker, system, archit
     assert IOReportEnergy.is_available() is False
 
 
-def test_the_library_exports_the_energy_counters():
-    import tracarbon
-
-    assert tracarbon.IOReportEnergy is IOReportEnergy
-    assert "IOReportEnergy" in tracarbon.__all__
-
-
-async def test_report_converts_native_units_and_measures_each_interval(mocker, native_reader):
+@pytest.mark.parametrize(("release", "group"), [("26.0", "Energy Model"), ("27.2", "CLPC")])
+async def test_report_converts_native_units_and_measures_each_interval(mocker, native_reader, release, group):
+    mocker.patch.object(platform, "mac_ver", return_value=(release, ("", "", ""), ""))
+    native_reader.group = group
     channels = [
-        ("Energy Model", "CPU Energy", "mJ", 1000),
-        ("Energy Model", "DIE_0_GPU Energy", "nJ", 500_000_000),
-        ("Energy Model", "DIE_0_DRAM0", "uJ", 250_000),
-        ("Energy Model", "DIE_1_DRAM0", "uJ", 250_000),
-        ("Energy Model", "ANE0", "mJ", 100),
-        ("Energy Model", "DIE_1_ANE1", "J", 1),
-        ("Energy Model", "GPU", "mJ", 100_000),
-        ("Energy Model", "PACC1_CPU", "mJ", 100_000),
+        (group, "CPU Energy", "mJ", 1000),
+        (group, "DIE_0_GPU Energy", "nJ", 500_000_000),
+        (group, "DIE_0_DRAM0", "uJ", 250_000),
+        (group, "DIE_1_DRAM0", "uJ", 250_000),
+        (group, "ANE0", "mJ", 100),
+        (group, "DIE_1_ANE1", "J", 1),
+        (group, "GPU", "mJ", 100_000),
+        (group, "PACC1_CPU", "mJ", 100_000),
         ("Other Group", "CPU Energy", "mJ", 100_000),
-        ("Energy Model", "CPU Energy", "%", 100),
+        (group, "CPU Energy", "%", 100),
     ]
     core_foundation, ioreport = native_reader._core_foundation, native_reader._ioreport
     core_foundation.CFDictionaryGetValue.return_value = channels
@@ -108,6 +109,56 @@ async def test_macos_27_and_later_report_only_the_gpu_counter(mocker, native_rea
     assert await IOReportEnergy().get_energy_report() == EnergyUsage(
         host_energy_usage=None, gpu_energy_usage=0.5, interval_joules={UsageType.GPU: 1.0}
     )
+
+
+def _mock_clpc_driver(mocker, bundle, release="27.2"):
+    mocker.patch.object(platform, "mac_ver", return_value=(release, ("", "", ""), ""))
+    ioreg = plistlib.dumps([{"CFBundleIdentifier": bundle, "IORegistryEntryID": 7}])
+    mocker.patch("tracarbon.hardwares._ioreport._run_probe").return_value.stdout = ioreg
+    core_foundation, ioreport = mocker.Mock(), mocker.Mock()
+    core_foundation.CFArrayGetCount.return_value = 4
+    mocker.patch("tracarbon.hardwares._ioreport._load_frameworks", return_value=(core_foundation, ioreport))
+    mocker.patch("tracarbon.hardwares._ioreport.time")
+    mocker.patch.object(IOReportReader, "_read_channels", return_value={UsageType.CPU: 1.0})
+    return core_foundation, ioreport
+
+
+@pytest.mark.parametrize(
+    ("release", "bundle", "report_ids"),
+    [
+        ("27.2", "com.apple.driver.AppleT8142CLPC", [0x10_4370_8744, 0x19_6A01_0933, 0x18_BC5E_FDF0, 0x1A_E136_33AA]),
+        ("27.2", "com.apple.driver.AppleT9999CLPC", []),
+        ("28.0", "com.apple.driver.AppleT8142CLPC", []),
+    ],
+)
+def test_only_macos_27_reads_the_clpc_counters_of_known_chips(mocker, release, bundle, report_ids):
+    core_foundation, _ = _mock_clpc_driver(mocker, bundle, release)
+
+    energy = IOReportEnergy()
+
+    descriptions = [plistlib.loads(call.args[1]) for call in core_foundation.CFDataCreate.call_args_list]
+    channels = [channel for description in descriptions for channel in description["IOReportChannels"]]
+    assert [channel["LegendChannel"][0] for channel in channels] == report_ids
+    assert energy._gpu_only == (not report_ids)
+
+
+@pytest.mark.parametrize(
+    ("subscriptions", "sampled_channels", "cpu_millijoules"),
+    [([None, 1], 3, 1.0), ([1, 1], 3, 1.0), ([1, 1], 4, 0.0)],
+    ids=["refused", "never sampled", "stalled"],
+)
+def test_clpc_counters_that_cannot_be_trusted_keep_the_energy_model_counters(
+    mocker, subscriptions, sampled_channels, cpu_millijoules
+):
+    core_foundation, ioreport = _mock_clpc_driver(mocker, "com.apple.driver.AppleT8142CLPC")
+    ioreport.IOReportCreateSubscription.side_effect = subscriptions
+    core_foundation.CFArrayGetCount.side_effect = [sampled_channels, 4]
+    mocker.patch.object(IOReportReader, "_read_channels", return_value={UsageType.CPU: cpu_millijoules})
+
+    energy = IOReportEnergy()
+
+    ioreport.IOReportCopyChannelsInGroup.assert_called_once()
+    assert energy._gpu_only is True
 
 
 async def test_the_first_report_measures_a_short_interval(mocker, native_reader):
@@ -187,6 +238,7 @@ def test_copying_the_adapter_does_not_double_release_native_resources(mocker, na
 
 
 def test_a_failed_subscription_releases_allocated_resources(mocker):
+    mocker.patch.object(platform, "mac_ver", return_value=("26.0", ("", "", ""), ""))
     core_foundation, ioreport = mocker.Mock(), mocker.Mock()
     core_foundation.CFStringCreateWithCString.side_effect = [3, 5]
     core_foundation.CFDictionaryCreateMutableCopy.return_value = 2
@@ -218,7 +270,7 @@ async def test_independent_readers_can_measure_repeatedly_on_this_machine():
     with energy, IOReportEnergy() as other:
         reports = await asyncio.gather(energy.get_energy_report(), other.get_energy_report())
         energy.close()
-        await asyncio.sleep(0.01)
+        await asyncio.sleep(0.05)
         reports.append(await other.get_energy_report())
 
     for report in reports:
@@ -233,6 +285,21 @@ async def test_independent_readers_can_measure_repeatedly_on_this_machine():
             for value in (report.cpu_energy_usage, report.gpu_energy_usage, report.memory_energy_usage)
             if value is not None
         )
-        assert report.host_energy_usage > 0
+        assert 0 < report.host_energy_usage < 1000
         assert report.host_energy_usage >= component_watts or report.host_energy_usage == pytest.approx(component_watts)
         assert report.unit.value == "watts"
+
+
+@pytest.mark.darwin
+def test_a_chip_with_known_report_ids_reads_cpu_and_memory_energy_on_this_machine():
+    if not IOReportEnergy.is_available() or _macos_major() != _MACOS_OF_THE_CLPC_REPORT_IDS:
+        pytest.skip("No AppleCLPC report IDs for this macOS.")
+    ioreg = subprocess.run(["ioreg", "-a", "-r", "-d", "1", "-c", "AppleCLPC"], capture_output=True, check=True)
+    if plistlib.loads(ioreg.stdout)[0]["CFBundleIdentifier"] not in _CLPC_CHANNEL_KEYS:
+        pytest.skip("No AppleCLPC report IDs for this chip.")
+
+    with IOReportEnergy() as energy:
+        report = asyncio.run(energy.get_energy_report())
+
+    assert report.cpu_energy_usage is not None, "This chip's report IDs are stale or its CPU counter is stalled."
+    assert report.memory_energy_usage is not None

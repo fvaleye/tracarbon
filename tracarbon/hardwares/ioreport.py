@@ -1,5 +1,4 @@
 import asyncio
-import platform
 
 from tracarbon.exceptions import HardwareIOReportException
 from tracarbon.hardwares._ioreport import IOReportReader
@@ -14,7 +13,7 @@ class IOReportEnergy:
 
     def __init__(self) -> None:
         self._reader = IOReportReader()
-        self._gpu_only = int(platform.mac_ver()[0].partition(".")[0]) >= 27
+        self._gpu_only = self._reader.counts_only_gpu_energy
 
     @staticmethod
     def is_available() -> bool:
@@ -24,7 +23,7 @@ class IOReportEnergy:
         """
         Return component watts and a host total.
 
-        Where CPU, memory and ANE counters stall or arrive in delayed batches, only GPU watts are returned.
+        Where only GPU energy is counted, only GPU watts are returned.
         """
         interval = self._reader.read_interval()
         if interval is None:
