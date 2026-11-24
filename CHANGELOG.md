@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.15.7](https://github.com/fvaleye/tracarbon/compare/v0.15.6...v0.15.7) (2026-11-24)
+
+
+### Bug Fixes
+
+* read CPU and memory energy on macOS 27 without sudo ([#599](https://github.com/fvaleye/tracarbon/issues/599)) ([2a725dd](https://github.com/fvaleye/tracarbon/commit/2a725dd63576f60da7a59613f71ca2c329e9cd08))
+
+
+### Performance Improvements
+
+* defer aiohttp import until a carbon intensity request ([#595](https://github.com/fvaleye/tracarbon/issues/595)) ([2e2e26c](https://github.com/fvaleye/tracarbon/commit/2e2e26c86324c3d83641799548a10d2f6f8ac25d))
+
+
+### Dependencies
+
+* **deps:** Bump amannn/action-semantic-pull-request from 6.1.2 to 6.1.3 ([#598](https://github.com/fvaleye/tracarbon/issues/598)) ([1e00f2b](https://github.com/fvaleye/tracarbon/commit/1e00f2bb5fccd2645bfb4f036b62915c166c8c68))
+* **deps:** Bump astral-sh/setup-uv from 10.3.3 to 10.4.0 ([#597](https://github.com/fvaleye/tracarbon/issues/597)) ([8aadf03](https://github.com/fvaleye/tracarbon/commit/8aadf031997a0408ccd08afa83c997fb4de9ca80))
+
 ## [0.15.6](https://github.com/fvaleye/tracarbon/compare/v0.15.5...v0.15.6) (2026-11-18)
 
 
